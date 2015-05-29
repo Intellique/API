@@ -15,8 +15,6 @@
 		exit;
 	}
 
-	// isAdminReserved()
-
 	function checkConnected() {
 		if (!isset($_SESSION["userId"])) {
 			header("Content-Type: application/json; charset=utf-8");

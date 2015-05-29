@@ -1,4 +1,8 @@
 <?php
+/**
+ * \addtogroup authentication
+ * To authenticate a user with controls
+ */
 	require_once("../lib/http.php");
 	require_once("../lib/session.php");
 	require_once("../lib/dbSession.php");

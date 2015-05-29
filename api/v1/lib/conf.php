@@ -1,4 +1,7 @@
 <?php
+	/**
+	 * \brief read database configuration.
+	 */
 	$file = file('/etc/storiq/stone.conf');
 
 	$section;
@@ -26,6 +29,5 @@
 			$db_config[$key] = $val;
 	}
 
-	$db_config['db'] = 'stone-storiq-big'; // à retirer avant le commit
 	unset($file, $section, $conf);
 ?>
