@@ -27,7 +27,7 @@ class AuthTest(CommonTest):
 
     def test_4_post_with_login_only(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': 'storiq'})
+        params = urllib.parse.urlencode({'login': self.login});
         headers = {"Content-type": "application/x-www-form-urlencoded"}
         conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
@@ -36,7 +36,7 @@ class AuthTest(CommonTest):
 
     def test_5_post_auth_ok(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': 'storiq', 'password': '<password>'})
+        params = urllib.parse.urlencode({'login': self.login, 'password': self.password});
         headers = {"Content-type": "application/x-www-form-urlencoded"}
         conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
@@ -52,7 +52,7 @@ class AuthTest(CommonTest):
 
     def test_7_post_auth_fail(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': 'storiq', 'password': 'foo'})
+        params = urllib.parse.urlencode({'login': self.login, 'password': 'foo'});
         headers = {"Content-type": "application/x-www-form-urlencoded"}
         conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
