@@ -45,7 +45,6 @@ class AuthTest(CommonTest):
 
     def test_6_post_auth_ok_2(self):
         conn, res = self.newLoggedConnection()
-        print(res.read())
         self.assertEqual(res.status, 200)
         if (conn != None):
             conn.close()
