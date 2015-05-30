@@ -18,7 +18,7 @@
 			}
 
 			$user = $dbDriver->getUser(null, $_POST['login']);
-			if ($user === false) {
+			if ($user === false || $user['disabled']) {
 				http_response_code(401);
 				echo json_encode(array('message' => 'Authentication failed'));
 				exit;
