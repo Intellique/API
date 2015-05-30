@@ -1,0 +1,7 @@
+{
+	"scheme": "http",
+	"host": "taiko",
+	"path": "/storiqone-backend/api/v1/",
+	"login": "storiq",
+	"password": "<password>"
+}
