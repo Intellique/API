@@ -23,7 +23,16 @@
 			if (pg_num_rows($result) == 0)
 				return false;
 
-			return pg_fetch_assoc($result);
+			$row = pg_fetch_assoc($result);
+
+			$row['id'] = intval($row['id']);
+			$row['isadmin'] = $row['isadmin'] == 't' ? true : false;
+			$row['canarchive'] = $row['canarchive'] == 't' ? true : false;
+			$row['canrestore'] = $row['canrestore'] == 't' ? true : false;
+			$row['poolgroup'] = intval($row['poolgroup']);
+			$row['disabled'] = $row['disabled'] == 't' ? true : false;
+
+			return $row;
 		}
 	}
 ?>
