@@ -6,8 +6,8 @@
 	 */
 	interface DB {
 		/**
-		 * \brief opens a connection to a database.
-		 * \return connection resource on success, FALSE on failure.
+		 * \brief check if a connection to database exists.
+		 * \return \b TRUE on success, \b FALSE on failure
 		 */
 		public function isConnected();
 	}

@@ -1,6 +1,17 @@
 <?php
+	/**
+	 * \brief postgresql's implementation.
+	 */
 	class PostgresqlDB implements DB {
+		/**
+		 * \brief connection resource required by pg_*.
+		 */
 		protected $connect;
+		/**
+		 * \brief hash table which remembers prepared queries
+		 *
+		 * to avoid to prepare queries that have already been prepared.
+		 */
 		private $preparedQueries;
 
 		public function __construct($db_config) {
@@ -26,6 +37,12 @@
 			return $this->connect != false;
 		}
 
+		/**
+		 * \brief prepare an sql query.
+		 * \param $stmtname : sql query's name
+		 * \param $query : sql query
+		 * \return \b TRUE on success, \b FALSE on failure
+		 */
 		protected function prepareQuery($stmtname, $query) {
 			if (array_key_exists($stmtname, $this->preparedQueries))
 				return true;

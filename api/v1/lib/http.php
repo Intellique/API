@@ -18,7 +18,7 @@
 
 	/**
 	 * \brief return allowed http methods to the client
-	 * \param $methods[in] : list of http methods
+	 * \param $methods : list of http methods
 	 */
 	function httpOptionsMethod($methods) {
 		$allow = 'OPTIONS';

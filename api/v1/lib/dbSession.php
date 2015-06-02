@@ -7,9 +7,9 @@
 	interface DB_Session extends DB {
 		/**
 		 * \brief get user by id or login.
-		 * \param $id : id of user or null.
-		 * \param $login : login of user or null.
-		 * \return user or null if not found.
+		 * \param $id : id of user or null
+		 * \param $login : login of user or null
+		 * \return user or null if not found
 		 */
 		public function getUser($id, $login);
 	}

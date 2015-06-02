@@ -1,7 +1,18 @@
 <?php
 /**
  * \addtogroup authentication
- * To authenticate a user with controls
+ * To authenticate a user,
+ * use \b POST method
+ * \code
+ * path : /storiqone-backend/api/v1/auth/
+ * \endcode
+ * \param login : user's login
+ * \param password : user's password
+ * \return HTTP status codes :
+ *   - \b 200 Authentication successed \n
+ *         User's id is returned
+ *   - \b 400 Missing parameters (login or password was missing)
+ *   - \b 401 Authentication failed
  */
 	require_once("../lib/http.php");
 	require_once("../lib/session.php");
@@ -36,7 +47,10 @@
 
 			$_SESSION['user'] = $user;
 
-			echo json_encode(array('message' => 'Authentication success'));
+			echo json_encode(array(
+				'message' => 'Authentication success',
+				'user_id' => $user['id']
+				));
 
 			break;
 
