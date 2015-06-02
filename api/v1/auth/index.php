@@ -4,35 +4,35 @@
  * \section Authentication
  * To authenticate a user,
  * use \b POST method
- * \code
+ * \verbatim
  * path : /storiqone-backend/api/v1/auth/
- * \endcode
- * \param login : user's login
- * \param password : user's password
+ * \endverbatim
+ * \param login : User login
+ * \param password : User password
  * \return HTTP status codes :
- *   - \b 200 Authentication successed \n
- *         User's id is returned
- *   - \b 400 Missing parameters (login or password was missing)
- *   - \b 401 Authentication failed
+ *   - \b 200 Logged in
+ *     \verbatim User ID is returned \endverbatim
+ *   - \b 400 Missing parameters (login and/or password missing)
+ *   - \b 401 Log in failed
  *
  * \section Connection_status Connection status
  * To check user's connection status,
  * use \b GET method
- * \code
+ * \verbatim
  * path : /storiqone-backend/api/v1/auth/
- * \endcode
+ * \endverbatim
  * \return HTTP status codes :
- * - \b 200 User logged
+ * - \b 200 Logged in
  * - \b 401 Not logged in
  *
  * \section Disconnection
  * To log out,
  * use \b DELETE method
- * \code
+ * \verbatim
  * path : /storiqone-backend/api/v1/auth/
- * \endcode
+ * \endverbatim
  * \return HTTP status codes :
- * - \b 200 Log out
+ * - \b 200 Logged out
  */
 	require_once("../lib/http.php");
 	require_once("../lib/session.php");
@@ -43,7 +43,7 @@
 			session_destroy();
 			header("Content-Type: application/json; charset=utf-8");
 			http_response_code(200);
-			echo json_encode(array('message' => 'Log out'));
+			echo json_encode(array('message' => 'Logged out'));
 			break;
 
 		case 'GET':
@@ -51,7 +51,7 @@
 				header("Content-Type: application/json; charset=utf-8");
 				http_response_code(200);
 				echo json_encode(array(
-					'message' => 'User logged',
+					'message' => 'Logged in',
 					'user_id' => $_SESSION['user']['id']
 				));
 			} else {
@@ -73,7 +73,7 @@
 			$user = $dbDriver->getUser(null, $_POST['login']);
 			if ($user === false || $user['disabled']) {
 				http_response_code(401);
-				echo json_encode(array('message' => 'Authentication failed'));
+				echo json_encode(array('message' => 'Log in failed'));
 				exit;
 			}
 
@@ -90,7 +90,7 @@
 			$_SESSION['user'] = $user;
 
 			echo json_encode(array(
-				'message' => 'Log in',
+				'message' => 'Logged in',
 				'user_id' => $user['id']
 			));
 

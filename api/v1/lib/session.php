@@ -4,7 +4,7 @@
 		session_start();
 
 	/**
-	 * \brief check if user is connected.
+	 * \brief check if user is connected
 	 * \return \b TRUE on success, <b>HTTP status code 401 Authentication failed</b> on failure
 	 */
 	function checkConnected() {
@@ -18,7 +18,7 @@
 	}
 
 	/**
-	 * \brief check if user is logged.
+	 * \brief check if user is logged
 	 * \return \b TRUE on success, \b FALSE on failure
 	 */
 	function isLogged() {
@@ -27,7 +27,7 @@
 
 	/**
 	 * Session timeout.
-	 * After 1 hour unactive : session is detroyed.
+	 * After 1 hour unactive : session is detroyed
 	 * Return : HTTP status code 401 Not logged in on failure
 	 */
 	if (isset($_SESSION['LASTACTION']) && (time() - $_SESSION['LASTACTION'] > 3600)) {

@@ -17,8 +17,11 @@
 	define('HTTP_PUT', 8);
 
 	/**
-	 * \brief return allowed http methods to the client
+	 * \brief returns allowed http methods to the client
 	 * \param $methods : list of http methods
+	 * \return HTTP status codes :
+	 * - \b 200
+	 *   \verbatim Allowed http method(s) is/are returned \endverbatim
 	 */
 	function httpOptionsMethod($methods) {
 		$allow = 'OPTIONS';
@@ -36,7 +39,9 @@
 	}
 
 	/**
-	 * \brief return that http method is not supported
+	 * \brief returns not supported http method
+	 * \return HTTP status codes :
+	 * - \b 405 Method Not Allowed
 	 */
 	function httpUnsupportedMethod() {
 		header("Content-Type: application/json; charset=utf-8");

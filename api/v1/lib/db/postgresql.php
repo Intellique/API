@@ -1,16 +1,16 @@
 <?php
 	/**
-	 * \brief postgresql's implementation.
+	 * \brief postgresql's implementation
 	 */
 	class PostgresqlDB implements DB {
 		/**
-		 * \brief connection resource required by pg_*.
+		 * \brief connection resource required by pg_*
 		 */
 		protected $connect;
 		/**
-		 * \brief hash table which remembers prepared queries
+		 * \brief hash table stores prepared queries to avoid re-preparing queries that have already been prepared
 		 *
-		 * to avoid to prepare queries that have already been prepared.
+		 * \verbatim Avoids preparing two queries with the same name \endverbatim
 		 */
 		private $preparedQueries;
 
@@ -38,9 +38,9 @@
 		}
 
 		/**
-		 * \brief prepare an sql query.
-		 * \param $stmtname : sql query's name
-		 * \param $query : sql query
+		 * \brief prepares an SQL query
+		 * \param $stmtname : SQL query name
+		 * \param $query : SQL query
 		 * \return \b TRUE on success, \b FALSE on failure
 		 */
 		protected function prepareQuery($stmtname, $query) {
