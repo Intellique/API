@@ -13,12 +13,36 @@
  *         User's id is returned
  *   - \b 400 Missing parameters (login or password was missing)
  *   - \b 401 Authentication failed
+ *
+ * To check user's connection status,
+ * use \b GET method
+ * \code
+ * path : /storiqone-backend/api/v1/auth/
+ * \endcode
+ * \return HTTP status codes :
+ * - \b 200 User logged
+ * - \b 401 Not logged in
  */
 	require_once("../lib/http.php");
 	require_once("../lib/session.php");
 	require_once("../lib/dbSession.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
+		case 'GET':
+			if (isset($_SESSION['user'])) {
+				header("Content-Type: application/json; charset=utf-8");
+				http_response_code(200);
+				echo json_encode(array(
+					'message' => 'User logged',
+					'user_id' => $_SESSION['user']['id']
+				));
+			} else {
+				header("Content-Type: application/json; charset=utf-8");
+				http_response_code(401);
+				echo json_encode(array('message' => 'Not logged in'));
+			}
+			break;
+
 		case 'POST':
 			header("Content-Type: application/json; charset=utf-8");
 
@@ -50,12 +74,12 @@
 			echo json_encode(array(
 				'message' => 'Authentication success',
 				'user_id' => $user['id']
-				));
+			));
 
 			break;
 
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_PUT);
+			httpOptionsMethod(HTTP_GET | HTTP_POST);
 			break;
 
 		default:

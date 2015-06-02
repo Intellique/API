@@ -17,15 +17,15 @@ class CommonTest(unittest.TestCase):
 
     def newLoggedConnection(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': self.login, 'password': self.password});
+        params = urllib.parse.urlencode({'login': self.login, 'password': self.password})
         headers = {"Content-type": "application/x-www-form-urlencoded"}
         conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
-        if (res.status == 200):
-            return conn, res
-        else:
-            conn.close()
-            return None, res
+        conn.close()
+        self.assertEqual(res.status, 200)
+        conn = self.newConnection()
+        headers['Cookie'] = res.getheader('Set-Cookie')
+        return conn, headers
 
     def setUp(self):
         if (self.parsed):
