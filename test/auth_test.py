@@ -57,16 +57,28 @@ class AuthTest(CommonTest):
         conn.request('DELETE', self.path + 'auth/')
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 405)
+        self.assertEqual(res.status, 200)
 
-    def test_08_put(self):
+    def test_08_delete_and_get(self):
+        conn, headers = self.newLoggedConnection()
+        conn.request('DELETE', self.path + 'auth/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+        conn = self.newConnection()
+        conn.request('GET', self.path + 'auth/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_09_put(self):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'auth/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 405)
 
-    def test_09_get_logged(self):
+    def test_10_get_logged(self):
         conn, headers = self.newLoggedConnection()
         conn.request('GET', self.path + 'auth/', headers=headers)
         res = conn.getresponse()

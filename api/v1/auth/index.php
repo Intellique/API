@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup authentication
+ * \section Authentication
  * To authenticate a user,
  * use \b POST method
  * \code
@@ -14,6 +15,7 @@
  *   - \b 400 Missing parameters (login or password was missing)
  *   - \b 401 Authentication failed
  *
+ * \section Connection_status Connection status
  * To check user's connection status,
  * use \b GET method
  * \code
@@ -22,12 +24,28 @@
  * \return HTTP status codes :
  * - \b 200 User logged
  * - \b 401 Not logged in
+ *
+ * \section Disconnection
+ * To log out,
+ * use \b DELETE method
+ * \code
+ * path : /storiqone-backend/api/v1/auth/
+ * \endcode
+ * \return HTTP status codes :
+ * - \b 200 Log out
  */
 	require_once("../lib/http.php");
 	require_once("../lib/session.php");
 	require_once("../lib/dbSession.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
+		case 'DELETE':
+			session_destroy();
+			header("Content-Type: application/json; charset=utf-8");
+			http_response_code(200);
+			echo json_encode(array('message' => 'Log out'));
+			break;
+
 		case 'GET':
 			if (isset($_SESSION['user'])) {
 				header("Content-Type: application/json; charset=utf-8");
@@ -72,14 +90,14 @@
 			$_SESSION['user'] = $user;
 
 			echo json_encode(array(
-				'message' => 'Authentication success',
+				'message' => 'Log in',
 				'user_id' => $user['id']
 			));
 
 			break;
 
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_GET | HTTP_POST);
+			httpOptionsMethod(HTTP_DELETE | HTTP_GET | HTTP_POST);
 			break;
 
 		default:
