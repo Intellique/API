@@ -1,7 +1,17 @@
 {
 	"scheme": "http",
 	"host": "taiko",
-	"path": "/storiqone-backend/api/v1/",
-	"login": "storiq",
-	"password": "<password>"
+	"path": "/storiqone-backend-ludovic/api/v1/",
+	"users": {
+		"admin": {
+			"id": 1,
+			"login": "storiq",
+			"password": "<password>"
+		},
+		"basic": {
+			"id": 2,
+			"login": "bozo",
+			"password": "<password>"
+		}
+	}
 }

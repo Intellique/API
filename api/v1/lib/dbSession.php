@@ -12,6 +12,12 @@
 		 * \return user or null if not found
 		 */
 		public function getUser($id, $login);
+
+		/**
+		 * \brief get users ID list
+		 * \return Users ID list
+		 */
+		public function getUsers();
 	}
 
 	require_once("db/${db_config['driver']}Session.php");

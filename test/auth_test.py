@@ -27,7 +27,7 @@ class AuthTest(CommonTest):
 
     def test_04_post_with_login_only(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': self.login});
+        params = urllib.parse.urlencode({'login': self.users['admin']['login']})
         headers = {"Content-type": "application/x-www-form-urlencoded"}
         conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
@@ -36,7 +36,7 @@ class AuthTest(CommonTest):
 
     def test_05_post_auth_ok(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': self.login, 'password': self.password});
+        params = urllib.parse.urlencode({'login': self.users['admin']['login'], 'password': self.users['admin']['password']})
         headers = {"Content-type": "application/x-www-form-urlencoded"}
         conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
@@ -45,7 +45,7 @@ class AuthTest(CommonTest):
 
     def test_06_post_auth_fail(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': self.login, 'password': 'foo'});
+        params = urllib.parse.urlencode({'login': self.users['admin']['login'], 'password': 'foo'})
         headers = {"Content-type": "application/x-www-form-urlencoded"}
         conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
@@ -60,7 +60,7 @@ class AuthTest(CommonTest):
         self.assertEqual(res.status, 200)
 
     def test_08_delete_and_get(self):
-        conn, headers = self.newLoggedConnection()
+        conn, headers, message = self.newLoggedConnection('admin')
         conn.request('DELETE', self.path + 'auth/', headers=headers)
         res = conn.getresponse()
         conn.close()
@@ -79,7 +79,7 @@ class AuthTest(CommonTest):
         self.assertEqual(res.status, 405)
 
     def test_10_get_logged(self):
-        conn, headers = self.newLoggedConnection()
+        conn, headers, res = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'auth/', headers=headers)
         res = conn.getresponse()
         conn.close()

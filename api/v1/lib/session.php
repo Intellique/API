@@ -8,7 +8,7 @@
 	 * \return \b TRUE on success, <b>HTTP status code 401 Authentication failed</b> on failure
 	 */
 	function checkConnected() {
-		if (!isset($_SESSION["userId"])) {
+		if (!isset($_SESSION["user"])) {
 			header("Content-Type: application/json; charset=utf-8");
 			http_response_code(401);
 			echo json_encode(array('message' => 'Not logged in'));

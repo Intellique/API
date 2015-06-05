@@ -20,7 +20,7 @@
 				$result = pg_execute($this->connect, 'select_user_by_login', array($login));
 			}
 
-			if (pg_num_rows($result) == 0)
+			if ($result === false || pg_num_rows($result) == 0)
 				return false;
 
 			$row = pg_fetch_assoc($result);
@@ -33,6 +33,25 @@
 			$row['disabled'] = $row['disabled'] == 't' ? true : false;
 
 			return $row;
+		}
+
+		public function getUsers() {
+			$isPrepared = $this->prepareQuery('select_users_id', 'SELECT id FROM users');
+			if (!$isPrepared)
+				return false;
+
+			$result = pg_execute($this->connect, 'select_users_id', array());
+
+			if ($result === false)
+				return false;
+
+			$ids = array();
+
+			while ($row = pg_fetch_array($result)) {
+				$ids[] = intval($row[0]);
+			}
+
+			return $ids;
 		}
 	}
 ?>

@@ -4,9 +4,7 @@
  * \section Authentication
  * To authenticate a user,
  * use \b POST method
- * \verbatim
- * path : /storiqone-backend/api/v1/auth/
- * \endverbatim
+ * \verbatim path : /storiqone-backend/api/v1/auth/ \endverbatim
  * \param login : User login
  * \param password : User password
  * \return HTTP status codes :
@@ -18,9 +16,7 @@
  * \section Connection_status Connection status
  * To check user's connection status,
  * use \b GET method
- * \verbatim
- * path : /storiqone-backend/api/v1/auth/
- * \endverbatim
+ * \verbatim path : /storiqone-backend/api/v1/auth/ \endverbatim
  * \return HTTP status codes :
  * - \b 200 Logged in
  * - \b 401 Not logged in
@@ -28,9 +24,7 @@
  * \section Disconnection
  * To log out,
  * use \b DELETE method
- * \verbatim
- * path : /storiqone-backend/api/v1/auth/
- * \endverbatim
+ * \verbatim path : /storiqone-backend/api/v1/auth/ \endverbatim
  * \return HTTP status codes :
  * - \b 200 Logged out
  */
@@ -47,15 +41,14 @@
 			break;
 
 		case 'GET':
+			header("Content-Type: application/json; charset=utf-8");
 			if (isset($_SESSION['user'])) {
-				header("Content-Type: application/json; charset=utf-8");
 				http_response_code(200);
 				echo json_encode(array(
 					'message' => 'Logged in',
 					'user_id' => $_SESSION['user']['id']
 				));
 			} else {
-				header("Content-Type: application/json; charset=utf-8");
 				http_response_code(401);
 				echo json_encode(array('message' => 'Not logged in'));
 			}
@@ -71,6 +64,7 @@
 			}
 
 			$user = $dbDriver->getUser(null, $_POST['login']);
+
 			if ($user === false || $user['disabled']) {
 				http_response_code(401);
 				echo json_encode(array('message' => 'Log in failed'));

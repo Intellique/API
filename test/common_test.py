@@ -5,8 +5,12 @@ class CommonTest(unittest.TestCase):
     scheme = 'http'
     host = 'taiko'
     path = '/storiqone-backend/api/v1/'
-    login = 'storiq'
-    password = '<password>'
+    users = {
+        'admin': {
+            'login': 'storiq',
+            'password': '<password>'
+        }
+    }
     parsed = False
 
     def newConnection(self):
@@ -15,17 +19,19 @@ class CommonTest(unittest.TestCase):
         else:
             return http.client.HTTPSConnection(self.host)
 
-    def newLoggedConnection(self):
+    def newLoggedConnection(self, user):
+        if (user not in self.users):
+            self.fail("user < %s > not found is config" % (user))
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': self.login, 'password': self.password})
+        params = urllib.parse.urlencode({'login': self.users[user]['login'], 'password': self.users[user]['password']})
         headers = {"Content-type": "application/x-www-form-urlencoded"}
         conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
+        message = json.loads(res.read().decode("utf-8"))
         conn.close()
         self.assertEqual(res.status, 200)
         conn = self.newConnection()
-        headers['Cookie'] = res.getheader('Set-Cookie')
-        return conn, headers
+        return conn, {'Cookie': res.getheader('Set-Cookie').split(';')[0]}, message
 
     def setUp(self):
         if (self.parsed):
@@ -40,8 +46,6 @@ class CommonTest(unittest.TestCase):
             self.host = config['host']
         if ('path' in config):
             self.path = config['path']
-        if ('login' in config):
-            self.login = config['login']
-        if ('password' in config):
-            self.password = config['password']
+        if ('users' in config):
+            self.users = config['users']
 

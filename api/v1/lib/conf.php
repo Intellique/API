@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * \brief read database configuration.
+	 * \brief read database configuration
 	 */
 	$file = file('/etc/storiq/stone.conf');
 
