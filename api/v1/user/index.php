@@ -49,27 +49,6 @@
 	require_once("../lib/session.php");
 	require_once("../lib/dbSession.php");
 
-	function getUserById($id) {
-		global $dbDriver;
-
-		$user = $dbDriver->getUser($_GET['id'], null);
-		if ($user === false) {
-			http_response_code(500);
-			echo json_encode(array(
-				'message' => 'Query failure',
-				'user' => array()
-			));
-			exit;
-		}
-		http_response_code(200);
-		echo json_encode(array(
-			'message' => 'Query succeeded',
-			'user' => $user
-		));
-		$_SESSION['user'] = $user;
-		exit;
-	}
-
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
 			header("Content-Type: application/json; charset=utf-8");
@@ -78,10 +57,24 @@
 
 			if (isset($_GET['id'])) {
 
-				if ($_GET['id'] == $_SESSION['user']['id']) {
-					getUserById($_GET['id']);
-				} elseif ($_SESSION['user']['isadmin']) {
-					getUserById($_GET['id']);
+				if ($_GET['id'] == $_SESSION['user']['id'] || $_SESSION['user']['isadmin']) {
+					$user = $dbDriver->getUser($_GET['id'], null);
+					if ($user === false) {
+						http_response_code(500);
+						echo json_encode(array(
+							'message' => 'Query failure',
+							'user' => array()
+						));
+						exit;
+					}
+
+					http_response_code(200);
+					echo json_encode(array(
+						'message' => 'Query succeeded',
+						'user' => $user
+					));
+					$_SESSION['user'] = $user;
+					exit;
 				} else {
 					http_response_code(401);
 					echo json_encode(array('message' => 'Permission denied'));
