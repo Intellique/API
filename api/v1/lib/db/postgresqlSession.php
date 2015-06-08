@@ -84,6 +84,16 @@
 			$row['poolgroup'] = intval($row['poolgroup']);
 			$row['disabled'] = $row['disabled'] == 't' ? true : false;
 
+			$metas = array();
+			$list_metas = split(', ', $row['meta']);
+			foreach ($list_metas as $value) {
+				list($key, $val) = split('=>', $value);
+				$key = substr($key, 1, strlen($key) - 2);
+				$val = substr($val, 1, strlen($val) - 2);
+				$metas[$key] = json_decode($val, true);
+			}
+			$row['meta'] = $metas;
+
 			return $row;
 		}
 
