@@ -1,7 +1,10 @@
 from common_test import CommonTest
-import urllib.parse
+from io import StringIO
+import urllib.parse, json
 
 class UserTest(CommonTest):
+    last_user_created = None
+
     def test_01_delete(self):
         conn = self.newConnection()
         conn.request('DELETE', self.path + 'user/')
@@ -75,13 +78,69 @@ class UserTest(CommonTest):
         conn.request('POST', self.path + 'user/')
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 405)
+        self.assertEqual(res.status, 401)
 
-    def test_11_put(self):
+    def test_11_post_basic_user_not_allowed(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('POST', self.path + 'user/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_12_post_admin_user_post_without_params(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('POST', self.path + 'user/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_13_post_admin_user_post_with_wrong_params(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        io = StringIO()
+        json.dump({
+            'login': 'toto',
+            'password': 'toto79',
+            'fullname': 'la tête à toto'
+        }, io);
+        body = urllib.parse.urlencode({'user': io.getvalue()});
+        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'user/', body=body, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_14_post_admin_user_post_with_right_params(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        io = StringIO()
+        json.dump({
+            'login': 'toto',
+            'password': 'toto79',
+            'fullname': 'la tête à toto',
+            'email': 'toto@toto.com',
+            'homedirectory': '/mnt/raid',
+            'isadmin': False,
+            'canarchive': True,
+            'canrestore': True,
+            'meta': {'Description': 'Toto est super content', 'Format': 'totomobile'},
+            'poolgroup': 3,
+            'disabled': False
+        }, io);
+        body = urllib.parse.urlencode({'user': io.getvalue()});
+        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'user/', body=body, headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+        self.assertIn('user_id', message)
+        self.last_user_created = message['user_id']
+
+    def test_15_put(self):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'user/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 405)
 
-    
