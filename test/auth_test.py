@@ -7,7 +7,7 @@ class AuthTest(CommonTest):
         conn.request('GET', self.path + 'auth/')
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 401)
+        self.assertEqual(res.status, 405)
 
     def test_02_post_without_params(self):
         conn = self.newConnection()
