@@ -29,6 +29,18 @@
 			return $row;
 		}
 
+		public function deleteUser($id) {
+			if (!$this->prepareQuery('delete_user_by_id', 'DELETE FROM users WHERE id = $1'))
+				return null;
+
+			$result = pg_execute($this->connect, 'delete_user_by_id', array($id));
+
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
+		}
+
 		public function getPoolgroup($id) {
 			if (!isset($id))
 				return false;

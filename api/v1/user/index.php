@@ -1,48 +1,60 @@
 <?php
 /**
  * \addtogroup user
- * \section Users_ID Users ID
- * To get users id,
- * use \b GET method <i>without parameters</i>
- * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
- * \return HTTP status codes :
- *   - \b 200 Query succeeded
- *     \verbatim Users id are returned \endverbatim
- *   - \b 401 Permission denied
- *   - \b 500 Query failure
- *
- * \section User_Info User informations
- * To get a user informations,
- * use \b GET method
- * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
- * \param id : user id
- * \return HTTP status codes :
- *   - \b 200 Query succeeded
- *     \verbatim User informations are returned \endverbatim
- *   - \b 401 Permission denied
- *   - \b 500 Query failure
- *
  * \section Create_user User creation
  * To create a user,
  * use \b POST method
  * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
  * \param user : JSON encoded object
- * \li \c login (string) user login
- * \li \c password (string) user password
- * \li \c fullname (string) user fullname
- * \li \c email (string) user email
- * \li \c homedirectory (string) user homedirectory
- * \li \c isadmin (boolean) administration rights
- * \li \c canarchive (boolean) archive rights
- * \li \c canrestore (boolean) restoration rights
- * \li \c meta (object) user metadatas
- * \li \c poolgroup (integer) user poolgroup
- * \li \c disabled (boolean) login rights
+ * \li \c login (string) : user login
+ * \li \c password (string) : user password
+ * \li \c fullname (string) : user fullname
+ * \li \c email (string) : user email
+ * \li \c homedirectory (string) : user homedirectory
+ * \li \c isadmin (boolean) : administration rights
+ * \li \c canarchive (boolean) : archive rights
+ * \li \c canrestore (boolean) : restoration rights
+ * \li \c meta (object) : user metadata
+ * \li \c poolgroup (integer) : user poolgroup
+ * \li \c disabled (boolean) : login rights
  * \return HTTP status codes :
  *   - \b 200 User created successfully
- *     \verbatim New user id is returned \endverbatim
+ *     \verbatim New user ID is returned \endverbatim
+ *   - \b 400 User information required or incorrect input
  *   - \b 401 Permission denied
- *   - \b 400 User informations required or bad entries
+ *   - \b 500 Query failure
+ *
+ * \section Users_ID Users ID
+ * To get users ID list,
+ * use \b GET method <i>without parameters</i>
+ * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
+ * \return HTTP status codes :
+ *   - \b 200 Query successfull
+ *     \verbatim Users ID list is returned \endverbatim
+ *   - \b 401 Permission denied
+ *   - \b 500 Query failure
+ *
+ * \section User_Info User information
+ * To get a user information,
+ * use \b GET method
+ * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
+ * \param id : user ID
+ * \return HTTP status codes :
+ *   - \b 200 Query successfull
+ *     \verbatim User information is returned \endverbatim
+ *   - \b 401 Permission denied
+ *   - \b 500 Query failure
+ *
+ * \section Delete_user User deletion
+ * To delete a user,
+ * use \b DELETE method
+ * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
+ * \param id : user ID
+ * \return HTTP status codes :
+ *   - \b 200 Deletion successfull
+ *   - \b 400 User ID required
+ *   - \b 403 Permission denied
+ *   - \b 404 User not found
  *   - \b 500 Query failure
  */
 	require_once("../lib/http.php");
@@ -50,6 +62,55 @@
 	require_once("../lib/dbSession.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
+		case 'DELETE':
+			header("Content-Type: application/json; charset=utf-8");
+
+			checkConnected();
+
+			if (!$_SESSION['user']['isadmin']) {
+				http_response_code(403);
+				echo json_encode(array('message' => 'Permission denied'));
+				exit;
+			}
+
+			if (!isset($_GET['id'])) {
+				http_response_code(400);
+				echo json_encode(array('message' => 'User id required'));
+				exit;
+			}
+
+			if ($_GET['id'] == $_SESSION['user']['id']) {
+				http_response_code(400);
+				echo json_encode(array('message' => 'Suicide forbidden'));
+				exit;
+			}
+
+			$check_user = $dbDriver->getUser($_GET['id'], null);
+			if ($check_user === null) {
+				http_response_code(500);
+				echo json_encode(array('message' => 'Query failure'));
+				exit;
+			} elseif ($check_user === false) {
+				http_response_code(404);
+				echo json_encode(array('message' => 'User not found', 'debug' => 1, 'user id' => $user['id']));
+				exit;
+			}
+
+			$delete_status = $dbDriver->deleteUser($_GET['id']);
+			if ($delete_status === null) {
+				http_response_code(500);
+				echo json_encode(array('message' => 'Query failure'));
+				exit;
+			} elseif ($delete_status === false) {
+				http_response_code(404);
+				echo json_encode(array('message' => 'User not found', 'debug' => 2, 'user id' => $user['id']));
+				exit;
+			}
+			http_response_code(200);
+			echo json_encode(array('message' => 'Deletion successfull'));
+
+			break;
+
 		case 'GET':
 			header("Content-Type: application/json; charset=utf-8");
 
@@ -59,10 +120,17 @@
 
 				if ($_GET['id'] == $_SESSION['user']['id'] || $_SESSION['user']['isadmin']) {
 					$user = $dbDriver->getUser($_GET['id'], null);
-					if ($user === false) {
+					if ($user === null) {
 						http_response_code(500);
 						echo json_encode(array(
 							'message' => 'Query failure',
+							'user' => array()
+						));
+						exit;
+					} elseif ($user === false) {
+						http_response_code(404);
+						echo json_encode(array(
+							'message' => 'User not found',
 							'user' => array()
 						));
 						exit;
@@ -70,7 +138,7 @@
 
 					http_response_code(200);
 					echo json_encode(array(
-						'message' => 'Query succeeded',
+						'message' => 'Query successfull',
 						'user' => $user
 					));
 					$_SESSION['user'] = $user;
@@ -85,10 +153,17 @@
 
 				$users = $dbDriver->getUsers();
 
-				if ($users === false) {
+				if ($users === null) {
 					http_response_code(500);
 					echo json_encode(array(
 						'message' => 'Query failure',
+						'users_id' => array()
+					));
+					exit;
+				} elseif ($users === false) {
+					http_response_code(404);
+					echo json_encode(array(
+						'message' => 'Users not found',
 						'users_id' => array()
 					));
 					exit;
@@ -96,7 +171,7 @@
 
 				http_response_code(200);
 				echo json_encode(array(
-					'message' => 'Query succeeded',
+					'message' => 'Query successfull',
 					'users_id' => $users
 				));
 				exit;
@@ -123,7 +198,7 @@
 
 			if (!isset($_POST['user'])) {
 				http_response_code(400);
-				echo json_encode(array('message' => 'User informations required'));
+				echo json_encode(array('message' => 'User information is required'));
 				exit;
 			}
 
@@ -191,7 +266,7 @@
 			if ($ok)
 				$ok = isset($user['canrestore']) && is_bool($user['canrestore']);
 
-			// meta
+			// metadata
 			if ($ok)
 				$ok = isset($user['meta']) && is_array($user['meta']);
 			if ($ok) {
@@ -214,7 +289,7 @@
 
 			if (!$ok) {
 				http_response_code(400);
-				echo json_encode(array('message' => 'Bad entries'));
+				echo json_encode(array('message' => 'Incorrect input'));
 				exit;
 			}
 
@@ -234,7 +309,7 @@
 			break;
 
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_GET | HTTP_POST);
+			httpOptionsMethod(HTTP_DELETE | HTTP_GET | HTTP_POST);
 			break;
 
 		default:
