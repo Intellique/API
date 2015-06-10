@@ -22,41 +22,89 @@
 
 			checkConnected();
 
-			if (!isset($_GET['id'])) {
+			if (isset($_GET['id'])) {
+				$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
+				if ($permission_granted === null) {
+					http_response_code(500);
+					echo json_encode(array(
+						'message' => 'Query failure',
+						'archive' => array()
+					));
+					exit;
+				} elseif ($permission_granted === false) {
+					http_response_code(401);
+					echo json_encode(array('message' => 'Permission denied'));
+					exit;
+				}
+
+				$archive = $dbDriver->getArchive($_GET['id']);
+				if ($archive === null) {
+					http_response_code(500);
+					echo json_encode(array(
+						'message' => 'Query failure',
+						'archive' => array()
+					));
+					exit;
+				}
+
+				http_response_code(200);
+				echo json_encode(array(
+					'message' => 'Query succeeded',
+					'archive' => $archive
+				));
+			}
+
+			$params = array();
+			$ok = true;
+
+			if (isset($_GET['order_by'])) {
+				if (array_search($_GET['order_by'], array('id', 'uuid', 'name')))
+					$params['order_by'] = $_GET['order_by'];
+				else
+					$ok = false;
+
+				if (isset($_GET['order_asc'])) {
+					$is_asc = filter_var($_GET['order_asc'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+					if ($is_asc !== null)
+						$params['order_asc'] = $is_asc;
+					else
+						$ok = false;
+				}
+			}
+			if (isset($_GET['limit'])) {
+				if (is_integer($_GET['limit']) && $_GET['limit'] > 0)
+					$params['limit'] = intval($_GET['limit']);
+				else
+					$ok = false;
+			}
+			if (isset($_GET['offset'])) {
+				if (is_integer($_GET['offset']) && $_GET['offset'] > 0)
+					$params['offset'] = intval($_GET['offset']);
+				else
+					$ok = false;
+			}
+
+			if (!$ok) {
 				http_response_code(400);
-				echo json_encode(array('message' => '"id" of archive required'));
+				echo json_encode(array('message' => 'Incorrect input'));
 				exit;
 			}
 
-			$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
-			if ($permission_granted === null) {
+			$result = $dbDriver->getArchives($_SESSION['user']['id'], $params);
+			if ($result['query executed'] == false) {
 				http_response_code(500);
 				echo json_encode(array(
 					'message' => 'Query failure',
-					'user' => array()
+					'archives' => array(),
+					'total rows' => 0
 				));
-				exit;
-			} elseif ($permission_granted === false) {
-				http_response_code(401);
-				echo json_encode(array('message' => 'Permission denied'));
-				exit;
-			}
-
-			$archive = $dbDriver->getArchive($_GET['id']);
-			if ($archive === null) {
-				http_response_code(500);
+			} else {
 				echo json_encode(array(
-					'message' => 'Query failure',
-					'user' => array()
+					'message' => 'Query successfull',
+					'archives' => $result['rows'],
+					'total rows' => $result['total_rows']
 				));
-				exit;
 			}
-
-			http_response_code(200);
-			echo json_encode(array(
-				'message' => 'Query succeeded',
-				'archive' => $archive
-			));
 
 			break;
 

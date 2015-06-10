@@ -20,6 +20,8 @@
 		 * \note No permission check will be performed
 		 */
 		public function getArchive($id);
+
+		public function getArchives($user_id, &$params);
 	}
 
 	require_once("db/${db_config['driver']}Archive.php");

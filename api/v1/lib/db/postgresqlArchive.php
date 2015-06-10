@@ -3,7 +3,7 @@
 
 	class PostgresqlDBArchive extends PostgresqlDB implements DB_Archive {
 		public function checkArchivePermission($archive_id, $user_id) {
-			if (!$this->prepareQuery("check_archive_permission", "SELECT COUNT(*) > 0 AS granted FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE av.archive = $1 AND m.pool IN ( SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $2 AND u.poolgroup = ppg.poolgroup)"))
+			if (!$this->prepareQuery("check_archive_permission", "SELECT COUNT(*) > 0 AS granted FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE av.archive = $1 AND m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $2 AND u.poolgroup = ppg.poolgroup)"))
 				return null;
 
 			$result = pg_execute("check_archive_permission", array($archive_id, $user_id));
@@ -16,7 +16,7 @@
 		}
 
 		public function getArchive($id) {
-			if (!$this->prepareQuery("select_archive_by_id", "SELECT id, uuid, name, creator, owner, deleted FROM archive WHERE id = $1 AND NOT deleted"))
+			if (!$this->prepareQuery("select_archive_by_id", "SELECT id, uuid, name, creator, owner, canappend, deleted FROM archive WHERE id = $1 AND NOT deleted"))
 				return null;
 
 			$result = pg_execute("select_archive_by_id", array($archive_id));
@@ -28,9 +28,101 @@
 			$row['id'] = intval($row['id']);
 			$row['creator'] = intval($row['creator']);
 			$row['owner'] = intval($row['owner']);
+			$row['canappend'] = $row['canappend'] == 't' ? true : false;
 			$row['deleted'] = $row['deleted'] == 't' ? true : false;
 
 			return $row;
+		}
+
+		public function getArchives($user_id, &$params) {
+			$query_common = " FROM archive WHERE creator = $1 OR owner = $1 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup))";
+			$query_params = array($user_id);
+
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_archives_by_user";
+
+				if (!$this->prepareQuery($this->connect, $query_name, $query))
+					return array(
+						'query' => $query,
+						'query name' => $query_name,
+						'query prepared' => false,
+						'query executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query name' => $query_name,
+						'query prepared' => true,
+						'query executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+
+			$query = "SELECT id" . $query_common;
+
+			if (isset($params['order_by'])) {
+				$query .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query .= ' DESC';
+			}
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_archives_by_user_" . md5($query);
+			if (!$this->prepareQuery($this->connect, $query_name, $query))
+				return array(
+					'query' => $query,
+					'query name' => $query_name,
+					'query prepared' => false,
+					'query executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query name' => $query_name,
+					'query prepared' => true,
+					'query executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			if ($total_rows == 0)
+				$total_rows = count($rows);
+
+			return array(
+				'query' => $query,
+				'query name' => $query_name,
+				'query prepared' => true,
+				'query executed' => true,
+				'rows' => $rows,
+				'total_rows' => $total_rows
+			);
 		}
 	}
 ?>
