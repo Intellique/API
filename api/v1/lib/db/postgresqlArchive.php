@@ -19,9 +19,12 @@
 			if (!$this->prepareQuery("select_archive_by_id", "SELECT id, uuid, name, creator, owner, canappend, deleted FROM archive WHERE id = $1 AND NOT deleted"))
 				return null;
 
-			$result = pg_execute("select_archive_by_id", array($archive_id));
+			$result = pg_execute("select_archive_by_id", array($id));
 			if ($result === false)
 				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
 
 			$row = pg_fetch_assoc($result);
 
@@ -43,7 +46,7 @@
 				$query = "SELECT COUNT(*)" . $query_common;
 				$query_name = "select_total_archives_by_user";
 
-				if (!$this->prepareQuery($this->connect, $query_name, $query))
+				if (!$this->prepareQuery($query_name, $query))
 					return array(
 						'query' => $query,
 						'query name' => $query_name,
@@ -87,7 +90,7 @@
 			}
 
 			$query_name = "select_archives_by_user_" . md5($query);
-			if (!$this->prepareQuery($this->connect, $query_name, $query))
+			if (!$this->prepareQuery($query_name, $query))
 				return array(
 					'query' => $query,
 					'query name' => $query_name,

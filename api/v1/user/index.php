@@ -169,7 +169,7 @@
 						$ok = false;
 
 					if (isset($_GET['order_asc'])) {
-						$is_asc = filter_var($_GET['order_asc'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+						$is_asc = filter_var($_GET['order_asc'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 						if ($is_asc !== null)
 							$params['order_asc'] = $is_asc;
 						else

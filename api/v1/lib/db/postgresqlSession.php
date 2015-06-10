@@ -119,7 +119,7 @@
 				$query = "SELECT COUNT(*)" . $query_common;
 				$query_name = "select_total_users_id";
 
-				if (!$this->prepareQuery($this->connect, $query_name, $query))
+				if (!$this->prepareQuery($query_name, $query))
 					return array(
 						'query' => $query,
 						'query name' => $query_name,
@@ -163,7 +163,7 @@
 
 			$query_name = 'select_users_id_' . md5($query);
 
-			if (!$this->prepareQuery($this->connect, $query_name, $query))
+			if (!$this->prepareQuery($query_name, $query))
 				return array(
 					'query' => $query,
 					'query name' => $query_name,
