@@ -109,26 +109,96 @@
 			return $row;
 		}
 
-		public function getUsers() {
-			$isPrepared = $this->prepareQuery('select_users_id', 'SELECT id FROM users');
-			if (!$isPrepared)
-				return null;
+		public function getUsers(&$params) {
+			$query_common = " FROM users";
 
-			$result = pg_execute($this->connect, 'select_users_id', array());
+			$query_params = array();
 
-			if ($result === false)
-				return null;
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_users_id";
 
-			if (pg_num_rows($result) == 0)
-				return false;
+				if (!$this->prepareQuery($this->connect, $query_name, $query))
+					return array(
+						'query' => $query,
+						'query name' => $query_name,
+						'query prepared' => false,
+						'query executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
 
-			$ids = array();
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query name' => $query_name,
+						'query prepared' => true,
+						'query executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
 
-			while ($row = pg_fetch_array($result)) {
-				$ids[] = intval($row[0]);
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
 			}
 
-			return $ids;
+			$query = "SELECT id" . $query_common;
+
+			if (isset($params['order_by'])) {
+				$query .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query .= ' DESC';
+			}
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = 'select_users_id_' . md5($query);
+
+			if (!$this->prepareQuery($this->connect, $query_name, $query))
+				return array(
+					'query' => $query,
+					'query name' => $query_name,
+					'query prepared' => false,
+					'query executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query name' => $query_name,
+					'query prepared' => true,
+					'query executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			if ($total_rows == 0)
+				$total_rows = count($rows);
+
+			return array(
+				'query' => $query,
+				'query name' => $query_name,
+				'query prepared' => true,
+				'query executed' => true,
+				'rows' => $rows,
+				'total_rows' => $total_rows
+			);
 		}
 	}
 ?>

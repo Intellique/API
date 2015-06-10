@@ -26,14 +26,14 @@
 		/**
 		 * \brief delete a user
 		 * \param $id : User id
-		 * \return \b TRUE on deletion success, \b FALSE deletion failure, \b NULL on query execution failure
+		 * \return \b TRUE on deletion success, \b FALSE when no user was deleted, \b NULL on query execution failure
 		 */
 		public function deleteUser($id);
 
 		/**
 		 * \brief get poolgroup by id
 		 * \param $id : User id
-		 * \return <b>Poolgroup informations</b> or \b FALSE if not found
+		 * \return <b>Poolgroup informations</b>, \b FALSE if not found, \b NULL on query execution failure
 		 */
 		public function getPoolgroup($id);
 
@@ -41,15 +41,21 @@
 		 * \brief get user by id or login
 		 * \param $id : User id or null
 		 * \param $login : User login or null
-		 * \return <b>User informations</b> or \b FALSE if not found
+		 * \return <b>User informations</b>, \b FALSE if not found, \b NULL on query execution failure
 		 */
 		public function getUser($id, $login);
 
 		/**
 		 * \brief get users ID list
-		 * \return <b>Users ID list</b> or \b FALSE if not found
+		 *
+		 * <b>Optional parameters</b>
+		 * \li \c $params['order_by'] (enum) order by column
+		 * \li \c $params['order_asc'] (boolean) ascending/descending order
+		 * \li \c $params['limit'] (integer) maximum number of rows to return
+		 * \li \c $params['offset'] (integer) number of rows to skip before starting to return rows
+		 * \return <b>Users ID list</b> and <b>total rows</b>
 		 */
-		public function getUsers();
+		public function getUsers(&$params);
 	}
 
 	require_once("db/${db_config['driver']}Session.php");

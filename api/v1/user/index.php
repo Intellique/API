@@ -28,9 +28,19 @@
  * To get users ID list,
  * use \b GET method <i>without parameters</i>
  * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
+ * <b>Optional parameters</b>
+ * |   Name   |  Type   |                                  Description                                        |                          Constraint                           |
+ * | :------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------------------------------------: |
+ * | order_by | enum    |order by column                                                                      | value in : 'id', 'login', 'fullname', 'email', 'homedirectory'|
+ * | order_asc| boolean |\b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing.|              |
+ * | limit    | integer |specifies the maximum number of rows to return.                                      | limit > 0                                                     |
+ * | offset   | integer |specifies the number of rows to skip before starting to return rows.                 | offset >= 0                                                   |
+ *
+ * \warning To get users ID list do not pass an id as parameter
  * \return HTTP status codes :
  *   - \b 200 Query successfull
  *     \verbatim Users ID list is returned \endverbatim
+ *   - \b 400 Incorrect input
  *   - \b 401 Permission denied
  *   - \b 500 Query failure
  *
@@ -43,6 +53,7 @@
  *   - \b 200 Query successfull
  *     \verbatim User information is returned \endverbatim
  *   - \b 401 Permission denied
+ *   - \b 404 User not found
  *   - \b 500 Query failure
  *
  * \section Delete_user User deletion
@@ -92,7 +103,7 @@
 				exit;
 			} elseif ($check_user === false) {
 				http_response_code(404);
-				echo json_encode(array('message' => 'User not found', 'debug' => 1, 'user id' => $user['id']));
+				echo json_encode(array('message' => 'User not found'));
 				exit;
 			}
 
@@ -103,7 +114,7 @@
 				exit;
 			} elseif ($delete_status === false) {
 				http_response_code(404);
-				echo json_encode(array('message' => 'User not found', 'debug' => 2, 'user id' => $user['id']));
+				echo json_encode(array('message' => 'User not found'));
 				exit;
 			}
 			http_response_code(200);
@@ -117,7 +128,6 @@
 			checkConnected();
 
 			if (isset($_GET['id'])) {
-
 				if ($_GET['id'] == $_SESSION['user']['id'] || $_SESSION['user']['isadmin']) {
 					$user = $dbDriver->getUser($_GET['id'], null);
 					if ($user === null) {
@@ -148,23 +158,51 @@
 					echo json_encode(array('message' => 'Permission denied'));
 					exit;
 				}
-
 			} elseif ($_SESSION['user']['isadmin']) {
+				$params = array();
+				$ok = true;
 
-				$users = $dbDriver->getUsers();
+				if (isset($_GET['order_by'])) {
+					if (array_search($_GET['order_by'], array('id', 'login', 'fullname', 'email', 'homedirectory')))
+						$params['order_by'] = $_GET['order_by'];
+					else
+						$ok = false;
 
-				if ($users === null) {
+					if (isset($_GET['order_asc'])) {
+						$is_asc = filter_var($_GET['order_asc'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+						if ($is_asc !== null)
+							$params['order_asc'] = $is_asc;
+						else
+							$ok = false;
+					}
+				}
+				if (isset($_GET['limit'])) {
+					if (is_integer($_GET['limit']) && $_GET['limit'] > 0)
+						$params['limit'] = intval($_GET['limit']);
+					else
+						$ok = false;
+				}
+				if (isset($_GET['offset'])) {
+					if (is_integer($_GET['offset']) && $_GET['offset'] >= 0)
+						$params['offset'] = intval($_GET['offset']);
+					else
+						$ok = false;
+				}
+
+				if (!$ok) {
+					http_response_code(400);
+					echo json_encode(array('message' => 'Incorrect input'));
+					exit;
+				}
+
+				$users = $dbDriver->getUsers($params);
+
+				if ($users['query executed'] == false) {
 					http_response_code(500);
 					echo json_encode(array(
 						'message' => 'Query failure',
-						'users_id' => array()
-					));
-					exit;
-				} elseif ($users === false) {
-					http_response_code(404);
-					echo json_encode(array(
-						'message' => 'Users not found',
-						'users_id' => array()
+						'users_id' => array(),
+						'total rows' => 0
 					));
 					exit;
 				}
@@ -172,16 +210,14 @@
 				http_response_code(200);
 				echo json_encode(array(
 					'message' => 'Query successfull',
-					'users_id' => $users
+					'users_id' => $users['rows'],
+					'total rows' => $users['total_rows']
 				));
 				exit;
-
 			} else {
-
 				http_response_code(401);
 				echo json_encode(array('message' => 'Permission denied'));
 				exit;
-
 			}
 			break;
 
