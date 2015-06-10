@@ -11,6 +11,22 @@
  *     \verbatim Archive information are returned \endverbatim
  *   - \b 401 Permission denied
  *   - \b 500 Query failure
+ *
+ * \section Archives Get a list of archives,
+ * use \b GET method
+ * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
+ * <b>Optional parameters</b>
+ * |   Name    |  Type   |                                  Description                                        |           Constraint            |
+ * | :-------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------: |
+ * | order_by  | enum    | order by column                                                                     | value in : 'id', 'uuid', 'name' |
+ * | order_asc | boolean | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
+ * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
+ * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
+ *
+ * \warning To get archives ID list do not pass an id as parameter
+ * \return HTTP status codes :
+ *   - \b 200 Query successfull
+ *   - \b 500 Query failure
  */
 	require_once("../lib/http.php");
 	require_once("../lib/session.php");
@@ -78,7 +94,7 @@
 					$ok = false;
 			}
 			if (isset($_GET['offset'])) {
-				if (is_integer($_GET['offset']) && $_GET['offset'] > 0)
+				if (is_integer($_GET['offset']) && $_GET['offset'] >= 0)
 					$params['offset'] = intval($_GET['offset']);
 				else
 					$ok = false;

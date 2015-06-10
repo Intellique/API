@@ -21,6 +21,12 @@
 		 */
 		public function getArchive($id);
 
+		/**
+		 * \brief Get an archive ID list for user \i $user_id
+		 * \param $user_id : a user
+		 * \param &$params : optional parameters
+		 * \return an object which contains 'rows', 'total_rows', etc
+		 */
 		public function getArchives($user_id, &$params);
 	}
 
