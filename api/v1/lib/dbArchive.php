@@ -28,6 +28,13 @@
 		 * \return an object which contains 'rows', 'total_rows', etc
 		 */
 		public function getArchives($user_id, &$params);
+
+		/**
+		 * \brief Update an archive
+		 * \param &$archive : an archive
+		 * \return \b null on failure, \b false if no archive were updated or \b true on success
+		 */
+		public function updateArchive(&$archive);
 	}
 
 	require_once("db/${db_config['driver']}Archive.php");

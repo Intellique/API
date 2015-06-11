@@ -127,5 +127,19 @@
 				'total_rows' => $total_rows
 			);
 		}
+
+		public function updateArchive(&$archive) {
+			if (!$this->prepareQuery("update_archive", "UPDATE archive SET name = $1, owner = $2, canappend = $3, deleted = $4 WHERE id = $5"))
+				return null;
+
+			$canappend = $archive['canappend'] ? "TRUE" : "FALSE";
+			$deleted = $archive['deleted'] ? "TRUE" : "FALSE";
+
+			$result = pg_execute("update_archive", array($archive['name'], $archive['owner'], $canappend, $deleted, $archive['id']));
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
+		}
 	}
 ?>

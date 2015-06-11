@@ -1,6 +1,18 @@
 <?php
 /**
  * \addtogroup archive
+ * \section Delete_Archive Delete archive
+ * To mark archive as deleted,
+ * use \b DELETE method
+ * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
+ * \param id : archive's id
+ * \return HTTP status codes :
+ *   - \b 200 Query succeeded
+ *     \verbatim Archive information are returned \endverbatim
+ *   - \b 401 Permission denied
+ *   - \b 404 Archive not found
+ *   - \b 500 Query failure
+ *
  * \section Archive_ID Archive ID
  * To get archive by its ID,
  * use \b GET method
@@ -33,6 +45,46 @@
 	require_once("../lib/dbArchive.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
+		case 'DELETE':
+			header("Content-Type: application/json; charset=utf-8");
+
+			checkConnected();
+
+			if (!$_SESSION['user']['isadmin']) {
+				http_response_code(403);
+				echo json_encode(array('message' => 'Permission denied'));
+				exit;
+			}
+
+			if (isset($_GET['id'])) {
+				$archive = $dbDriver->getArchive($_GET['id']);
+				if ($archive === null) {
+					http_response_code(500);
+					echo json_encode(array('message' => 'Query failure'));
+					exit;
+				} elseif ($archive === false) {
+					http_response_code(404);
+					echo json_encode(array('message' => 'Archive not found'));
+					exit;
+				}
+
+				$archive['deleted'] = true;
+
+				$result = $dbDriver->updateArchive($archive);
+				if ($result === null) {
+					http_response_code(500);
+					echo json_encode(array('message' => 'Query failure'));
+				} elseif ($result === false) {
+					http_response_code(404);
+					echo json_encode(array('message' => 'Archive not found'));
+				} else {
+					http_response_code(200);
+					echo json_encode(array('message' => 'Archive deleted'));
+				}
+			}
+
+			break;
+
 		case 'GET':
 			header("Content-Type: application/json; charset=utf-8");
 
@@ -125,7 +177,7 @@
 			break;
 
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_GET);
+			httpOptionsMethod(HTTP_DELETE | HTTP_GET);
 			break;
 
 		default:
