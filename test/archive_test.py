@@ -17,8 +17,9 @@ class ArchiveTest(CommonTest):
 
     def test_03_get_archive_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sarchive/?id=%d" % (self.path, 500), headers=headers)
+        conn.request('GET', "%sarchive/?id=%d" % (self.path, 2), headers=headers)
         res = conn.getresponse()
+        print(res.read())
         conn.close()
         self.assertEqual(res.status, 200)
 

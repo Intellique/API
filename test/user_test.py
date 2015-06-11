@@ -163,7 +163,7 @@ class UserTest(CommonTest):
             'canarchive': True,
             'canrestore': True,
             'meta': {'Description': 'Toto est super content', 'Format': 'totomobile'},
-            'poolgroup': 3,
+            'poolgroup': 1,
             'disabled': False
         }, io);
         body = urllib.parse.urlencode({'user': io.getvalue()});
@@ -222,3 +222,4 @@ class UserTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
+

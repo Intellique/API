@@ -5,12 +5,17 @@
 	"users": {
 		"admin": {
 			"id": 1,
-			"login": "storiq",
+			"login": "admin",
 			"password": "<password>"
 		},
 		"basic": {
 			"id": 2,
-			"login": "bozo",
+			"login": "basic",
+			"password": "<password>"
+		},
+		"archiver": {
+			"id": 3,
+			"login": "archiver",
 			"password": "<password>"
 		}
 	}
