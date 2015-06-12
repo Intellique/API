@@ -1,6 +1,50 @@
 <?php
 /**
  * \addtogroup user
+ * \section Delete_user User deletion
+ * To delete a user,
+ * use \b DELETE method
+ * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
+ * \param id : user ID
+ * \return HTTP status codes :
+ *   - \b 200 Deletion successfull
+ *   - \b 400 User ID required
+ *   - \b 403 Permission denied
+ *   - \b 404 User not found
+ *   - \b 500 Query failure
+ *
+ * \section User_Info User information
+ * To get a user information,
+ * use \b GET method
+ * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
+ * \param id : user ID
+ * \return HTTP status codes :
+ *   - \b 200 Query successfull
+ *     \verbatim User information is returned \endverbatim
+ *   - \b 401 Permission denied
+ *   - \b 404 User not found
+ *   - \b 500 Query failure
+ *
+ * \section Users_ID Users ID
+ * To get users ID list,
+ * use \b GET method : <i>without reference to specific id or ids</i>
+ * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
+ * <b>Optional parameters</b>
+ * |   Name   |  Type   |                                  Description                                        |                               Constraint                               |
+ * | :------: | :-----: | :---------------------------------------------------------------------------------: | :--------------------------------------------------------------------: |
+ * | order_by | enum    |order by column                                                                      | single value from : 'id', 'login', 'fullname', 'email', 'homedirectory'|
+ * | order_asc| boolean |\b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing|                        |
+ * | limit    | integer |specifies the maximum number of rows to return                                       | limit > 0                                                              |
+ * | offset   | integer |specifies the number of rows to skip before starting to return rows                  | offset >= 0                                                            |
+ *
+ * \warning To get users ID list do not pass an id or ids as parameter
+ * \return HTTP status codes :
+ *   - \b 200 Query successfull
+ *     \verbatim Users ID list is returned \endverbatim
+ *   - \b 400 Incorrect input
+ *   - \b 401 Permission denied
+ *   - \b 500 Query failure
+ *
  * \section Create_user User creation
  * To create a user,
  * use \b POST method
@@ -24,48 +68,27 @@
  *   - \b 401 Permission denied
  *   - \b 500 Query failure
  *
- * \section Users_ID Users ID
- * To get users ID list,
- * use \b GET method <i>without parameters</i>
+ * \section Update_user User update
+ * To update a user,
+ * use \b PUT method
  * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
- * <b>Optional parameters</b>
- * |   Name   |  Type   |                                  Description                                        |                          Constraint                           |
- * | :------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------------------------------------: |
- * | order_by | enum    |order by column                                                                      | value in : 'id', 'login', 'fullname', 'email', 'homedirectory'|
- * | order_asc| boolean |\b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing.|              |
- * | limit    | integer |specifies the maximum number of rows to return.                                      | limit > 0                                                     |
- * | offset   | integer |specifies the number of rows to skip before starting to return rows.                 | offset >= 0                                                   |
- *
- * \warning To get users ID list do not pass an id as parameter
+ * \param user : JSON encoded object
+ * \li \c id (integer) : user id
+ * \li \c login (string) : user login
+ * \li \c password (string) : user password
+ * \li \c fullname (string) : user fullname
+ * \li \c email (string) : user email
+ * \li \c homedirectory (string) : user homedirectory
+ * \li \c isadmin (boolean) : administration rights
+ * \li \c canarchive (boolean) : archive rights
+ * \li \c canrestore (boolean) : restoration rights
+ * \li \c meta (object) : user metadata
+ * \li \c poolgroup (integer) : user poolgroup
+ * \li \c disabled (boolean) : login rights
  * \return HTTP status codes :
- *   - \b 200 Query successfull
- *     \verbatim Users ID list is returned \endverbatim
- *   - \b 400 Incorrect input
+ *   - \b 200 User updated successfully
+ *   - \b 400 User information required or incorrect input
  *   - \b 401 Permission denied
- *   - \b 500 Query failure
- *
- * \section User_Info User information
- * To get a user information,
- * use \b GET method
- * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
- * \param id : user ID
- * \return HTTP status codes :
- *   - \b 200 Query successfull
- *     \verbatim User information is returned \endverbatim
- *   - \b 401 Permission denied
- *   - \b 404 User not found
- *   - \b 500 Query failure
- *
- * \section Delete_user User deletion
- * To delete a user,
- * use \b DELETE method
- * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
- * \param id : user ID
- * \return HTTP status codes :
- *   - \b 200 Deletion successfull
- *   - \b 400 User ID required
- *   - \b 403 Permission denied
- *   - \b 404 User not found
  *   - \b 500 Query failure
  */
 	require_once("../lib/http.php");
@@ -240,13 +263,16 @@
 
 			$user = json_decode($_POST['user'], true);
 			$ok = (bool) $user;
+			$failed = false;
 
 			// login
 			if ($ok)
 				$ok = isset($user['login']) && is_string($user['login']);
 			if ($ok) {
 				$check_user = $dbDriver->getUser(null, $user['login']);
-				if ($check_user !== false)
+				if ($check_user === null)
+					$failed = true;
+				elseif ($check_user !== false)
 					$ok = false;
 			}
 
@@ -254,7 +280,7 @@
 			if ($ok)
 				$ok = isset($user['password']) && is_string($user['password']);
 			if ($ok) {
-				if (strlen($user['password']) < 6 && strlen($user['password']) > 255)
+				if (strlen($user['password']) < 6)
 					$ok = false;
 
 				$half_length = strlen($user['password']) >> 1;
@@ -312,10 +338,12 @@
 
 			// poolgroup
 			if ($ok)
-				$ok = isset($user['poolgroup']) && (is_int($user['poolgroup']) || is_null($user['poolgroup']));
+				$ok = array_key_exists('poolgroup', $user) && (is_int($user['poolgroup']) || is_null($user['poolgroup']));
 			if ($ok && is_int($user['poolgroup'])) {
 				$check_poolgroup = $dbDriver->getPoolgroup($user['poolgroup']);
-				if (!$check_poolgroup)
+				if ($check_poolgroup === null)
+					$failed = true;
+				elseif ($check_poolgroup === false)
 					$ok = false;
 			}
 
@@ -323,6 +351,12 @@
 			if ($ok)
 				$ok = isset($user['disabled']) && is_bool($user['disabled']);
 
+			// gestion des erreurs
+			if ($failed) {
+				http_response_code(500);
+				echo json_encode(array('message' => 'Query failure'));
+				exit;
+			}
 			if (!$ok) {
 				http_response_code(400);
 				echo json_encode(array('message' => 'Incorrect input'));
@@ -344,8 +378,156 @@
 
 			break;
 
+		case 'PUT':
+			header("Content-Type: application/json; charset=utf-8");
+
+			checkConnected();
+
+			$json = file_get_contents("php://input");
+			$user = json_decode($json, true);
+
+			if (!isset($user) && $user !== null) {
+				http_response_code(400);
+				echo json_encode(array('message' => 'User information is required'));
+				exit;
+			}
+
+			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $user['id'])) {
+				http_response_code(401);
+				echo json_encode(array('message' => 'Permission denied'));
+				exit;
+			}
+
+			$ok = (bool) $user;
+			$failed = false;
+
+			// id
+			if ($ok)
+				$ok = isset($user['id']) && is_int($user['id']);
+			if ($ok) {
+				$check_user = $dbDriver->getUser($user['id'], null);
+				if ($check_user === null)
+					$failed = true;
+				elseif ($check_user === false)
+					$ok = false;
+			}
+
+			// login
+			if ($ok)
+				$ok = isset($user['login']) && is_string($user['login']);
+			if ($ok) {
+				$check_user = $dbDriver->getUser(null, $user['login']);
+				if ($check_user === null)
+					$failed = true;
+				elseif ($check_user !== false && $check_user['id'] != $user['id'])
+					$ok = false;
+			}
+
+			// password
+			if ($ok)
+				$ok = isset($user['password']) && is_string($user['password']);
+			if ($ok) {
+				$check_user = $dbDriver->getUser($user['id'], null);
+				if ($check_user === null)
+					$failed = true;
+				elseif ($check_user === false)
+					$ok = false;
+
+				if ($ok && !$failed && $user['password'] != $check_user['password']) {
+					if (strlen($user['password']) < 6)
+						$ok = false;
+
+					$half_length = strlen($user['password']) >> 1;
+					$handle = fopen("/dev/urandom", "r");
+					$data = str_split(fread($handle, 8));
+					fclose($handle);
+
+					$user['salt'] = "";
+					foreach ($data as $char) {
+						$user['salt'] .= sprintf("%02x", ord($char));
+					}
+
+					$user['password'] = sha1(substr($user['password'], 0, $half_length) . $user['salt'] . substr($user['password'], $half_length));
+				}
+			}
+
+			// fullname
+			if ($ok)
+				$ok = isset($user['fullname']) && is_string($user['fullname']);
+			if ($ok) {
+				if (strlen($user['fullname']) > 255)
+					$ok = false;
+			}
+
+			// email
+			if ($ok)
+				$ok = isset($user['email']) && is_string($user['email']);
+			if ($ok) {
+				if (strlen($user['email']) > 255 || !filter_var($user['email'], FILTER_VALIDATE_EMAIL))
+					$ok = false;
+			}
+
+			// homedirectory
+			if ($ok)
+				$ok = isset($user['homedirectory']) && is_string($user['homedirectory']);
+
+			// isadmin
+			if ($ok)
+				$ok = isset($user['isadmin']) && is_bool($user['isadmin']);
+
+			// canarchive
+			if ($ok)
+				$ok = isset($user['canarchive']) && is_bool($user['canarchive']);
+
+			// canrestore
+			if ($ok)
+				$ok = isset($user['canrestore']) && is_bool($user['canrestore']);
+
+			// metadata
+			if ($ok)
+				$ok = isset($user['meta']) && is_array($user['meta']);
+
+			// poolgroup
+			if ($ok)
+				$ok = array_key_exists('poolgroup', $user) && (is_int($user['poolgroup']) || is_null($user['poolgroup']));
+			if ($ok && is_int($user['poolgroup'])) {
+				$check_poolgroup = $dbDriver->getPoolgroup($user['poolgroup']);
+				if ($check_poolgroup === null)
+					$failed = true;
+				elseif ($check_poolgroup === false)
+					$ok = false;
+			}
+
+			// disabled
+			if ($ok)
+				$ok = isset($user['disabled']) && is_bool($user['disabled']);
+
+			// gestion des erreurs
+			if ($failed) {
+				http_response_code(500);
+				echo json_encode(array('message' => 'Query failure'));
+				exit;
+			}
+			if (!$ok) {
+				http_response_code(400);
+				echo json_encode(array('message' => 'Incorrect input'));
+				exit;
+			}
+
+			$result = $dbDriver->updateUser($user);
+
+			if ($result) {
+				http_response_code(200);
+				echo json_encode(array('message' => 'User updated successfully'));
+			} else {
+				http_response_code(500);
+				echo json_encode(array('message' => 'Query failure'));
+			}
+
+			break;
+
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_DELETE | HTTP_GET | HTTP_POST);
+			httpOptionsMethod(HTTP_ALL_METHODS);
 			break;
 
 		default:

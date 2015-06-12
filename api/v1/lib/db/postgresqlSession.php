@@ -93,7 +93,10 @@
 			$row['isadmin'] = $row['isadmin'] == 't' ? true : false;
 			$row['canarchive'] = $row['canarchive'] == 't' ? true : false;
 			$row['canrestore'] = $row['canrestore'] == 't' ? true : false;
-			$row['poolgroup'] = intval($row['poolgroup']);
+			if (is_int($row['poolgroup']))
+				$row['poolgroup'] = intval($row['poolgroup']);
+			else
+				$row['poolgroup'] = null;
 			$row['disabled'] = $row['disabled'] == 't' ? true : false;
 
 			$metas = array();
@@ -199,6 +202,29 @@
 				'rows' => $rows,
 				'total_rows' => $total_rows
 			);
+		}
+
+		public function updateUser(&$user) {
+			if (!$this->prepareQuery("update_user", "UPDATE users SET login = $1, password = $2, salt = $3, fullname = $4, email = $5, homedirectory = $6, isadmin = $7, canarchive = $8, canrestore = $9, meta = $10 ::hstore, poolgroup = $11, disabled = $12 WHERE id = $13"))
+				return null;
+
+			$metas = array();
+			foreach ($user['meta'] as $key => $value)
+				$metas[] = $key . '=>' . json_encode($value);
+			$meta = join(',', $metas);
+			unset($metas);
+
+			$isadmin = $user['isadmin'] ? "TRUE" : "FALSE";
+			$canarchive = $user['canarchive'] ? "TRUE" : "FALSE";
+			$canrestore = $user['canrestore'] ? "TRUE" : "FALSE";
+			$disabled = $user['disabled'] ? "TRUE" : "FALSE";
+
+			$result = pg_execute($this->connect, "update_user", array($user['login'], $user['password'], $user['salt'], $user['fullname'], $user['email'], $user['homedirectory'], $isadmin, $canarchive, $canrestore, $meta, $user['poolgroup'], $disabled, $user['id']));
+
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
 		}
 	}
 ?>

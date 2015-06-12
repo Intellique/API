@@ -33,12 +33,13 @@ INSERT INTO DriveFormatSupport(driveFormat, mediaFormat, read, write) VALUES
 	(6, 6, TRUE, TRUE);
 
 INSERT INTO PoolGroup(uuid, name) VALUES
-	('7a9102a2-6f4d-c85f-1553-e8d769569558', 'basic');
+	('7a9102a2-6f4d-c85f-1553-e8d769569558', 'basic'),
+	('755d095a-7f59-40be-a11b-c4fdf4be5839', 'archive');
 
 INSERT INTO Users(login, password, salt, fullname, email, homedirectory, isAdmin, canArchive, canRestore, poolgroup, meta) VALUES
 	('admin', '8a6eb1d3b4fecbf8a1d6528a6aecb064e801b1e0', 'cd8c63688e0c2cff', 'admin', 'admin@storiqone-backend.net', '/mnt/raid', TRUE, TRUE, TRUE, 1, hstore('step', '5') || hstore('showHelp', '1')),
 	('basic', 'd57d82c1ab3abf6ae0c03ed35ae92cea73b60ae2', '1e31dc8ae0f1842b', 'basic', 'basic@storiqone-backend.net', '/mnt/raid', FALSE, FALSE, FALSE, 1, hstore('step', '5') || hstore('showHelp', '1')),
-	('archiver', 'd57d82c1ab3abf6ae0c03ed35ae92cea73b60ae2', '1e31dc8ae0f1842b', 'archiver', 'archiver@storiqone-backend.net', '/mnt/raid', FALSE, TRUE, FALSE, 1, hstore('step', '5') || hstore('showHelp', '1'));
+	('archiver', '58587452eadca1a695d8d713e6e94f567e8cd787', '20e90c3cd2be2354', 'archiver', 'archiver@storiqone-backend.net', '/mnt/raid', FALSE, TRUE, FALSE, 1, hstore('step', '5') || hstore('showHelp', '1'));
 
 INSERT INTO UserEvent(event) VALUES
 	('connection'),

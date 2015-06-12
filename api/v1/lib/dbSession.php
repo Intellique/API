@@ -8,17 +8,17 @@
 		/**
 		 * \brief create a user
 		 * \param $user : PHP object
-		 * \li \c login (string) user login
-		 * \li \c password (string) user password
-		 * \li \c fullname (string) user fullname
-		 * \li \c email (string) user email
-		 * \li \c homedirectory (string) user homedirectory
-		 * \li \c isadmin (boolean) administration rights
-		 * \li \c canarchive (boolean) archive rights
-		 * \li \c canrestore (boolean) restoration rights
-		 * \li \c meta (object) user metadatas
-		 * \li \c poolgroup (integer) user poolgroup
-		 * \li \c disabled (boolean) login rights
+		 * \li \c login (string) : user login
+		 * \li \c password (string) : user password
+		 * \li \c fullname (string) : user fullname
+		 * \li \c email (string) : user email
+		 * \li \c homedirectory (string) : user homedirectory
+		 * \li \c isadmin (boolean) : administration rights
+		 * \li \c canarchive (boolean) : archive rights
+		 * \li \c canrestore (boolean) : restoration rights
+		 * \li \c meta (object) : user metadatas
+		 * \li \c poolgroup (integer) : user poolgroup
+		 * \li \c disabled (boolean) : login rights
 		 * \return <b>New user ID</b> or \b NULL on query execution failure
 		 */
 		public function createUser(&$user);
@@ -56,6 +56,25 @@
 		 * \return <b>Users ID list</b> and <b>total rows</b>
 		 */
 		public function getUsers(&$params);
+
+		/**
+		 * \brief update a user
+		 * \param $user : PHP object
+		 * \li \c id (integer) : user id
+		 * \li \c login (string) : user login
+		 * \li \c password (string) : user password
+		 * \li \c fullname (string) : user fullname
+		 * \li \c email (string) : user email
+		 * \li \c homedirectory (string) : user homedirectory
+		 * \li \c isadmin (boolean) : administration rights
+		 * \li \c canarchive (boolean) : archive rights
+		 * \li \c canrestore (boolean) : restoration rights
+		 * \li \c meta (object) : user metadatas
+		 * \li \c poolgroup (integer) : user poolgroup
+		 * \li \c disabled (boolean) : login rights
+		 * \return \b TRUE on update success, \b FALSE when no user was updated, \b NULL on query execution failure
+		 */
+		public function updateUser(&$user);
 	}
 
 	require_once("db/${db_config['driver']}Session.php");

@@ -127,14 +127,14 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_18_post_admin_user_post_without_params(self):
+    def test_18_post_admin_user_without_params(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('POST', self.path + 'user/', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_19_post_admin_user_post_with_wrong_params(self):
+    def test_19_post_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -150,7 +150,7 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_20_post_admin_user_post_with_right_params(self):
+    def test_20_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -187,28 +187,150 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 404)
 
-    def test_21_put(self):
+    def test_21_post_admin_user_with_right_params_and_poolgroup_is_null(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        io = StringIO()
+        json.dump({
+            'login': 'kiki',
+            'password': 'kiki91',
+            'fullname': 'la tête à kiki',
+            'email': 'kiki@kiki.com',
+            'homedirectory': '/mnt/raid',
+            'isadmin': False,
+            'canarchive': True,
+            'canrestore': True,
+            'meta': {'Description': 'Kiki est super content', 'Voiture': 'kikimobile'},
+            'poolgroup': None,
+            'disabled': False
+        }, io);
+        body = urllib.parse.urlencode({'user': io.getvalue()});
+        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'user/', body=body, headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_22_put_user_not_logged(self):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'user/')
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 405)
+        self.assertEqual(res.status, 401)
 
-    def test_22_delete_user_not_logged(self):
+    def test_23_put_user_logged_as_admin_without_params(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('PUT', self.path + 'user/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_24_put_user_logged_as_basic_update_admin(self):
+        conn, cookie, message = self.newLoggedConnection('basic')
+        io = StringIO()
+        json.dump({
+            'id': 1,
+            'login': 'toto',
+            'password': 'toto79',
+            'fullname': 'la tête à toto',
+            'email': 'toto@toto.com',
+            'homedirectory': '/mnt/raid',
+            'isadmin': False,
+            'canarchive': True,
+            'canrestore': True,
+            'meta': {'Description': 'Toto est super content', 'Format': 'totomobile'},
+            'poolgroup': 3,
+            'disabled': False
+        }, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_25_put_user_logged_as_basic_update_itself(self):
+        conn, cookie, message = self.newLoggedConnection('basic')
+        userId = message['user_id']
+        conn.request('GET', "%suser/?id=%d" % (self.path, userId), headers=cookie)
+        res = conn.getresponse()
+        returned = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+        user = returned['user']
+        user['fullname'] = 'bozo'
+        user['email'] = 'bozo@bozo.com'
+        user['meta'].update({'Description': 'Bozo est super content', 'Rôle': 'Bozo le clown'})
+        io = StringIO()
+        json.dump(user, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn = self.newConnection()
+        conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_26_put_user_logged_as_admin_update_archiver_poolgroup_is_null(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%suser/?id=%d" % (self.path, self.users['archiver']['id']), headers=cookie)
+        res = conn.getresponse()
+        returned = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+        user = returned['user']
+        user['fullname'] = 'archiver1'
+        user['homedirectory'] = '/mnt/nas'
+        user['poolgroup'] = None
+        io = StringIO()
+        json.dump(user, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn = self.newConnection()
+        conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_27_put_user_logged_as_admin_update_archiver_new_password(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%suser/?id=%d" % (self.path, self.users['archiver']['id']), headers=cookie)
+        res = conn.getresponse()
+        returned = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+        user = returned['user']
+        user['password'] = 'archiver19'
+        io = StringIO()
+        json.dump(user, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn = self.newConnection()
+        conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_28_delete_user_not_logged(self):
         conn = self.newConnection()
         conn.request('DELETE', self.path + 'user/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_23_delete_user_logged_as_admin_without_params(self):
+    def test_29_delete_user_logged_as_admin_without_params(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('DELETE', self.path + 'user/', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_24_delete_user_logged_suicide(self):
+    def test_30_delete_user_logged_suicide(self):
         conn, headers, message = self.newLoggedConnection('admin')
         userId = message['user_id']
         conn.request('DELETE', "%suser/?id=%d" % (self.path, userId), headers=headers)
@@ -216,7 +338,7 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_25_delete_user_logged_as_basic(self):
+    def test_31_delete_user_logged_as_basic(self):
         conn, headers, message = self.newLoggedConnection('basic')
         conn.request('DELETE', self.path + 'user/', headers=headers)
         res = conn.getresponse()

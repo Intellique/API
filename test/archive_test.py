@@ -9,8 +9,8 @@ class ArchiveTest(CommonTest):
         self.assertEqual(res.status, 200)
 
     def test_02_get_archive_not_permitted(self):
-        conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sarchive/?id=%d" % (self.path, 200), headers=headers)
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('GET', "%sarchive/?id=%d" % (self.path, 2), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
@@ -19,7 +19,6 @@ class ArchiveTest(CommonTest):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', "%sarchive/?id=%d" % (self.path, 2), headers=headers)
         res = conn.getresponse()
-        print(res.read())
         conn.close()
         self.assertEqual(res.status, 200)
 

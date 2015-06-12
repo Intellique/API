@@ -15,6 +15,10 @@
 	 * \brief Constant for HTTP PUT method
 	 */
 	define('HTTP_PUT', 8);
+	/**
+	 * \brief Constant for all HTTP methods
+	 */
+	define('HTTP_ALL_METHODS', 15);
 
 	/**
 	 * \brief returns allowed http methods to the client
