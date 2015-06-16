@@ -61,6 +61,10 @@ COPY pool (id, uuid, name, mediaformat, autocheck, growable, unbreakablelevel, r
 \.
 ALTER SEQUENCE pool_id_seq RESTART 6;
 
+COPY pooltopoolgroup (pool, poolgroup) FROM stdin;
+3	1
+\.
+
 COPY media (id, uuid, label, mediumserialnumber, name, status, location, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, locked, type, mediaformat, pool) FROM stdin;
 1	8a391d01-6139-4ad9-8463-2ba6e8852040	EXP006	HA1PFAp084	EXPORTS_RUSHS_06	in use	offline	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	f	readonly	2	5
 \.

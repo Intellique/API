@@ -31,9 +31,16 @@
 		public function deleteUser($id);
 
 		/**
+		 * \brief get job by id
+		 * \param $id : Job id
+		 * \return <b>Job information</b>, \b FALSE if not found, \b NULL on query execution failure
+		 */
+		public function getJob($id);
+
+		/**
 		 * \brief get poolgroup by id
-		 * \param $id : User id
-		 * \return <b>Poolgroup informations</b>, \b FALSE if not found, \b NULL on query execution failure
+		 * \param $id : Poolgroup id
+		 * \return <b>Poolgroup information</b>, \b FALSE if not found, \b NULL on query execution failure
 		 */
 		public function getPoolgroup($id);
 

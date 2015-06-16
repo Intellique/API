@@ -30,7 +30,7 @@
 		}
 
 		public function deleteUser($id) {
-			if (!$this->prepareQuery('delete_user_by_id', 'DELETE FROM users WHERE id = $1'))
+			if (!$this->prepareQuery('delete_user_by_id', "DELETE FROM users WHERE id = $1"))
 				return null;
 
 			$result = pg_execute($this->connect, 'delete_user_by_id', array($id));
@@ -41,11 +41,40 @@
 			return pg_affected_rows($result) > 0;
 		}
 
+		public function getJob($id) {
+			if (!isset($id))
+				return false;
+
+			if (!$this->prepareQuery('select_job_by_id', "SELECT j.id, j.name, jt.name AS type, j.nextstart, EXTRACT(EPOCH FROM j.interval) AS interval, j.repetition, j.status, j.update, j.archive, j.backup, j.media, j.pool, j.host, j.login, j.metadata, j.options FROM job j INNER JOIN jobtype jt ON j.type = jt.id WHERE j.id = $1 LIMIT 1"))
+				return null;
+
+			$result = pg_execute($this->connect, 'select_job_by_id', array($id));
+
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$row = pg_fetch_assoc($result);
+
+			$row['id'] = intval($row['id']);
+			$row['interval'] = PostgresqlDB::getInteger($row['interval']);
+			$row['archive'] = PostgresqlDB::getInteger($row['archive']);
+			$row['backup'] = PostgresqlDB::getInteger($row['backup']);
+			$row['media'] = PostgresqlDB::getInteger($row['media']);
+			$row['pool'] = PostgresqlDB::getInteger($row['pool']);
+			$row['host'] = intval($row['host']);
+			$row['login'] = intval($row['login']);
+
+			return $row;
+		}
+
 		public function getPoolgroup($id) {
 			if (!isset($id))
 				return false;
 
-			if (!$this->prepareQuery('select_poolgroup_by_id', 'SELECT id, uuid, name FROM poolgroup WHERE id = $1 LIMIT 1'))
+			if (!$this->prepareQuery('select_poolgroup_by_id', "SELECT id, uuid, name FROM poolgroup WHERE id = $1 LIMIT 1"))
 				return null;
 
 			$result = pg_execute($this->connect, 'select_poolgroup_by_id', array($id));
@@ -68,13 +97,13 @@
 				return false;
 
 			if (isset($id)) {
-				$isPrepared = $this->prepareQuery('select_user_by_id', 'SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE id = $1 LIMIT 1');
+				$isPrepared = $this->prepareQuery('select_user_by_id', "SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE id = $1 LIMIT 1");
 				if (!$isPrepared)
 					return null;
 
 				$result = pg_execute($this->connect, 'select_user_by_id', array($id));
 			} else {
-				$isPrepared = $this->prepareQuery('select_user_by_login', 'SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE login = $1 LIMIT 1');
+				$isPrepared = $this->prepareQuery('select_user_by_login', "SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE login = $1 LIMIT 1");
 				if (!$isPrepared)
 					return null;
 
@@ -93,21 +122,9 @@
 			$row['isadmin'] = $row['isadmin'] == 't' ? true : false;
 			$row['canarchive'] = $row['canarchive'] == 't' ? true : false;
 			$row['canrestore'] = $row['canrestore'] == 't' ? true : false;
-			if (is_int($row['poolgroup']))
-				$row['poolgroup'] = intval($row['poolgroup']);
-			else
-				$row['poolgroup'] = null;
+			$row['poolgroup'] = PostgresqlDB::getInteger($row['poolgroup']);
 			$row['disabled'] = $row['disabled'] == 't' ? true : false;
-
-			$metas = array();
-			$list_metas = split(', ', $row['meta']);
-			foreach ($list_metas as $value) {
-				list($key, $val) = split('=>', $value);
-				$key = substr($key, 1, strlen($key) - 2);
-				$val = substr($val, 1, strlen($val) - 2);
-				$metas[$key] = json_decode($val, true);
-			}
-			$row['meta'] = $metas;
+			$row['meta'] = PostgresqlDB::fromHstore($row['meta']);
 
 			return $row;
 		}
@@ -208,16 +225,11 @@
 			if (!$this->prepareQuery("update_user", "UPDATE users SET login = $1, password = $2, salt = $3, fullname = $4, email = $5, homedirectory = $6, isadmin = $7, canarchive = $8, canrestore = $9, meta = $10 ::hstore, poolgroup = $11, disabled = $12 WHERE id = $13"))
 				return null;
 
-			$metas = array();
-			foreach ($user['meta'] as $key => $value)
-				$metas[] = $key . '=>' . json_encode($value);
-			$meta = join(',', $metas);
-			unset($metas);
-
 			$isadmin = $user['isadmin'] ? "TRUE" : "FALSE";
 			$canarchive = $user['canarchive'] ? "TRUE" : "FALSE";
 			$canrestore = $user['canrestore'] ? "TRUE" : "FALSE";
 			$disabled = $user['disabled'] ? "TRUE" : "FALSE";
+			$meta = PostgresqlDB::toHstore($user['meta']);
 
 			$result = pg_execute($this->connect, "update_user", array($user['login'], $user['password'], $user['salt'], $user['fullname'], $user['email'], $user['homedirectory'], $isadmin, $canarchive, $canrestore, $meta, $user['poolgroup'], $disabled, $user['id']));
 

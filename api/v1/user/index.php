@@ -14,7 +14,7 @@
  *   - \b 500 Query failure
  *
  * \section User_Info User information
- * To get a user information,
+ * To get user information,
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
  * \param id : user ID

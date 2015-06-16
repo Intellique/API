@@ -30,11 +30,55 @@
 
 			$this->connect = pg_connect($connection_string);
 
+			pg_query($this->connect, "SET timezone = 'GMT'");
+
 			$this->preparedQueries = array();
 		}
 
 		public function isConnected() {
 			return $this->connect != false;
+		}
+
+		/**
+		 * \brief casts specified string into integer
+		 * \param $string : string to be casted
+		 * \return \b integer or \b null if string doesn't represent a number
+		 */
+		protected static function getInteger($string) {
+			if (is_int($string))
+				return intval($string);
+			else
+				return null;
+		}
+
+		/**
+		 * \brief convert hstore string into hashtable
+		 * \param $metadatas : metadata hstore string
+		 * \return \b metadata hashtable
+		 */
+		protected static function fromHstore($metadatas) {
+			$metas = array();
+			$list_metas = split(', ', $metadatas);
+			foreach ($list_metas as $value) {
+				list($key, $val) = split('=>', $value);
+				$key = substr($key, 1, strlen($key) - 2);
+				$val = substr($val, 1, strlen($val) - 2);
+				$metas[$key] = json_decode($val, true);
+			}
+			return $metas;
+		}
+
+		/**
+		 * \brief convert hashtable into hstore string
+		 * \param $metadatas : metadata hashtable
+		 * \return \b metadata hstore string
+		 */
+		protected static function toHstore(&$metadatas) {
+			$metas = array();
+			foreach ($metadatas as $key => $value)
+				$metas[] = $key . '=>' . json_encode($value);
+			$meta = join(',', $metas);
+			return $meta;
 		}
 
 		/**
