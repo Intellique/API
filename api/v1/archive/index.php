@@ -139,13 +139,13 @@
 					}
 				}
 				if (isset($_GET['limit'])) {
-					if (is_integer($_GET['limit']) && $_GET['limit'] > 0)
+					if (is_int($_GET['limit']) && $_GET['limit'] > 0)
 						$params['limit'] = intval($_GET['limit']);
 					else
 						$ok = false;
 				}
 				if (isset($_GET['offset'])) {
-					if (is_integer($_GET['offset']) && $_GET['offset'] >= 0)
+					if (is_int($_GET['offset']) && $_GET['offset'] >= 0)
 						$params['offset'] = intval($_GET['offset']);
 					else
 						$ok = false;

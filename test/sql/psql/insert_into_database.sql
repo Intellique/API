@@ -87,7 +87,7 @@ COPY archive (id, uuid, name, creator, owner, canappend, deleted) FROM stdin;
 ALTER SEQUENCE archive_id_seq RESTART 3;
 
 COPY job (id, name, type, nextstart, "interval", repetition, status, update, archive, backup, media, pool, host, login, metadata, options) FROM stdin;
-4	OESC_AMON_LE_VICTORIEUX_C_BARBOTIN	4	2012-09-27 16:59:39	\N	0	finished	2014-11-12 12:31:17	\N	\N	\N	3	6	1	"Nomenclature_Echo"=>"20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN"	
+4	OESC_AMON_LE_VICTORIEUX_C_BARBOTIN	4	2012-09-27 16:59:39	\N	0	finished	2014-11-12 12:31:17	\N	\N	\N	3	6	2	"Nomenclature_Echo"=>"20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN"
 \.
 ALTER SEQUENCE job_id_seq RESTART 3;
 

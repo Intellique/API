@@ -1,6 +1,6 @@
 from common_test import CommonTest
 from io import StringIO
-import urllib.parse, json, unittest
+import urllib.parse, json, unittest, copy
 
 class UserTest(CommonTest):
     def test_01_get_user_not_logged(self):
@@ -211,6 +211,12 @@ class UserTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
+        last_user_created = message['user_id']
+        conn = self.newConnection()
+        conn.request('DELETE', "%suser/?id=%d" % (self.path, last_user_created), headers=cookie)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
 
     def test_22_put_user_not_logged(self):
         conn = self.newConnection()
@@ -282,6 +288,7 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
         user = returned['user']
+        copy_user = copy.deepcopy(user)
         user['fullname'] = 'archiver1'
         user['homedirectory'] = '/mnt/nas'
         user['poolgroup'] = None
@@ -289,6 +296,14 @@ class UserTest(CommonTest):
         json.dump(user, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
+        conn = self.newConnection()
+        conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+        io = StringIO()
+        json.dump(copy_user, io);
         conn = self.newConnection()
         conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
@@ -306,9 +321,18 @@ class UserTest(CommonTest):
         user = returned['user']
         user['password'] = 'archiver19'
         io = StringIO()
-        json.dump(user, io);
+        json.dump(user, io)
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
+        conn = self.newConnection()
+        conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+        user['password'] = self.users['archiver']['password']
+        io = StringIO()
+        json.dump(user, io)
         conn = self.newConnection()
         conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()

@@ -15,7 +15,7 @@
  */
 	require_once("../lib/http.php");
 	require_once("../lib/session.php");
-	require_once("../lib/dbArchive.php");
+	require_once("../lib/dbSession.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
@@ -41,7 +41,7 @@
 					exit;
 				}
 
-				$ok = $_SESSION['user']['isadmin'];
+				$ok = $_SESSION['user']['isadmin'] || $job['login'] == $_SESSION['user']['id'];
 				$failed = false;
 
 				if (!$ok && isset($job['archive'])) {
