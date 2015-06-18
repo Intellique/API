@@ -134,14 +134,13 @@
 			if ($delete_status === null) {
 				http_response_code(500);
 				echo json_encode(array('message' => 'Query failure'));
-				exit;
 			} elseif ($delete_status === false) {
 				http_response_code(404);
 				echo json_encode(array('message' => 'User not found'));
-				exit;
+			} else {
+				http_response_code(200);
+				echo json_encode(array('message' => 'Deletion successfull'));
 			}
-			http_response_code(200);
-			echo json_encode(array('message' => 'Deletion successfull'));
 
 			break;
 
@@ -175,11 +174,9 @@
 						'user' => $user
 					));
 					$_SESSION['user'] = $user;
-					exit;
 				} else {
 					http_response_code(401);
 					echo json_encode(array('message' => 'Permission denied'));
-					exit;
 				}
 			} elseif ($_SESSION['user']['isadmin']) {
 				$params = array();
@@ -236,11 +233,9 @@
 					'users_id' => $users['rows'],
 					'total rows' => $users['total_rows']
 				));
-				exit;
 			} else {
 				http_response_code(401);
 				echo json_encode(array('message' => 'Permission denied'));
-				exit;
 			}
 			break;
 

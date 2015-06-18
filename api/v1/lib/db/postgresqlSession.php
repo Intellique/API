@@ -70,6 +70,18 @@
 			return $row;
 		}
 
+		public function getJobType() {
+			if (!$this->prepareQuery('select_jobtype', "SELECT name FROM jobtype"))
+				return null;
+
+			$result = pg_execute($this->connect, 'select_jobtype', array());
+
+			if ($result === false)
+				return null;
+
+			return pg_fetch_all_columns($result);
+		}
+
 		public function getPoolgroup($id) {
 			if (!isset($id))
 				return false;

@@ -66,19 +66,25 @@
 						'message' => 'Query failure',
 						'job' => null
 					));
-					exit;
 				} elseif ($ok) {
 					http_response_code(200);
 					echo json_encode(array(
 						'message' => 'Query successfull',
 						'job' => $job
 					));
-					exit;
 				} else {
 					http_response_code(401);
 					echo json_encode(array('message' => 'Permission denied'));
 				}
 			}
 		break;
+
+		case 'OPTIONS':
+			httpOptionsMethod(HTTP_GET);
+			break;
+
+		default:
+			httpUnsupportedMethod();
+			break;
 	}
 ?>

@@ -2,7 +2,7 @@
 	require_once('db.php');
 
 	/**
-	 * \brief specific interface for user, session, job
+	 * \brief specific interface for user, session, job, jobtype
 	 */
 	interface DB_Session extends DB {
 		/**
@@ -36,6 +36,12 @@
 		 * \return <b>Job information</b>, \b FALSE if not found, \b NULL on query execution failure
 		 */
 		public function getJob($id);
+
+		/**
+		 * \brief get jobtype name list
+		 * \return <b>Jobtype name list</b>, <b>empty array</b> if not found, \b NULL on query execution failure
+		 */
+		public function getJobType();
 
 		/**
 		 * \brief get poolgroup by id
