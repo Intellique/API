@@ -54,8 +54,10 @@ class UserTest(CommonTest):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'user/', headers=headers)
         res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
+        self.assertLessEqual(len(message['users id']), message['total rows'])
 
     def test_08_get_list_of_users_logged_as_basic(self):
         conn, headers, message = self.newLoggedConnection('basic')
@@ -78,63 +80,74 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_11_get_list_of_users_logged_as_admin_with_wrong_limit(self):
+    def test_11_get_list_of_users_logged_as_admin_with_right_order_by_and_right_order_asc(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', self.path + 'user/?limit=-3', headers=headers)
+        conn.request('GET', self.path + 'user/?order_by=id&order_asc=0', headers=headers)
         res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
         conn.close()
-        self.assertEqual(res.status, 400)
+        self.assertEqual(res.status, 200)
+        self.assertLessEqual(len(message['users id']), message['total rows'])
 
-    def test_12_get_list_of_users_logged_as_admin_with_wrong_limit(self):
+    def test_12_get_list_of_users_logged_as_admin_with_right_limit_and_right_offset(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'user/?limit=1&offset=1', headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+        self.assertLessEqual(len(message['users id']), message['total rows'])
+
+    def test_13_get_list_of_users_logged_as_admin_with_wrong_limit(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'user/?limit=0', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_13_get_list_of_users_logged_as_admin_with_wrong_limit(self):
+    def test_14_get_list_of_users_logged_as_admin_with_wrong_limit(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'user/?limit=foo', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_14_get_list_of_users_logged_as_admin_with_wrong_offset(self):
+    def test_15_get_list_of_users_logged_as_admin_with_wrong_offset(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'user/?offset=-3', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_15_get_list_of_users_logged_as_admin_with_wrong_offset(self):
+    def test_16_get_list_of_users_logged_as_admin_with_wrong_offset(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'user/?offset=foo', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_16_post(self):
+    def test_17_post(self):
         conn = self.newConnection()
         conn.request('POST', self.path + 'user/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_17_post_basic_user_not_allowed(self):
+    def test_18_post_basic_user_not_allowed(self):
         conn, headers, message = self.newLoggedConnection('basic')
         conn.request('POST', self.path + 'user/', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_18_post_admin_user_without_params(self):
+    def test_19_post_admin_user_without_params(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('POST', self.path + 'user/', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_19_post_admin_user_with_wrong_params(self):
+    def test_20_post_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -150,7 +163,7 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_20_post_admin_user_with_right_params(self):
+    def test_21_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -187,7 +200,7 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 404)
 
-    def test_21_post_admin_user_with_right_params_and_poolgroup_is_null(self):
+    def test_22_post_admin_user_with_right_params_and_poolgroup_is_null(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -218,21 +231,21 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
-    def test_22_put_user_not_logged(self):
+    def test_23_put_user_not_logged(self):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'user/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_23_put_user_logged_as_admin_without_params(self):
+    def test_24_put_user_logged_as_admin_without_params(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('PUT', self.path + 'user/', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_24_put_user_logged_as_basic_update_admin(self):
+    def test_25_put_user_logged_as_basic_update_admin(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         io = StringIO()
         json.dump({
@@ -257,7 +270,7 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_25_put_user_logged_as_basic_update_itself(self):
+    def test_26_put_user_logged_as_basic_update_itself(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         userId = message['user_id']
         conn.request('GET', "%suser/?id=%d" % (self.path, userId), headers=cookie)
@@ -280,7 +293,7 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
-    def test_26_put_user_logged_as_admin_update_archiver_poolgroup_is_null(self):
+    def test_27_put_user_logged_as_admin_update_archiver_poolgroup_is_null(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         conn.request('GET', "%suser/?id=%d" % (self.path, self.users['archiver']['id']), headers=cookie)
         res = conn.getresponse()
@@ -311,7 +324,7 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
-    def test_27_put_user_logged_as_admin_update_archiver_new_password(self):
+    def test_28_put_user_logged_as_admin_update_archiver_new_password(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         conn.request('GET', "%suser/?id=%d" % (self.path, self.users['archiver']['id']), headers=cookie)
         res = conn.getresponse()
@@ -340,21 +353,21 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
-    def test_28_delete_user_not_logged(self):
+    def test_29_delete_user_not_logged(self):
         conn = self.newConnection()
         conn.request('DELETE', self.path + 'user/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_29_delete_user_logged_as_admin_without_params(self):
+    def test_30_delete_user_logged_as_admin_without_params(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('DELETE', self.path + 'user/', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_30_delete_user_logged_suicide(self):
+    def test_31_delete_user_logged_suicide(self):
         conn, headers, message = self.newLoggedConnection('admin')
         userId = message['user_id']
         conn.request('DELETE', "%suser/?id=%d" % (self.path, userId), headers=headers)
@@ -362,7 +375,7 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_31_delete_user_logged_as_basic(self):
+    def test_32_delete_user_logged_as_basic(self):
         conn, headers, message = self.newLoggedConnection('basic')
         conn.request('DELETE', self.path + 'user/', headers=headers)
         res = conn.getresponse()

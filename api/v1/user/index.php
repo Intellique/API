@@ -183,7 +183,7 @@
 				$ok = true;
 
 				if (isset($_GET['order_by'])) {
-					if (array_search($_GET['order_by'], array('id', 'login', 'fullname', 'email', 'homedirectory')))
+					if (array_search($_GET['order_by'], array('id', 'login', 'fullname', 'email', 'homedirectory')) !== false)
 						$params['order_by'] = $_GET['order_by'];
 					else
 						$ok = false;
@@ -197,13 +197,13 @@
 					}
 				}
 				if (isset($_GET['limit'])) {
-					if (is_int($_GET['limit']) && $_GET['limit'] > 0)
+					if (ctype_digit($_GET['limit']) && $_GET['limit'] > 0)
 						$params['limit'] = intval($_GET['limit']);
 					else
 						$ok = false;
 				}
 				if (isset($_GET['offset'])) {
-					if (is_int($_GET['offset']) && $_GET['offset'] >= 0)
+					if (ctype_digit($_GET['offset']) && $_GET['offset'] >= 0)
 						$params['offset'] = intval($_GET['offset']);
 					else
 						$ok = false;
@@ -221,7 +221,7 @@
 					http_response_code(500);
 					echo json_encode(array(
 						'message' => 'Query failure',
-						'users_id' => array(),
+						'users id' => array(),
 						'total rows' => 0
 					));
 					exit;
@@ -230,7 +230,7 @@
 				http_response_code(200);
 				echo json_encode(array(
 					'message' => 'Query successfull',
-					'users_id' => $users['rows'],
+					'users id' => $users['rows'],
 					'total rows' => $users['total_rows']
 				));
 			} else {

@@ -61,8 +61,24 @@
 			return $row[0];
 		}
 
-		public function isConnected() {
-			return $this->connect != false;
+		/**
+		 * \brief return specified string
+		 * \param $string : string
+		 * \return \b specified string
+		 */
+		public static function get($string) {
+			return $string;
+		}
+
+		/**
+		 * \brief casts specified string into boolean
+		 * \param $string : string to be casted
+		 * \return \b boolean or \b null if string doesn't represent a boolean
+		 */
+		public static function getBoolean($string) {
+			if ($string == '')
+				return null;
+			return filter_var($string, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 		}
 
 		/**
@@ -70,7 +86,7 @@
 		 * \param $string : string to be casted
 		 * \return \b integer or \b null if string doesn't represent a number
 		 */
-		protected static function getInteger($string) {
+		public static function getInteger($string) {
 			if (ctype_digit($string))
 				return intval($string);
 			else
@@ -92,6 +108,10 @@
 				$metas[$key] = json_decode($val, true);
 			}
 			return $metas;
+		}
+
+		public function isConnected() {
+			return $this->connect != false;
 		}
 
 		/**
@@ -124,6 +144,92 @@
 
 			$this->preparedQueries[$stmtname] = $query;
 			return true;
+		}
+	}
+
+	/**
+	 * \brief postgresqlResultIterator's implementation
+	 */
+	class PostgresqlDBResultIterator implements DBResultIterator {
+		/**
+		 * \brief iterate over this result
+		 */
+		private $result;
+
+		/**
+		 * \brief functions array to convert type
+		 */
+		private $functionsArray;
+
+		/**
+		 * \brief current result
+		 */
+		private $currentRow;
+
+		/**
+		 * \brief fetched result number
+		 */
+		private $nbResultFetched;
+
+		public function __construct($result, $functionsArray) {
+			$this->result = $result;
+			$this->functionsArray = $functionsArray;
+			$this->currentRow = false;
+			$this->nbResultFetched = 0;
+		}
+
+		public function hasNext() {
+			$this->currentRow = pg_fetch_array($this->result);
+			return $this->currentRow === false ? false : true;
+		}
+
+		public function next() {
+			if ($this->currentRow !== false)
+				return new PostgresqlDBRow($this->result, $this->currentRow, $this->functionsArray, $this->nbResultFetched++);
+			return null;
+		}
+	}
+
+	/**
+	 * \brief postgresqlRow's implementation
+	 */
+	class PostgresqlDBRow implements DBRow {
+		/**
+		 * \brief iterate over this result
+		 */
+		private $result;
+
+		/**
+		 * \brief functions array to convert type
+		 */
+		private $functionsArray;
+
+		/**
+		 * \brief line number
+		 */
+		private $iResult;
+
+		/**
+		 * \brief current result
+		 */
+		private $currentRow;
+
+		public function __construct($result, &$currentRow, &$functionsArray, $iResult) {
+			$this->result = $result;
+			$this->functionsArray = $functionsArray;
+			$this->currentRow = $currentRow;
+			$this->iResult = $iResult;
+		}
+
+		public function getValue($column = 0) {
+			if ($column < count($this->currentRow)) {
+				if (pg_field_is_null($this->result, $this->iResult, $column))
+					return null;
+
+				$fun = $this->functionsArray[$column];
+				return PostgresqlDB::$fun($this->currentRow[$column]);
+			}
+			return null;
 		}
 	}
 ?>

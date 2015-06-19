@@ -70,6 +70,47 @@
 			return $row;
 		}
 
+		public function getJobs(&$params) {
+			$query = "SELECT id FROM job";
+			$query_params = array();
+
+			if (isset($params['order_by'])) {
+				$query .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query .= ' DESC';
+			}
+
+			$query_name = "select_jobs_id_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query name' => $query_name,
+					'query prepared' => false,
+					'query executed' => false,
+					'iterator' => null
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query name' => $query_name,
+					'query prepared' => true,
+					'query executed' => false,
+					'iterator' => null
+				);
+
+			return array(
+				'query' => $query,
+				'query name' => $query_name,
+				'query prepared' => true,
+				'query executed' => true,
+				'iterator' => new PostgresqlDBResultIterator($result, array('getInteger'))
+			);
+		}
+
 		public function getJobType() {
 			if (!$this->prepareQuery('select_jobtype', "SELECT name FROM jobtype"))
 				return null;
