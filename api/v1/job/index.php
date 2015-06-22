@@ -1,20 +1,34 @@
 <?php
 /**
  * \addtogroup job
+ * \section Delete_job Job deletion
+ * To delete a job,
+ * use \b DELETE method
+ * \verbatim path : /storiqone-backend/api/v1/job/ \endverbatim
+ * \param id : job id
+ * \return HTTP status codes :
+ *   - \b 200 Deletion successfull
+ *   - \b 400 Job id required
+ *   - \b 401 Not logged in
+ *   - \b 403 Permission denied
+ *   - \b 404 Job not found
+ *   - \b 500 Query failure
+ *
  * \section Job_Info Job information
  * To get job information,
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/job/ \endverbatim
- * \param id : job ID
+ * \param id : job id
  * \return HTTP status codes :
  *   - \b 200 Query successfull
  *     \verbatim Job information is returned \endverbatim
- *   - \b 401 Permission denied
+ *   - \b 401 Not logged in
+ *   - \b 403 Permission denied
  *   - \b 404 Job not found
  *   - \b 500 Query failure
  *
- * \section Jobs_ID Jobs ID
- * To get jobs ID list,
+ * \section Jobs_id Jobs id
+ * To get jobs id list,
  * use \b GET method : <i>without reference to specific id or ids</i>
  * \verbatim path : /storiqone-backend/api/v1/job/ \endverbatim
  * <b>Optional parameters</b>
@@ -25,12 +39,12 @@
  * | limit    | integer |specifies the maximum number of rows to return                                       | limit > 0                                                              |
  * | offset   | integer |specifies the number of rows to skip before starting to return rows                  | offset >= 0                                                            |
  *
- * \warning To get jobs ID list do not pass an id or ids as parameter
+ * \warning To get jobs id list do not pass an id or ids as parameter
  * \return HTTP status codes :
  *   - \b 200 Query successfull
- *     \verbatim Jobs ID list is returned \endverbatim
+ *     \verbatim Jobs id list is returned \endverbatim
  *   - \b 400 Incorrect input
- *   - \b 401 Permission denied
+ *   - \b 401 Not logged in
  *   - \b 500 Query failure
  */
 	require_once("../lib/http.php");
@@ -41,8 +55,9 @@
 		global $dbDriver;
 
 		$job = $dbDriver->getJob($jobId);
+
 		if ($job === null || $job === false)
-			return $returnJob ? array('failure' => $job === null, 'job' => null, 'permission' => false) : $job;
+			return $returnJob ? array('failure' => $job === null, 'job' => null, 'permission' => false, 'found' => false) : $job;
 
 		$ok = $_SESSION['user']['isadmin'] || $job['login'] == $_SESSION['user']['id'];
 		$failed = false;
@@ -64,45 +79,112 @@
 		}
 
 		if ($failed)
-			return $returnJob ? array('failure' => true, 'job' => null, 'permission' => false) : null;
+			return $returnJob ? array('failure' => true, 'job' => null, 'permission' => false, 'found' => false) : null;
 
 		if ($returnJob)
-			return $ok ? array('failure' => false, 'job' => $job, 'permission' => true) : array('failure' => false, 'job' => $job, 'permission' => false);
+			return $ok ? array('failure' => false, 'job' => $job, 'permission' => true, 'found' => true) : array('failure' => false, 'job' => $job, 'permission' => false, 'found' => true);
 
 		return $ok;
 	}
 
 	switch ($_SERVER['REQUEST_METHOD']) {
+		case 'DELETE':
+			header("Content-Type: application/json; charset=utf-8");
+
+			checkConnected();
+
+			if (!isset($_GET['id'])) {
+				http_response_code(400);
+				echo json_encode(array('message' => 'Job id required'));
+				exit;
+			}
+
+			$dbDriver->startTransaction();
+
+			$job = checkPermissions($_GET['id'], true);
+
+			if ($job['job'] === null || $job['permission'] === false)
+				$dbDriver->cancelTransaction();
+
+			if ($job['failure']) {
+				http_response_code(500);
+				echo json_encode(array(
+					'message' => 'Query failure',
+					'job' => array()
+				));
+				exit;
+			} elseif (!$job['found']) {
+				http_response_code(404);
+				echo json_encode(array(
+					'message' => 'Job not found',
+					'job' => array()
+				));
+				exit;
+			} elseif ($job['permission'] === false) {
+				http_response_code(403);
+				echo json_encode(array(
+					'message' => 'Permission denied',
+					'job' => array(),
+					'debug' => $job
+				));
+				exit;
+			}
+
+			$delete_status = $dbDriver->deleteJob($_GET['id']);
+
+			if ($delete_status)
+				$dbDriver->finishTransaction();
+			else
+				$dbDriver->cancelTransaction();
+
+			if ($delete_status === null) {
+				http_response_code(500);
+				echo json_encode(array('message' => 'Query failure'));
+			} elseif ($delete_status === false) {
+				http_response_code(404);
+				echo json_encode(array('message' => 'Job not found'));
+			} else {
+				http_response_code(200);
+				echo json_encode(array('message' => 'Deletion successfull'));
+			}
+
+			break;
+
 		case 'GET':
 			header("Content-Type: application/json; charset=utf-8");
 
 			checkConnected();
 
 			if (isset($_GET['id'])) {
+				$dbDriver->startTransaction();
+
 				$job = checkPermissions($_GET['id'], true);
+
+				$dbDriver->cancelTransaction();
+
 				if ($job['failure']) {
 					http_response_code(500);
 					echo json_encode(array(
 						'message' => 'Query failure',
 						'job' => array()
 					));
-				} elseif ($job['permission'] == false) {
-					http_response_code(401);
-					echo json_encode(array(
-						'message' => 'Permission denied',
-						'job' => array()
-					));
-				} elseif ($job['job'] !== null) {
-					http_response_code(200);
-					echo json_encode(array(
-						'message' => 'Query successfull',
-						'job' => $job['job']
-					));
-				} else {
+				} elseif (!$job['found']) {
 					http_response_code(404);
 					echo json_encode(array(
 						'message' => 'Job not found',
 						'job' => array()
+					));
+				} elseif ($job['permission'] === false) {
+					http_response_code(403);
+					echo json_encode(array(
+						'message' => 'Permission denied',
+						'job' => array()
+					));
+				} else {
+					http_response_code(200);
+					echo json_encode(array(
+						'message' => 'Query successfull',
+						'job' => $job['job']
 					));
 				}
 			} else {
@@ -146,14 +228,18 @@
 					exit;
 				}
 
+				$dbDriver->startTransaction();
+
 				$jobs = $dbDriver->getJobs($params);
 
-				if ($jobs['query executed'] == false) {
+				if ($jobs['query_executed'] == false) {
+					$dbDriver->cancelTransaction();
+
 					http_response_code(500);
 					echo json_encode(array(
 						'message' => 'Query failure',
-						'jobs id' => array(),
-						'total rows' => 0
+						'jobs_id' => array(),
+						'total_rows' => 0
 					));
 					exit;
 				}
@@ -184,17 +270,19 @@
 						$iRow++;
 				}
 
+				$dbDriver->cancelTransaction();
+
 				http_response_code(200);
 				echo json_encode(array(
 					'message' => 'Query successfull',
-					'jobs id' => $jobsId,
-					'total rows' => $iRow
+					'jobs_id' => $jobsId,
+					'total_rows' => $iRow
 				));
 			}
 		break;
 
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_GET);
+			httpOptionsMethod(HTTP_DELETE | HTTP_GET);
 			break;
 
 		default:

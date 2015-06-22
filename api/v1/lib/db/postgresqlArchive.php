@@ -36,9 +36,9 @@
 				if (!$this->prepareQuery($query_name, $query))
 					return array(
 						'query' => $query,
-						'query name' => $query_name,
-						'query prepared' => false,
-						'query executed' => false,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
 						'rows' => array(),
 						'total_rows' => 0
 					);
@@ -47,9 +47,9 @@
 				if ($result === false)
 					return array(
 						'query' => $query,
-						'query name' => $query_name,
-						'query prepared' => true,
-						'query executed' => false,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
 						'rows' => array(),
 						'total_rows' => 0
 					);
@@ -80,9 +80,9 @@
 			if (!$this->prepareQuery($query_name, $query))
 				return array(
 					'query' => $query,
-					'query name' => $query_name,
-					'query prepared' => false,
-					'query executed' => false,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
 					'rows' => array(),
 					'total_rows' => $total_rows
 				);
@@ -91,9 +91,9 @@
 			if ($result === false)
 				return array(
 					'query' => $query,
-					'query name' => $query_name,
-					'query prepared' => true,
-					'query executed' => false,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
 					'rows' => array(),
 					'total_rows' => $total_rows
 				);
@@ -107,9 +107,9 @@
 
 			return array(
 				'query' => $query,
-				'query name' => $query_name,
-				'query prepared' => true,
-				'query executed' => true,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
 				'rows' => $rows,
 				'total_rows' => $total_rows
 			);

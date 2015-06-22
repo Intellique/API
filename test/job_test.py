@@ -28,7 +28,7 @@ class JobTest(CommonTest):
         conn.request('GET', "%sjob/?id=%d" % (self.path, 4), headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 200)
+        self.assertEqual(res.status, 403)
 
     def test_05_get_list_of_jobs_not_logged(self):
         conn = self.newConnection()
@@ -44,7 +44,7 @@ class JobTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['jobs id']), message['total rows'])
+        self.assertLessEqual(len(message['jobs_id']), message['total_rows'])
 
     def test_07_get_list_of_jobs_logged_as_basic(self):
         conn, headers, message = self.newLoggedConnection('basic')
@@ -53,7 +53,7 @@ class JobTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['jobs id']), message['total rows'])
+        self.assertLessEqual(len(message['jobs_id']), message['total_rows'])
 
     def test_08_get_list_of_jobs_logged_as_archiver(self):
         conn, headers, message = self.newLoggedConnection('archiver')
@@ -62,7 +62,7 @@ class JobTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['jobs id']), message['total rows'])
+        self.assertLessEqual(len(message['jobs_id']), message['total_rows'])
 
     def test_09_get_list_of_jobs_logged_as_admin_with_wrong_order_by(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -120,7 +120,7 @@ class JobTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['jobs id']), message['total rows'])
+        self.assertLessEqual(len(message['jobs_id']), message['total_rows'])
 
     def test_17_get_list_of_jobs_logged_as_admin_with_right_limit_and_right_offset(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -129,7 +129,7 @@ class JobTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['jobs id']), message['total rows'])
+        self.assertLessEqual(len(message['jobs_id']), message['total_rows'])
 
     def test_18_get_list_of_jobs_logged_as_admin_with_right_order_by_and_right_order_asc(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -138,4 +138,44 @@ class JobTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['jobs id']), message['total rows'])
+        self.assertLessEqual(len(message['jobs_id']), message['total_rows'])
+
+    def test_19_delete_job_not_logged(self):
+        conn = self.newConnection()
+        conn.request('DELETE', "%sjob/?id=%d" % (self.path, 4))
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_20_delete_job_archiver_user_not_allowed(self):
+        conn, headers, message = self.newLoggedConnection('archiver')
+        conn.request('DELETE', "%sjob/?id=%d" % (self.path, 4), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_21_delete_job_logged_as_basic_without_params(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('DELETE', "%sjob/" % self.path, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_22_delete_job_logged_as_admin_with_wrong_params(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', "%sjob/?id=%d" % (self.path, 0), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)
+
+    def test_23_delete_job_x2_logged_as_admin_with_right_params(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', "%sjob/?id=%d" % (self.path, 4), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+        conn = self.newConnection()
+        conn.request('DELETE', "%sjob/?id=%d" % (self.path, 4), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)

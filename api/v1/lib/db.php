@@ -9,7 +9,7 @@
 		 * \brief cancel current transaction
 		 * \return \b TRUE on success
 		 */
-		public function cancel_transaction();
+		public function cancelTransaction();
 
 		/**
 		 * \brief check archive permission
@@ -31,7 +31,7 @@
 		 * \brief finish current transaction by commiting it
 		 * \return \b TRUE on success
 		 */
-		public function finish_transaction();
+		public function finishTransaction();
 
 		/**
 		 * \brief check if a connection to database exists
@@ -43,7 +43,7 @@
 		 * \brief start new transaction
 		 * \return \b TRUE on success
 		 */
-		public function start_transaction();
+		public function startTransaction();
 	}
 
 	/**

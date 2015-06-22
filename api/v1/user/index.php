@@ -5,10 +5,11 @@
  * To delete a user,
  * use \b DELETE method
  * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
- * \param id : user ID
+ * \param id : user id
  * \return HTTP status codes :
  *   - \b 200 Deletion successfull
- *   - \b 400 User ID required
+ *   - \b 400 User id required
+ *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 404 User not found
  *   - \b 500 Query failure
@@ -17,16 +18,17 @@
  * To get user information,
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
- * \param id : user ID
+ * \param id : user id
  * \return HTTP status codes :
  *   - \b 200 Query successfull
  *     \verbatim User information is returned \endverbatim
- *   - \b 401 Permission denied
+ *   - \b 401 Not logged in
+ *   - \b 403 Permission denied
  *   - \b 404 User not found
  *   - \b 500 Query failure
  *
- * \section Users_ID Users ID
- * To get users ID list,
+ * \section Users_id Users id
+ * To get users id list,
  * use \b GET method : <i>without reference to specific id or ids</i>
  * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
  * <b>Optional parameters</b>
@@ -37,12 +39,13 @@
  * | limit    | integer |specifies the maximum number of rows to return                                       | limit > 0                                                              |
  * | offset   | integer |specifies the number of rows to skip before starting to return rows                  | offset >= 0                                                            |
  *
- * \warning To get users ID list do not pass an id or ids as parameter
+ * \warning To get users id list do not pass an id or ids as parameter
  * \return HTTP status codes :
  *   - \b 200 Query successfull
- *     \verbatim Users ID list is returned \endverbatim
+ *     \verbatim Users id list is returned \endverbatim
  *   - \b 400 Incorrect input
- *   - \b 401 Permission denied
+ *   - \b 401 Not logged in
+ *   - \b 403 Permission denied
  *   - \b 500 Query failure
  *
  * \section Create_user User creation
@@ -63,9 +66,10 @@
  * \li \c disabled (boolean) : login rights
  * \return HTTP status codes :
  *   - \b 200 User created successfully
- *     \verbatim New user ID is returned \endverbatim
+ *     \verbatim New user id is returned \endverbatim
  *   - \b 400 User information required or incorrect input
- *   - \b 401 Permission denied
+ *   - \b 401 Not logged in
+ *   - \b 403 Permission denied
  *   - \b 500 Query failure
  *
  * \section Update_user User update
@@ -88,7 +92,8 @@
  * \return HTTP status codes :
  *   - \b 200 User updated successfully
  *   - \b 400 User information required or incorrect input
- *   - \b 401 Permission denied
+ *   - \b 401 Not logged in
+ *   - \b 403 Permission denied
  *   - \b 500 Query failure
  */
 	require_once("../lib/http.php");
@@ -175,7 +180,7 @@
 					));
 					$_SESSION['user'] = $user;
 				} else {
-					http_response_code(401);
+					http_response_code(403);
 					echo json_encode(array('message' => 'Permission denied'));
 				}
 			} elseif ($_SESSION['user']['isadmin']) {
@@ -217,12 +222,12 @@
 
 				$users = $dbDriver->getUsers($params);
 
-				if ($users['query executed'] == false) {
+				if ($users['query_executed'] == false) {
 					http_response_code(500);
 					echo json_encode(array(
 						'message' => 'Query failure',
-						'users id' => array(),
-						'total rows' => 0
+						'users_id' => array(),
+						'total_rows' => 0
 					));
 					exit;
 				}
@@ -230,11 +235,11 @@
 				http_response_code(200);
 				echo json_encode(array(
 					'message' => 'Query successfull',
-					'users id' => $users['rows'],
-					'total rows' => $users['total_rows']
+					'users_id' => $users['rows'],
+					'total_rows' => $users['total_rows']
 				));
 			} else {
-				http_response_code(401);
+				http_response_code(403);
 				echo json_encode(array('message' => 'Permission denied'));
 			}
 			break;
@@ -245,7 +250,7 @@
 			checkConnected();
 
 			if (!$_SESSION['user']['isadmin']) {
-				http_response_code(401);
+				http_response_code(403);
 				echo json_encode(array('message' => 'Permission denied'));
 				exit;
 			}
@@ -388,7 +393,7 @@
 			}
 
 			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $user['id'])) {
-				http_response_code(401);
+				http_response_code(403);
 				echo json_encode(array('message' => 'Permission denied'));
 				exit;
 			}

@@ -41,7 +41,7 @@ class UserTest(CommonTest):
         conn.request('GET', "%suser/?id=%d" % (self.path, userId), headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 401)
+        self.assertEqual(res.status, 403)
 
     def test_06_get_list_of_users_not_logged(self):
         conn = self.newConnection()
@@ -57,14 +57,14 @@ class UserTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['users id']), message['total rows'])
+        self.assertLessEqual(len(message['users_id']), message['total_rows'])
 
-    def test_08_get_list_of_users_logged_as_basic(self):
+    def test_08_get_list_of_users_basic_user_not_allowed(self):
         conn, headers, message = self.newLoggedConnection('basic')
         conn.request('GET', self.path + 'user/', headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 401)
+        self.assertEqual(res.status, 403)
 
     def test_09_get_list_of_users_logged_as_admin_with_wrong_order_by(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -87,7 +87,7 @@ class UserTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['users id']), message['total rows'])
+        self.assertLessEqual(len(message['users_id']), message['total_rows'])
 
     def test_12_get_list_of_users_logged_as_admin_with_right_limit_and_right_offset(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -96,7 +96,7 @@ class UserTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['users id']), message['total rows'])
+        self.assertLessEqual(len(message['users_id']), message['total_rows'])
 
     def test_13_get_list_of_users_logged_as_admin_with_wrong_limit(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -138,7 +138,7 @@ class UserTest(CommonTest):
         conn.request('POST', self.path + 'user/', headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 401)
+        self.assertEqual(res.status, 403)
 
     def test_19_post_admin_user_without_params(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -268,7 +268,7 @@ class UserTest(CommonTest):
         res = conn.getresponse()
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
-        self.assertEqual(res.status, 401)
+        self.assertEqual(res.status, 403)
 
     def test_26_put_user_logged_as_basic_update_itself(self):
         conn, cookie, message = self.newLoggedConnection('basic')

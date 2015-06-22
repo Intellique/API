@@ -35,7 +35,7 @@
 			$this->preparedQueries = array();
 		}
 
-		public function cancel_transaction() {
+		public function cancelTransaction() {
 			$status = pg_transaction_status($this->connection);
 			switch ($status) {
 				case PGSQL_TRANSACTION_INTRANS:
@@ -76,7 +76,7 @@
 			return $row[0];
 		}
 
-		public function finish_transaction() {
+		public function finishTransaction() {
 			$status = pg_transaction_status($this->connection);
 			if ($status != PGSQL_TRANSACTION_INTRANS)
 				return false;
@@ -139,19 +139,6 @@
 		}
 
 		/**
-		 * \brief convert hashtable into hstore string
-		 * \param $metadatas : metadata hashtable
-		 * \return \b metadata hstore string
-		 */
-		protected static function toHstore(&$metadatas) {
-			$metas = array();
-			foreach ($metadatas as $key => $value)
-				$metas[] = $key . '=>' . json_encode($value);
-			$meta = join(',', $metas);
-			return $meta;
-		}
-
-		/**
 		 * \brief prepares an SQL query
 		 * \param $stmtname : SQL query name
 		 * \param $query : SQL query
@@ -170,9 +157,22 @@
 			return true;
 		}
 
-		public function start_transaction() {
+		public function startTransaction() {
 			$query = pg_execute($this->connection, "BEGIN", array());
 			return $query !== false;
+		}
+
+		/**
+		 * \brief convert hashtable into hstore string
+		 * \param $metadatas : metadata hashtable
+		 * \return \b metadata hstore string
+		 */
+		protected static function toHstore(&$metadatas) {
+			$metas = array();
+			foreach ($metadatas as $key => $value)
+				$metas[] = $key . '=>' . json_encode($value);
+			$meta = join(',', $metas);
+			return $meta;
 		}
 	}
 

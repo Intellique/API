@@ -29,6 +29,18 @@
 			return $row;
 		}
 
+		public function deleteJob($id) {
+			if (!$this->prepareQuery('delete_job_by_id', "DELETE FROM job WHERE id = $1"))
+				return null;
+
+			$result = pg_execute($this->connect, 'delete_job_by_id', array($id));
+
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
+		}
+
 		public function deleteUser($id) {
 			if (!$this->prepareQuery('delete_user_by_id', "DELETE FROM users WHERE id = $1"))
 				return null;
@@ -45,7 +57,7 @@
 			if (!isset($id))
 				return false;
 
-			if (!$this->prepareQuery('select_job_by_id', "SELECT j.id, j.name, jt.name AS type, j.nextstart, EXTRACT(EPOCH FROM j.interval) AS interval, j.repetition, j.status, j.update, j.archive, j.backup, j.media, j.pool, j.host, j.login, j.metadata, j.options FROM job j INNER JOIN jobtype jt ON j.type = jt.id WHERE j.id = $1 LIMIT 1"))
+			if (!$this->prepareQuery('select_job_by_id', "SELECT j.id, j.name, jt.name AS type, j.nextstart, EXTRACT(EPOCH FROM j.interval) AS interval, j.repetition, j.status, j.update, j.archive, j.backup, j.media, j.pool, j.host, j.login, j.metadata, j.options FROM job j INNER JOIN jobtype jt ON j.type = jt.id WHERE j.id = $1 LIMIT 1 FOR UPDATE"))
 				return null;
 
 			$result = pg_execute($this->connect, 'select_job_by_id', array($id));
@@ -81,14 +93,16 @@
 					$query .= ' DESC';
 			}
 
+			$query .= ' FOR SHARE';
+
 			$query_name = "select_jobs_id_" . md5($query);
 
 			if (!$this->prepareQuery($query_name, $query))
 				return array(
 					'query' => $query,
-					'query name' => $query_name,
-					'query prepared' => false,
-					'query executed' => false,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
 					'iterator' => null
 				);
 
@@ -96,17 +110,17 @@
 			if ($result === false)
 				return array(
 					'query' => $query,
-					'query name' => $query_name,
-					'query prepared' => true,
-					'query executed' => false,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
 					'iterator' => null
 				);
 
 			return array(
 				'query' => $query,
-				'query name' => $query_name,
-				'query prepared' => true,
-				'query executed' => true,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
 				'iterator' => new PostgresqlDBResultIterator($result, array('getInteger'))
 			);
 		}
@@ -195,9 +209,9 @@
 				if (!$this->prepareQuery($query_name, $query))
 					return array(
 						'query' => $query,
-						'query name' => $query_name,
-						'query prepared' => false,
-						'query executed' => false,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
 						'rows' => array(),
 						'total_rows' => 0
 					);
@@ -206,9 +220,9 @@
 				if ($result === false)
 					return array(
 						'query' => $query,
-						'query name' => $query_name,
-						'query prepared' => true,
-						'query executed' => false,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
 						'rows' => array(),
 						'total_rows' => 0
 					);
@@ -239,9 +253,9 @@
 			if (!$this->prepareQuery($query_name, $query))
 				return array(
 					'query' => $query,
-					'query name' => $query_name,
-					'query prepared' => false,
-					'query executed' => false,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
 					'rows' => array(),
 					'total_rows' => $total_rows
 				);
@@ -250,9 +264,9 @@
 			if ($result === false)
 				return array(
 					'query' => $query,
-					'query name' => $query_name,
-					'query prepared' => true,
-					'query executed' => false,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
 					'rows' => array(),
 					'total_rows' => $total_rows
 				);
@@ -266,9 +280,9 @@
 
 			return array(
 				'query' => $query,
-				'query name' => $query_name,
-				'query prepared' => true,
-				'query executed' => true,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
 				'rows' => $rows,
 				'total_rows' => $total_rows
 			);

@@ -1,7 +1,7 @@
 <?php
 /**
  * \addtogroup archive
- * \section Delete_Archive Delete archive
+ * \section Delete_Archive Archive deletion
  * To mark archive as deleted,
  * use \b DELETE method
  * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
@@ -9,11 +9,12 @@
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
  *     \verbatim Archive information are returned \endverbatim
- *   - \b 401 Permission denied
+ *   - \b 401 Not logged in
+ *   - \b 403 Permission denied
  *   - \b 404 Archive not found
  *   - \b 500 Query failure
  *
- * \section Archive_ID Archive ID
+ * \section Archive_ID Archive information
  * To get archive by its ID,
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
@@ -21,10 +22,11 @@
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
  *     \verbatim Archive information are returned \endverbatim
- *   - \b 401 Permission denied
+ *   - \b 401 Not logged in
+ *   - \b 403 Permission denied
  *   - \b 500 Query failure
  *
- * \section Archives Get a list of archives,
+ * \section Archives Archives id,
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
  * <b>Optional parameters</b>
@@ -38,6 +40,8 @@
  * \warning To get archives ID list do not pass an id as parameter
  * \return HTTP status codes :
  *   - \b 200 Query successfull
+ *   - \b 400 Incorrect input
+ *   - \b 401 Not logged in
  *   - \b 500 Query failure
  */
 	require_once("../lib/http.php");
@@ -100,7 +104,7 @@
 					));
 					exit;
 				} elseif ($permission_granted === false) {
-					http_response_code(401);
+					http_response_code(403);
 					echo json_encode(array('message' => 'Permission denied'));
 					exit;
 				}
@@ -158,18 +162,18 @@
 				}
 
 				$result = $dbDriver->getArchives($_SESSION['user']['id'], $params);
-				if ($result['query executed'] == false) {
+				if ($result['query_executed'] == false) {
 					http_response_code(500);
 					echo json_encode(array(
 						'message' => 'Query failure',
 						'archives' => array(),
-						'total rows' => 0
+						'total_rows' => 0
 					));
 				} else {
 					echo json_encode(array(
 						'message' => 'Query successfull',
 						'archives' => $result['rows'],
-						'total rows' => $result['total_rows']
+						'total_rows' => $result['total_rows']
 					));
 				}
 			}

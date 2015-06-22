@@ -24,6 +24,13 @@
 		public function createUser(&$user);
 
 		/**
+		 * \brief delete a job
+		 * \param $id : Job id
+		 * \return \b TRUE on deletion success, \b FALSE when no job was deleted, \b NULL on query execution failure
+		 */
+		public function deleteJob($id);
+
+		/**
 		 * \brief delete a user
 		 * \param $id : User id
 		 * \return \b TRUE on deletion success, \b FALSE when no user was deleted, \b NULL on query execution failure
