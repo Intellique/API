@@ -35,6 +35,21 @@
 			$this->preparedQueries = array();
 		}
 
+		public function cancel_transaction() {
+			$status = pg_transaction_status($this->connection);
+			switch ($status) {
+				case PGSQL_TRANSACTION_INTRANS:
+				case PGSQL_TRANSACTION_INERROR:
+					break;
+
+				default:
+					return false;
+			}
+
+			$result = pg_execute($this->connection, "ROLLBACK", array());
+			return $result !== false;
+		}
+
 		public function checkArchivePermission($archive_id, $user_id) {
 			if (!$this->prepareQuery("check_archive_permission", "SELECT COUNT(*) > 0 AS granted FROM archive WHERE creator = $2 OR owner = $2 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.archive = $1 AND av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $2 AND u.poolgroup = ppg.poolgroup))"))
 				return null;
@@ -59,6 +74,15 @@
 			$row = pg_fetch_array($result);
 			$row[0] = $row[0] == 't' ? true : false;
 			return $row[0];
+		}
+
+		public function finish_transaction() {
+			$status = pg_transaction_status($this->connection);
+			if ($status != PGSQL_TRANSACTION_INTRANS)
+				return false;
+
+			$result = pg_execute($this->connection, "COMMIT", array());
+			return $result !== false;
 		}
 
 		/**
@@ -144,6 +168,11 @@
 
 			$this->preparedQueries[$stmtname] = $query;
 			return true;
+		}
+
+		public function start_transaction() {
+			$query = pg_execute($this->connection, "BEGIN", array());
+			return $query !== false;
 		}
 	}
 

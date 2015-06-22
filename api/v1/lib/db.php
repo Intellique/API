@@ -6,6 +6,12 @@
 	 */
 	interface DB {
 		/**
+		 * \brief cancel current transaction
+		 * \return \b TRUE on success
+		 */
+		public function cancel_transaction();
+
+		/**
 		 * \brief check archive permission
 		 * \param $archive_id : archive ID
 		 * \param $user_id : user ID
@@ -22,10 +28,22 @@
 		public function checkPoolPermission($pool_id, $user_id);
 
 		/**
+		 * \brief finish current transaction by commiting it
+		 * \return \b TRUE on success
+		 */
+		public function finish_transaction();
+
+		/**
 		 * \brief check if a connection to database exists
 		 * \return \b TRUE on success, \b FALSE on failure
 		 */
 		public function isConnected();
+
+		/**
+		 * \brief start new transaction
+		 * \return \b TRUE on success
+		 */
+		public function start_transaction();
 	}
 
 	/**
