@@ -395,7 +395,7 @@
 			}
 
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_DELETE | HTTP_GET | HTTP_PUT);
+			httpOptionsMethod(HTTP_ALL_METHODS & ~HTTP_POST);
 			break;
 
 		default:
