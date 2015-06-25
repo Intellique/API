@@ -212,7 +212,7 @@ CREATE TABLE Pool (
     unbreakableLevel UnbreakableLevel NOT NULL DEFAULT 'none',
     rewritable BOOLEAN NOT NULL DEFAULT TRUE,
 
-    metadata TEXT NOT NULL DEFAULT '',
+    metadata JSON NOT NULL DEFAULT '{}',
     needproxy BOOLEAN NOT NULL DEFAULT FALSE,
 
     poolOriginal INTEGER REFERENCES Pool(id) ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -248,7 +248,7 @@ CREATE TABLE PoolTemplate (
     unbreakableLevel UnbreakableLevel NOT NULL DEFAULT 'none',
     rewritable BOOLEAN NOT NULL DEFAULT TRUE,
 
-    metadata TEXT NOT NULL DEFAULT '',
+    metadata JSON NOT NULL DEFAULT '{}',
     createProxy BOOLEAN NOT NULL DEFAULT FALSE
 );
 
@@ -412,7 +412,7 @@ CREATE TABLE Users (
     disabled BOOLEAN NOT NULL DEFAULT FALSE,
 
     poolgroup INTEGER REFERENCES PoolGroup(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    meta hstore NOT NULL
+    meta JSON NOT NULL
 );
 
 CREATE TABLE UserEvent (
@@ -502,8 +502,8 @@ CREATE TABLE Job (
     host INTEGER NOT NULL REFERENCES Host(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     login INTEGER NOT NULL REFERENCES Users(id) ON UPDATE CASCADE ON DELETE CASCADE,
 
-    metadata TEXT NOT NULL DEFAULT '',
-    options hstore NOT NULL DEFAULT ''
+    metadata JSON NOT NULL DEFAULT '{}',
+    options JSON NOT NULL DEFAULT '{}'
 );
 
 CREATE TABLE JobRun (
@@ -665,7 +665,7 @@ CREATE TABLE Report (
 	media BIGINT REFERENCES Media(id) ON UPDATE CASCADE ON DELETE CASCADE,
     jobrun BIGINT NOT NULL REFERENCES jobrun(id) ON UPDATE CASCADE ON DELETE CASCADE,
 
-    data TEXT NOT NULL
+    data JSON NOT NULL
 );
 
 CREATE TABLE Reports (

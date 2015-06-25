@@ -36,7 +36,7 @@
 		}
 
 		public function cancelTransaction() {
-			$status = pg_transaction_status($this->connection);
+			$status = pg_transaction_status($this->connect);
 			switch ($status) {
 				case PGSQL_TRANSACTION_INTRANS:
 				case PGSQL_TRANSACTION_INERROR:
@@ -46,7 +46,7 @@
 					return false;
 			}
 
-			$result = pg_execute($this->connection, "ROLLBACK", array());
+			$result = pg_query($this->connect, "ROLLBACK");
 			return $result !== false;
 		}
 
@@ -77,11 +77,11 @@
 		}
 
 		public function finishTransaction() {
-			$status = pg_transaction_status($this->connection);
+			$status = pg_transaction_status($this->connect);
 			if ($status != PGSQL_TRANSACTION_INTRANS)
 				return false;
 
-			$result = pg_execute($this->connection, "COMMIT", array());
+			$result = pg_query($this->connect, "COMMIT");
 			return $result !== false;
 		}
 
@@ -117,23 +117,6 @@
 				return null;
 		}
 
-		/**
-		 * \brief convert hstore string into hashtable
-		 * \param $metadatas : metadata hstore string
-		 * \return \b metadata hashtable
-		 */
-		protected static function fromHstore($metadatas) {
-			$metas = array();
-			$list_metas = split(', ', $metadatas);
-			foreach ($list_metas as $value) {
-				list($key, $val) = split('=>', $value);
-				$key = substr($key, 1, strlen($key) - 2);
-				$val = substr($val, 1, strlen($val) - 2);
-				$metas[$key] = json_decode($val, true);
-			}
-			return $metas;
-		}
-
 		public function isConnected() {
 			return $this->connect != false;
 		}
@@ -158,21 +141,8 @@
 		}
 
 		public function startTransaction() {
-			$query = pg_execute($this->connection, "BEGIN", array());
+			$query = pg_query($this->connect, "BEGIN");
 			return $query !== false;
-		}
-
-		/**
-		 * \brief convert hashtable into hstore string
-		 * \param $metadatas : metadata hashtable
-		 * \return \b metadata hstore string
-		 */
-		protected static function toHstore(&$metadatas) {
-			$metas = array();
-			foreach ($metadatas as $key => $value)
-				$metas[] = $key . '=>' . json_encode($value);
-			$meta = join(',', $metas);
-			return $meta;
 		}
 	}
 

@@ -61,7 +61,7 @@
  * \li \c isadmin (boolean) : administration rights
  * \li \c canarchive (boolean) : archive rights
  * \li \c canrestore (boolean) : restoration rights
- * \li \c meta (object) : user metadata
+ * \li \c meta (JSON) : user metadata
  * \li \c poolgroup (integer) : user poolgroup
  * \li \c disabled (boolean) : login rights
  * \return HTTP status codes :
@@ -86,7 +86,7 @@
  * \li \c isadmin (boolean) : administration rights
  * \li \c canarchive (boolean) : archive rights
  * \li \c canrestore (boolean) : restoration rights
- * \li \c meta (object) : user metadata
+ * \li \c meta (JSON) : user metadata
  * \li \c poolgroup (integer) : user poolgroup
  * \li \c disabled (boolean) : login rights
  * \return HTTP status codes :
@@ -332,8 +332,8 @@
 			if ($ok)
 				$ok = isset($user['meta']) && is_array($user['meta']);
 			if ($ok) {
-				$user['meta']['step'] = '5';
-				$user['meta']['showHelp'] = '1';
+				$user['meta']['step'] = 5;
+				$user['meta']['showHelp'] = true;
 			}
 
 			// poolgroup

@@ -1,4 +1,5 @@
 from common_test import CommonTest
+from io import StringIO
 import json
 
 class JobTest(CommonTest):
@@ -179,3 +180,85 @@ class JobTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 404)
+
+    def test_24_put_job_not_logged(self):
+        conn = self.newConnection()
+        conn.request('PUT', self.path + 'job/')
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_25_put_job_logged_as_admin_without_params(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('PUT', self.path + 'job/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_26_put_job_user_archiver_not_allowed_crafted_message(self):
+        conn, cookie, message = self.newLoggedConnection('archiver')
+        io = StringIO()
+        json.dump({
+            'id': 5,
+            'login': 3
+        }, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'job/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_26_put_job_logged_as_admin_with_wrong_params(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        io = StringIO()
+        json.dump({
+            'id': 5,
+            'name': 'toto',
+            'nextstart': '2014-10-24 17:21:38+06:30',
+            'interval': -1,
+            'repetition': 0,
+            'status': 'finished',
+            'update': '2014-11-12 19:01:19+06:30',
+            'archive': None,
+            'backup': None,
+            'media': 1,
+            'pool': 3,
+            'host': 6,
+            'login': 1,
+            'metadata': {},
+            'options': {}
+        }, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'job/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_27_put_job_logged_as_admin_with_right_params(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        io = StringIO()
+        json.dump({
+            'id': 5,
+            'name': 'NEW NAME TEST 27',
+            'nextstart': '2014-10-24 17:21:38+06:30',
+            'interval': None,
+            'repetition': 0,
+            'status': 'scheduled',
+            'update': '2014-11-12 19:01:19+06:30',
+            'archive': None,
+            'backup': None,
+            'media': 1,
+            'pool': 3,
+            'host': 6,
+            'login': 1,
+            'metadata': {},
+            'options': {}
+        }, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'job/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)

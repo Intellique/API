@@ -3,18 +3,14 @@
 
 	class PostgresqlDBSession extends PostgresqlDB implements DB_Session {
 		public function createUser(&$user) {
-			if (!$this->prepareQuery("insert_user", "INSERT INTO users(login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10 ::hstore, $11, $12) RETURNING id"))
+			if (!$this->prepareQuery("insert_user", "INSERT INTO users(login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id"))
 				return null;
 
-			$metas = array();
-			foreach ($user['meta'] as $key => $value)
-				$metas[] = $key . '=>' . json_encode($value);
-			$meta = join(',', $metas);
-			unset($metas);
 
 			$isadmin = $user['isadmin'] ? "TRUE" : "FALSE";
 			$canarchive = $user['canarchive'] ? "TRUE" : "FALSE";
 			$canrestore = $user['canrestore'] ? "TRUE" : "FALSE";
+			$meta = json_encode($user['meta']);
 			$disabled = $user['disabled'] ? "TRUE" : "FALSE";
 
 			$result = pg_execute($this->connect, "insert_user", array($user['login'], $user['password'], $user['salt'], $user['fullname'], $user['email'], $user['homedirectory'], $isadmin, $canarchive, $canrestore, $meta, $user['poolgroup'], $disabled));
@@ -78,6 +74,8 @@
 			$row['pool'] = PostgresqlDB::getInteger($row['pool']);
 			$row['host'] = intval($row['host']);
 			$row['login'] = intval($row['login']);
+			$row['metadata'] = json_decode($row['metadata']);
+			$row['options'] = json_decode($row['options']);
 
 			return $row;
 		}
@@ -191,7 +189,7 @@
 			$row['canrestore'] = $row['canrestore'] == 't' ? true : false;
 			$row['poolgroup'] = PostgresqlDB::getInteger($row['poolgroup']);
 			$row['disabled'] = $row['disabled'] == 't' ? true : false;
-			$row['meta'] = PostgresqlDB::fromHstore($row['meta']);
+			$row['meta'] = json_decode($row['meta']);
 
 			return $row;
 		}
@@ -288,15 +286,30 @@
 			);
 		}
 
+		public function updateJob(&$job) {
+			if (!$this->prepareQuery("update_job", "UPDATE job SET name = $1, nextstart = $2, interval = $3, repetition = $4, status = $5, metadata = $6, options = $7 WHERE id = $8"))
+				return null;
+
+			$metadata = json_encode($job['metadata']);
+			$options = json_encode($job['options']);
+
+			$result = pg_execute($this->connect, "update_job", array($job['name'], $job['nextstart'], $job['interval'], $job['repetition'], $job['status'], $metadata, $options, $job['id']));
+
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
+		}
+
 		public function updateUser(&$user) {
-			if (!$this->prepareQuery("update_user", "UPDATE users SET login = $1, password = $2, salt = $3, fullname = $4, email = $5, homedirectory = $6, isadmin = $7, canarchive = $8, canrestore = $9, meta = $10 ::hstore, poolgroup = $11, disabled = $12 WHERE id = $13"))
+			if (!$this->prepareQuery("update_user", "UPDATE users SET login = $1, password = $2, salt = $3, fullname = $4, email = $5, homedirectory = $6, isadmin = $7, canarchive = $8, canrestore = $9, meta = $10, poolgroup = $11, disabled = $12 WHERE id = $13"))
 				return null;
 
 			$isadmin = $user['isadmin'] ? "TRUE" : "FALSE";
 			$canarchive = $user['canarchive'] ? "TRUE" : "FALSE";
 			$canrestore = $user['canrestore'] ? "TRUE" : "FALSE";
 			$disabled = $user['disabled'] ? "TRUE" : "FALSE";
-			$meta = PostgresqlDB::toHstore($user['meta']);
+			$meta = json_encode($user['meta']);
 
 			$result = pg_execute($this->connect, "update_user", array($user['login'], $user['password'], $user['salt'], $user['fullname'], $user['email'], $user['homedirectory'], $isadmin, $canarchive, $canrestore, $meta, $user['poolgroup'], $disabled, $user['id']));
 

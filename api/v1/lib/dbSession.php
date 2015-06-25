@@ -16,7 +16,7 @@
 		 * \li \c isadmin (boolean) : administration rights
 		 * \li \c canarchive (boolean) : archive rights
 		 * \li \c canrestore (boolean) : restoration rights
-		 * \li \c meta (object) : user metadatas
+		 * \li \c meta (JSON) : user metadata
 		 * \li \c poolgroup (integer) : user poolgroup
 		 * \li \c disabled (boolean) : login rights
 		 * \return <b>New user ID</b> or \b NULL on query execution failure
@@ -46,6 +46,7 @@
 
 		/**
 		 * \brief get jobs ID list
+		 *
 		 * <b>Optional parameters</b>
 		 * \li \c $params['order_by'] (enum) order by column
 		 * \li \c $params['order_asc'] (boolean) ascending/descending order
@@ -89,6 +90,21 @@
 		public function getUsers(&$params);
 
 		/**
+		 * \brief update a job
+		 * \param $job : PHP object
+		 * \li \c id (integer) : job id
+		 * \li \c name (string) : job name
+		 * \li \c nextstart (timestamp(0) with time zone) : job nextstart
+		 * \li \c interval (integer) : job interval
+		 * \li \c repetition (integer) : job repetition
+		 * \li \c status (string) : job status
+		 * \li \c metadata (JSON) : job metadata
+		 * \li \c options (JSON) : job options
+		 * \return \b TRUE on update success, \b FALSE when no user was updated, \b NULL on query execution failure
+		 */
+		public function updateJob(&$job);
+
+		/**
 		 * \brief update a user
 		 * \param $user : PHP object
 		 * \li \c id (integer) : user id
@@ -100,7 +116,7 @@
 		 * \li \c isadmin (boolean) : administration rights
 		 * \li \c canarchive (boolean) : archive rights
 		 * \li \c canrestore (boolean) : restoration rights
-		 * \li \c meta (object) : user metadatas
+		 * \li \c meta (JSON) : user metadata
 		 * \li \c poolgroup (integer) : user poolgroup
 		 * \li \c disabled (boolean) : login rights
 		 * \return \b TRUE on update success, \b FALSE when no user was updated, \b NULL on query execution failure

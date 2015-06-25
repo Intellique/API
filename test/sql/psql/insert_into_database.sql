@@ -37,9 +37,9 @@ INSERT INTO PoolGroup(uuid, name) VALUES
 	('755d095a-7f59-40be-a11b-c4fdf4be5839', 'archive');
 
 INSERT INTO Users(login, password, salt, fullname, email, homedirectory, isAdmin, canArchive, canRestore, poolgroup, meta) VALUES
-	('admin', '8a6eb1d3b4fecbf8a1d6528a6aecb064e801b1e0', 'cd8c63688e0c2cff', 'admin', 'admin@storiqone-backend.net', '/mnt/raid', TRUE, TRUE, TRUE, 1, hstore('step', '5') || hstore('showHelp', '1')),
-	('basic', 'd57d82c1ab3abf6ae0c03ed35ae92cea73b60ae2', '1e31dc8ae0f1842b', 'basic', 'basic@storiqone-backend.net', '/mnt/raid', FALSE, FALSE, FALSE, 1, hstore('step', '5') || hstore('showHelp', '1')),
-	('archiver', '58587452eadca1a695d8d713e6e94f567e8cd787', '20e90c3cd2be2354', 'archiver', 'archiver@storiqone-backend.net', '/mnt/raid', FALSE, TRUE, FALSE, 2, hstore('step', '5') || hstore('showHelp', '1'));
+	('admin', '8a6eb1d3b4fecbf8a1d6528a6aecb064e801b1e0', 'cd8c63688e0c2cff', 'admin', 'admin@storiqone-backend.net', '/mnt/raid', TRUE, TRUE, TRUE, 1, '{"step":5,"showHelp":true}'),
+	('basic', 'd57d82c1ab3abf6ae0c03ed35ae92cea73b60ae2', '1e31dc8ae0f1842b', 'basic', 'basic@storiqone-backend.net', '/mnt/raid', FALSE, FALSE, FALSE, 1, '{"step":5,"showHelp":true}'),
+	('archiver', '58587452eadca1a695d8d713e6e94f567e8cd787', '20e90c3cd2be2354', 'archiver', 'archiver@storiqone-backend.net', '/mnt/raid', FALSE, TRUE, FALSE, 2, '{"step":5,"showHelp":true}');
 
 INSERT INTO UserEvent(event) VALUES
 	('connection'),
@@ -87,8 +87,8 @@ COPY archive (id, uuid, name, creator, owner, canappend, deleted) FROM stdin;
 ALTER SEQUENCE archive_id_seq RESTART 3;
 
 COPY job (id, name, type, nextstart, "interval", repetition, status, update, archive, backup, media, pool, host, login, metadata) FROM stdin;
-4	OESC_AMON_LE_VICTORIEUX_C_BARBOTIN	4	2012-09-27 16:59:39	\N	0	finished	2014-11-12 12:31:17	\N	\N	\N	3	6	2	"Nomenclature_Echo"=>"20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN"
-5	Format-52	5	2014-10-24 10:51:38	\N	0	finished	2014-11-12 12:31:19	\N	\N	1	3	6	1	''
+4	OESC_AMON_LE_VICTORIEUX_C_BARBOTIN	4	2012-09-27 16:59:39	\N	0	finished	2014-11-12 12:31:17	\N	\N	\N	3	6	2	{"Nomenclature_Echo":"20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN"}
+5	Format-52	5	2014-10-24 10:51:38	\N	0	finished	2014-11-12 12:31:19	\N	\N	1	3	6	1	{}
 \.
 ALTER SEQUENCE job_id_seq RESTART 3;
 

@@ -46,6 +46,28 @@
  *   - \b 400 Incorrect input
  *   - \b 401 Not logged in
  *   - \b 500 Query failure
+ *
+ * \section Update_job Job update
+ * To update a job,
+ * use \b PUT method
+ * \verbatim path : /storiqone-backend/api/v1/job/ \endverbatim
+ * \param job : JSON encoded object
+ * \li \c id (integer) : job id
+ * \li \c name (string) : job name
+ * \li \c nextstart (timestamp(0) with time zone) : job nextstart
+ * \li \c interval (integer) : job interval
+ * \li \c repetition (integer) : job repetition
+ * \li \c status (string) : job status
+ * \li \c metadata (JSON) : job metadata
+ * \li \c options (JSON) : job options
+ * \return HTTP status codes :
+ *   - \b 200 Job updated successfully
+ *   - \b 400 Job information required or incorrect input
+ *   - \b 401 Not logged in
+ *   - \b 403 Permission denied
+ *   - \b 500 Query failure
+ *
+ * \note Date format is YYYY-MM-SS hh:mm:sszzz(:zz)
  */
 	require_once("../lib/http.php");
 	require_once("../lib/session.php");
@@ -281,8 +303,99 @@
 			}
 		break;
 
+		case 'PUT':
+			header("Content-Type: application/json; charset=utf-8");
+
+			checkConnected();
+
+			$json = file_get_contents("php://input");
+			$job = json_decode($json, true);
+
+			if (!isset($job) || !isset($job['id'])) {
+				http_response_code(400);
+				echo json_encode(array('message' => 'Job information is required'));
+				exit;
+			}
+
+			// id
+			$check_job = $dbDriver->getJob($job['id']);
+
+			if ($check_job === null) {
+				http_response_code(500);
+				echo json_encode(array('message' => 'Query failure'));
+				exit;
+			} elseif ($check_job === false) {
+				http_response_code(400);
+				echo json_encode(array('message' => 'Incorrect input'));
+				exit;
+			}
+
+			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $check_job['login'])) {
+				http_response_code(403);
+				echo json_encode(array('message' => 'Permission denied'));
+				exit;
+			}
+
+			$ok = (bool) $job;
+
+			// name
+			if ($ok)
+				$ok = isset($job['name']) && is_string($job['name']);
+			if ($ok) {
+				if (strlen($job['name']) > 255)
+					$ok = false;
+			}
+
+			// nextstart
+			$temp = null;
+			if ($ok) {
+				$ok = isset($job['nextstart']);
+				$temp = $dateParsed = date_parse_from_format("Y-m-d H:i:sP", $job['nextstart']);
+				if ($dateParsed['error_count'] > 0)
+					$ok = false;
+			}
+
+			// interval
+			if ($ok)
+				$ok = array_key_exists('interval', $job) && (is_int($job['interval']) || is_null($job['interval']));
+			if ($ok && is_int($job['interval']))
+				$ok = $job['interval'] > 0;
+
+			// repetition
+			if ($ok)
+				$ok = isset($job['repetition']) && is_int($job['repetition']);
+
+			// status
+			if ($ok)
+				$ok = isset($job['status']) && is_string($job['status']);
+
+			// metadata
+			if ($ok)
+				$ok = isset($job['metadata']) && is_array($job['metadata']);
+
+			// options
+			if ($ok)
+				$ok = isset($job['options']) && is_array($job['options']);
+
+			// gestion des erreurs
+			if (!$ok) {
+				http_response_code(400);
+				echo json_encode(array('message' => 'Incorrect input'));
+				exit;
+			}
+
+			$result = $dbDriver->updateJob($job);
+
+			if ($result) {
+				http_response_code(200);
+				echo json_encode(array('message' => 'Job updated successfully'));
+			} else {
+				http_response_code(500);
+				echo json_encode(array('message' => 'Query failure'));
+			}
+
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_DELETE | HTTP_GET);
+			httpOptionsMethod(HTTP_DELETE | HTTP_GET | HTTP_PUT);
 			break;
 
 		default:

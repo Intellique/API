@@ -266,7 +266,6 @@ class UserTest(CommonTest):
         headers.update(cookie)
         conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 403)
 
@@ -289,7 +288,6 @@ class UserTest(CommonTest):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
 
@@ -312,7 +310,6 @@ class UserTest(CommonTest):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
         io = StringIO()
@@ -320,7 +317,6 @@ class UserTest(CommonTest):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
 
@@ -340,7 +336,6 @@ class UserTest(CommonTest):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
         user['password'] = self.users['archiver']['password']
@@ -349,7 +344,6 @@ class UserTest(CommonTest):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
 
