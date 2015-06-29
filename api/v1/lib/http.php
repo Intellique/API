@@ -20,32 +20,52 @@
 	 */
 	define('HTTP_ALL_METHODS', 15);
 
-	$available_formats = array_reduce(glob('format/*.php'), function($result, $format) {
+	$available_formats = array_reduce(glob('format/*/*.php'), function($result, $format) {
 		preg_match('/format\/(.*).php/', $format, $matches);
 		$result[$matches[1]] = $format;
 		return $result;
 	}, array());
+	$current_format = 'application/json';
 
 	/**
 	 * \brief check if output format is supported
 	 * \note special value 'help' return all available supported formats
 	 */
 	function httpCheckOutputFormat() {
-		if (!isset($_REQUEST['format']))
+		if (!isset($_SERVER['HTTP_ACCEPT']))
 			return;
 
-		if ($_REQUEST['format'] == 'help') {
-			header("Content-Type: application/json; charset=utf-8");
-			http_response_code(200);
-			echo json_encode(array(
-				'message' => 'Available formats',
-				'available formats' => $available_formats
-			));
-			exit;
+		global $available_formats;
+		global $current_format;
+
+		$formats = split('[,;]', $_SERVER['HTTP_ACCEPT']);
+		$found = false;
+
+		foreach ($formats as $format) {
+			if ($format == 'help') {
+				header("Content-Type: application/json; charset=utf-8");
+				http_response_code(200);
+				echo json_encode(array(
+					'message' => 'Available formats',
+					'available formats' => $available_formats
+				));
+				exit;
+			}
+
+			if ($format == '*/*') {
+				$current_format = 'application/json';
+				$found = true;
+				break;
+			}
+
+			if (array_search($format, $available_formats) !== false) {
+				$current_format = $format;
+				$found = true;
+				break;
+			}
 		}
 
-		global $available_formats;
-		if (array_search($_REQUEST['format'], $available_formats) === false) {
+		if (!$found) {
 			header("Content-Type: application/json; charset=utf-8");
 			http_response_code(400);
 			echo json_encode(array(
@@ -81,11 +101,9 @@
 
 	function httpResponse($code, $message) {
 		global $available_formats;
+		global $current_format;
 
-		if (isset($_REQUEST['format']))
-			include($available_formats[$_REQUEST['format']]);
-		else
-			include($available_formats['json']);
+		include($available_formats[$current_format]);
 
 		http_response_code($code);
 
