@@ -15,23 +15,18 @@
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
-			header("Content-Type: application/json; charset=utf-8");
-
 			$jobtype = $dbDriver->getJobtype();
 
-			if ($jobtype === null) {
-				http_response_code(500);
-				echo json_encode(array(
+			if ($jobtype === null)
+				httpResponse(500, array(
 					'message' => 'Query failure',
 					'jobtype' => array()
 				));
-			} else {
-				http_response_code(200);
-				echo json_encode(array(
+			else
+				httpResponse(200, array(
 					'message' => 'Query successfull',
 					'jobtype' => $jobtype
 				));
-			}
 		break;
 
 		case 'OPTIONS':

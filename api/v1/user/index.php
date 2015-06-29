@@ -102,87 +102,58 @@
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
-			if (!$_SESSION['user']['isadmin']) {
-				http_response_code(403);
-				echo json_encode(array('message' => 'Permission denied'));
-				exit;
-			}
+			if (!$_SESSION['user']['isadmin'])
+				httpResponse(403, array('message' => 'Permission denied'));
 
-			if (!isset($_GET['id'])) {
-				http_response_code(400);
-				echo json_encode(array('message' => 'User id required'));
-				exit;
-			}
+			if (!isset($_GET['id']))
+				httpResponse(400, array('message' => 'User id required'));
 
-			if ($_GET['id'] == $_SESSION['user']['id']) {
-				http_response_code(400);
-				echo json_encode(array('message' => 'Suicide forbidden'));
-				exit;
-			}
+			if ($_GET['id'] == $_SESSION['user']['id'])
+				httpResponse(400, array('message' => 'Suicide forbidden'));
 
 			$check_user = $dbDriver->getUser($_GET['id'], null);
-			if ($check_user === null) {
-				http_response_code(500);
-				echo json_encode(array('message' => 'Query failure'));
-				exit;
-			} elseif ($check_user === false) {
-				http_response_code(404);
-				echo json_encode(array('message' => 'User not found'));
-				exit;
-			}
+			if ($check_user === null)
+				httpResponse(500, array('message' => 'Query failure'));
+			elseif ($check_user === false)
+				httpResponse(404, array('message' => 'User not found'));
 
 			$delete_status = $dbDriver->deleteUser($_GET['id']);
-			if ($delete_status === null) {
-				http_response_code(500);
-				echo json_encode(array('message' => 'Query failure'));
-			} elseif ($delete_status === false) {
-				http_response_code(404);
-				echo json_encode(array('message' => 'User not found'));
-			} else {
-				http_response_code(200);
-				echo json_encode(array('message' => 'Deletion successfull'));
-			}
+			if ($delete_status === null)
+				httpResponse(500, array('message' => 'Query failure'));
+			elseif ($delete_status === false)
+				httpResponse(404, array('message' => 'User not found'));
+			else
+				httpResponse(200, array('message' => 'Deletion successfull'));
 
 			break;
 
 		case 'GET':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
 			if (isset($_GET['id'])) {
 				if ($_GET['id'] == $_SESSION['user']['id'] || $_SESSION['user']['isadmin']) {
 					$user = $dbDriver->getUser($_GET['id'], null);
-					if ($user === null) {
-						http_response_code(500);
-						echo json_encode(array(
+					if ($user === null)
+						httpResponse(500, array(
 							'message' => 'Query failure',
 							'user' => array()
 						));
-						exit;
-					} elseif ($user === false) {
-						http_response_code(404);
-						echo json_encode(array(
+					elseif ($user === false)
+						httpResponse(404, array(
 							'message' => 'User not found',
 							'user' => array()
 						));
-						exit;
-					}
 
-					http_response_code(200);
-					echo json_encode(array(
+					$_SESSION['user'] = $user;
+
+					httpResponse(200, array(
 						'message' => 'Query successfull',
 						'user' => $user
 					));
-					$_SESSION['user'] = $user;
-				} else {
-					http_response_code(403);
-					echo json_encode(array('message' => 'Permission denied'));
-				}
+				} else
+					httpResponse(403, array('message' => 'Permission denied'));
 			} elseif ($_SESSION['user']['isadmin']) {
 				$params = array();
 				$ok = true;
@@ -214,52 +185,35 @@
 						$ok = false;
 				}
 
-				if (!$ok) {
-					http_response_code(400);
-					echo json_encode(array('message' => 'Incorrect input'));
-					exit;
-				}
+				if (!$ok)
+					httpResponse(400, array('message' => 'Incorrect input'));
 
 				$users = $dbDriver->getUsers($params);
 
-				if ($users['query_executed'] == false) {
-					http_response_code(500);
-					echo json_encode(array(
+				if ($users['query_executed'] == false)
+					httpResponse(500, array(
 						'message' => 'Query failure',
 						'users_id' => array(),
 						'total_rows' => 0
 					));
-					exit;
-				}
 
-				http_response_code(200);
-				echo json_encode(array(
+				httpResponse(200, array(
 					'message' => 'Query successfull',
 					'users_id' => $users['rows'],
 					'total_rows' => $users['total_rows']
 				));
-			} else {
-				http_response_code(403);
-				echo json_encode(array('message' => 'Permission denied'));
-			}
+			} else
+				httpResponse(403, array('message' => 'Permission denied'));
 			break;
 
 		case 'POST':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
-			if (!$_SESSION['user']['isadmin']) {
-				http_response_code(403);
-				echo json_encode(array('message' => 'Permission denied'));
-				exit;
-			}
+			if (!$_SESSION['user']['isadmin'])
+				httpResponse(403, array('message' => 'Permission denied'));
 
-			if (!isset($_POST['user'])) {
-				http_response_code(400);
-				echo json_encode(array('message' => 'User information is required'));
-				exit;
-			}
+			if (!isset($_POST['user']))
+				httpResponse(400, array('message' => 'User information is required'));
 
 			$user = json_decode($_POST['user'], true);
 			$ok = (bool) $user;
@@ -352,51 +306,35 @@
 				$ok = isset($user['disabled']) && is_bool($user['disabled']);
 
 			// gestion des erreurs
-			if ($failed) {
-				http_response_code(500);
-				echo json_encode(array('message' => 'Query failure'));
-				exit;
-			}
-			if (!$ok) {
-				http_response_code(400);
-				echo json_encode(array('message' => 'Incorrect input'));
-				exit;
-			}
+			if ($failed)
+				httpResponse(500, array('message' => 'Query failure'));
+
+			if (!$ok)
+				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$result = $dbDriver->createUser($user);
 
-			if ($result) {
-				http_response_code(200);
-				echo json_encode(array(
+			if ($result)
+				httpResponse(200, array(
 					'message' => 'User created successfully',
 					'user_id' => $result['id']
 				));
-			} else {
-				http_response_code(500);
-				echo json_encode(array('message' => 'Query failure'));
-			}
+			else
+				httpResponse(500, array('message' => 'Query failure'));
 
 			break;
 
 		case 'PUT':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
 			$json = file_get_contents("php://input");
 			$user = json_decode($json, true);
 
-			if (!isset($user) && $user !== null) {
-				http_response_code(400);
-				echo json_encode(array('message' => 'User information is required'));
-				exit;
-			}
+			if (!isset($user) && $user !== null)
+				httpResponse(400, array('message' => 'User information is required'));
 
-			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $user['id'])) {
-				http_response_code(403);
-				echo json_encode(array('message' => 'Permission denied'));
-				exit;
-			}
+			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $user['id']))
+				httpResponse(403, array('message' => 'Permission denied'));
 
 			$ok = (bool) $user;
 			$failed = false;
@@ -503,26 +441,18 @@
 				$ok = isset($user['disabled']) && is_bool($user['disabled']);
 
 			// gestion des erreurs
-			if ($failed) {
-				http_response_code(500);
-				echo json_encode(array('message' => 'Query failure'));
-				exit;
-			}
-			if (!$ok) {
-				http_response_code(400);
-				echo json_encode(array('message' => 'Incorrect input'));
-				exit;
-			}
+			if ($failed)
+				httpResponse(500, array('message' => 'Query failure'));
+
+			if (!$ok)
+				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$result = $dbDriver->updateUser($user);
 
-			if ($result) {
-				http_response_code(200);
-				echo json_encode(array('message' => 'User updated successfully'));
-			} else {
-				http_response_code(500);
-				echo json_encode(array('message' => 'Query failure'));
-			}
+			if ($result)
+				httpResponse(200, array('message' => 'User updated successfully'));
+			else
+				httpResponse(500, array('message' => 'Query failure'));
 
 			break;
 

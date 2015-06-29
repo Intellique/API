@@ -111,15 +111,10 @@
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
-			if (!isset($_GET['id'])) {
-				http_response_code(400);
-				echo json_encode(array('message' => 'Job id required'));
-				exit;
-			}
+			if (!isset($_GET['id']))
+				httpResponse(400, array('message' => 'Job id required'));
 
 			$dbDriver->startTransaction();
 
@@ -128,29 +123,21 @@
 			if ($job['job'] === null || $job['permission'] === false)
 				$dbDriver->cancelTransaction();
 
-			if ($job['failure']) {
-				http_response_code(500);
-				echo json_encode(array(
+			if ($job['failure'])
+				httpResponse(500, array(
 					'message' => 'Query failure',
 					'job' => array()
 				));
-				exit;
-			} elseif (!$job['found']) {
-				http_response_code(404);
-				echo json_encode(array(
+			elseif (!$job['found'])
+				httpResponse(404, array(
 					'message' => 'Job not found',
 					'job' => array()
 				));
-				exit;
-			} elseif ($job['permission'] === false) {
-				http_response_code(403);
-				echo json_encode(array(
+			elseif ($job['permission'] === false)
+				httpResponse(403, array(
 					'message' => 'Permission denied',
-					'job' => array(),
-					'debug' => $job
+					'job' => array()
 				));
-				exit;
-			}
 
 			$delete_status = $dbDriver->deleteJob($_GET['id']);
 
@@ -159,22 +146,16 @@
 			else
 				$dbDriver->cancelTransaction();
 
-			if ($delete_status === null) {
-				http_response_code(500);
-				echo json_encode(array('message' => 'Query failure'));
-			} elseif ($delete_status === false) {
-				http_response_code(404);
-				echo json_encode(array('message' => 'Job not found'));
-			} else {
-				http_response_code(200);
-				echo json_encode(array('message' => 'Deletion successfull'));
-			}
+			if ($delete_status === null)
+				httpResponse(500, array('message' => 'Query failure'));
+			elseif ($delete_status === false)
+				httpResponse(404, array('message' => 'Job not found'));
+			else
+				httpResponse(200, array('message' => 'Deletion successfull'));
 
 			break;
 
 		case 'GET':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
 			if (isset($_GET['id'])) {
@@ -184,31 +165,26 @@
 
 				$dbDriver->cancelTransaction();
 
-				if ($job['failure']) {
-					http_response_code(500);
-					echo json_encode(array(
+				if ($job['failure'])
+					httpResponse(500, array(
 						'message' => 'Query failure',
 						'job' => array()
 					));
-				} elseif (!$job['found']) {
-					http_response_code(404);
-					echo json_encode(array(
+				elseif (!$job['found'])
+					httpResponse(404, array(
 						'message' => 'Job not found',
 						'job' => array()
 					));
-				} elseif ($job['permission'] === false) {
-					http_response_code(403);
-					echo json_encode(array(
+				elseif ($job['permission'] === false)
+					httpResponse(403, array(
 						'message' => 'Permission denied',
 						'job' => array()
 					));
-				} else {
-					http_response_code(200);
-					echo json_encode(array(
+				else
+					httpResponse(200, array(
 						'message' => 'Query successfull',
 						'job' => $job['job']
 					));
-				}
 			} else {
 				$params = array();
 				$ok = true;
@@ -244,11 +220,8 @@
 						$ok = false;
 				}
 
-				if (!$ok) {
-					http_response_code(400);
-					echo json_encode(array('message' => 'Incorrect input'));
-					exit;
-				}
+				if (!$ok)
+					httpResponse(400, array('message' => 'Incorrect input'));
 
 				$dbDriver->startTransaction();
 
@@ -257,13 +230,11 @@
 				if ($jobs['query_executed'] == false) {
 					$dbDriver->cancelTransaction();
 
-					http_response_code(500);
-					echo json_encode(array(
+					httpResponse(500, array(
 						'message' => 'Query failure',
 						'jobs_id' => array(),
 						'total_rows' => 0
 					));
-					exit;
 				}
 
 				$iRow = 0;
@@ -294,8 +265,7 @@
 
 				$dbDriver->cancelTransaction();
 
-				http_response_code(200);
-				echo json_encode(array(
+				httpResponse(200, array(
 					'message' => 'Query successfull',
 					'jobs_id' => $jobsId,
 					'total_rows' => $iRow
@@ -304,37 +274,24 @@
 		break;
 
 		case 'PUT':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
 			$json = file_get_contents("php://input");
 			$job = json_decode($json, true);
 
-			if (!isset($job) || !isset($job['id'])) {
-				http_response_code(400);
-				echo json_encode(array('message' => 'Job information is required'));
-				exit;
-			}
+			if (!isset($job) || !isset($job['id']))
+				httpResponse(400, array('message' => 'Job information is required'));
 
 			// id
 			$check_job = $dbDriver->getJob($job['id']);
 
-			if ($check_job === null) {
-				http_response_code(500);
-				echo json_encode(array('message' => 'Query failure'));
-				exit;
-			} elseif ($check_job === false) {
-				http_response_code(400);
-				echo json_encode(array('message' => 'Incorrect input'));
-				exit;
-			}
+			if ($check_job === null)
+				httpResponse(500, array('message' => 'Query failure'));
+			elseif ($check_job === false)
+				httpResponse(400, array('message' => 'Incorrect input'));
 
-			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $check_job['login'])) {
-				http_response_code(403);
-				echo json_encode(array('message' => 'Permission denied'));
-				exit;
-			}
+			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $check_job['login']))
+				httpResponse(403, array('message' => 'Permission denied'));
 
 			$ok = (bool) $job;
 
@@ -378,21 +335,17 @@
 				$ok = isset($job['options']) && is_array($job['options']);
 
 			// gestion des erreurs
-			if (!$ok) {
-				http_response_code(400);
-				echo json_encode(array('message' => 'Incorrect input'));
-				exit;
-			}
+			if (!$ok)
+				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$result = $dbDriver->updateJob($job);
 
-			if ($result) {
-				http_response_code(200);
-				echo json_encode(array('message' => 'Job updated successfully'));
-			} else {
-				http_response_code(500);
-				echo json_encode(array('message' => 'Query failure'));
-			}
+			if ($result)
+				httpResponse(200, array('message' => 'Job updated successfully'));
+			else
+				httpResponse(500, array('message' => 'Query failure'));
+
+			break;
 
 		case 'OPTIONS':
 			httpOptionsMethod(HTTP_ALL_METHODS & ~HTTP_POST);
