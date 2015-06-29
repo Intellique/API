@@ -35,55 +35,38 @@
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
 			session_destroy();
-			header("Content-Type: application/json; charset=utf-8");
-			http_response_code(200);
-			echo json_encode(array('message' => 'Logged out'));
+			httpResponse(200, array('message' => 'Logged out'));
 			break;
 
 		case 'GET':
-			header("Content-Type: application/json; charset=utf-8");
-			if (isset($_SESSION['user'])) {
-				http_response_code(200);
-				echo json_encode(array(
+			if (isset($_SESSION['user']))
+				httpResponse(200, array(
 					'message' => 'Logged in',
 					'user_id' => $_SESSION['user']['id']
 				));
-			} else {
-				http_response_code(401);
-				echo json_encode(array('message' => 'Not logged in'));
-			}
+			else
+				httpResponse(401, array('message' => 'Not logged in'));
 			break;
 
 		case 'POST':
-			header("Content-Type: application/json; charset=utf-8");
-
-			if (!isset($_POST['login']) || !isset($_POST['password'])) {
-				http_response_code(400);
-				echo json_encode(array('message' => '"login" and "password" are required'));
-				exit;
-			}
+			if (!isset($_POST['login']) || !isset($_POST['password']))
+				httpResponse(400, array('message' => '"login" and "password" are required'));
 
 			$user = $dbDriver->getUser(null, $_POST['login']);
 
-			if ($user === false || $user['disabled']) {
-				http_response_code(401);
-				echo json_encode(array('message' => 'Log in failed'));
-				exit;
-			}
+			if ($user === false || $user['disabled'])
+				httpResponse(401, array('message' => 'Log in failed'));
 
 			$password = $_POST['password'];
 			$half_length = strlen($password) >> 1;
 			$password = sha1(substr($password, 0, $half_length) . $user['salt'] . substr($password, $half_length));
 
-			if ($password != $user['password']) {
-				http_response_code(401);
-				echo json_encode(array('message' => 'Authentication failed'));
-				exit;
-			}
+			if ($password != $user['password'])
+				httpResponse(401, array('message' => 'Authentication failed'));
 
 			$_SESSION['user'] = $user;
 
-			echo json_encode(array(
+			httpResponse(200, array(
 				'message' => 'Logged in',
 				'user_id' => $user['id']
 			));
