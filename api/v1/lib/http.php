@@ -20,7 +20,7 @@
 	 */
 	define('HTTP_ALL_METHODS', 15);
 
-	$available_formats = array_reduce(glob('format/*/*.php'), function($result, $format) {
+	$available_formats = array_reduce(glob(dirname(__FILE__) . '/format/*/*.php'), function($result, $format) {
 		preg_match('/format\/(.*).php/', $format, $matches);
 		$result[$matches[1]] = $format;
 		return $result;
