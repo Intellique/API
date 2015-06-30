@@ -50,14 +50,18 @@ COPY host (id, uuid, name, domaine, description, updated) FROM stdin;
 \.
 ALTER SEQUENCE host_id_seq RESTART 7;
 
+COPY archiveformat (id, name, readable, writable) FROM stdin;
+1	Storiq One	t	t
+\.
+
 COPY selectedfile (id, path) FROM stdin;
 2	/mnt/raid/rcarchives/Archives_Audiovisuels/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN
 \.
 ALTER SEQUENCE selectedfile_id_seq RESTART 3;
 
-COPY pool (id, uuid, name, mediaformat, autocheck, growable, unbreakablelevel, rewritable, metadata, needproxy, pooloriginal, deleted, lockcheck, poolmirror) FROM stdin;
-3	60885acc-aa6f-47e2-8164-f80f039420a5	ARCHIVES_CAPTATIONS	2	none	f	file	t	[]	f	\N	f	f	\N
-5	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	f	\N	f	f	\N
+COPY pool (id, uuid, name, archiveformat, mediaformat, autocheck, growable, unbreakablelevel, rewritable, metadata, needproxy, pooloriginal, deleted, lockcheck, poolmirror) FROM stdin;
+3	60885acc-aa6f-47e2-8164-f80f039420a5	ARCHIVES_CAPTATIONS	1	2	none	f	file	t	[]	f	\N	f	f	\N
+5	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	1	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	f	\N	f	f	\N
 \.
 ALTER SEQUENCE pool_id_seq RESTART 6;
 
@@ -65,8 +69,8 @@ COPY pooltopoolgroup (pool, poolgroup) FROM stdin;
 3	1
 \.
 
-COPY media (id, uuid, label, mediumserialnumber, name, status, location, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, locked, type, mediaformat, pool) FROM stdin;
-1	8a391d01-6139-4ad9-8463-2ba6e8852040	EXP006	HA1PFAp084	EXPORTS_RUSHS_06	in use	offline	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	f	readonly	2	5
+COPY media (id, uuid, label, mediumserialnumber, name, status, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, type, mediaformat, pool) FROM stdin;
+1	8a391d01-6139-4ad9-8463-2ba6e8852040	EXP006	HA1PFAp084	EXPORTS_RUSHS_06	in use	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	2	5
 \.
 ALTER SEQUENCE media_id_seq RESTART 2;
 
