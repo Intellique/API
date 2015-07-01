@@ -189,7 +189,9 @@ class JobTest(CommonTest):
         self.assertEqual(res.status, 401)
 
     def test_25_put_job_logged_as_admin_without_params(self):
-        conn, headers, message = self.newLoggedConnection('admin')
+        conn, cookie, message = self.newLoggedConnection('admin')
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
         conn.request('PUT', self.path + 'job/', headers=headers)
         res = conn.getresponse()
         conn.close()

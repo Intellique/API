@@ -276,8 +276,7 @@
 		case 'PUT':
 			checkConnected();
 
-			$json = file_get_contents("php://input");
-			$job = json_decode($json, true);
+			$job = httpParseInput();
 
 			if (!isset($job) || !isset($job['id']))
 				httpResponse(400, array('message' => 'Job information is required'));
