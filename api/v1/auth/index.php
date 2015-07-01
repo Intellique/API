@@ -49,15 +49,16 @@
 			break;
 
 		case 'POST':
-			if (!isset($_POST['login']) || !isset($_POST['password']))
+			$credential = httpParseInput();
+			if (!$credential || !isset($credential['login']) || !isset($credential['password']))
 				httpResponse(400, array('message' => '"login" and "password" are required'));
 
-			$user = $dbDriver->getUser(null, $_POST['login']);
+			$user = $dbDriver->getUser(null, $credential['login']);
 
 			if ($user === false || $user['disabled'])
 				httpResponse(401, array('message' => 'Log in failed'));
 
-			$password = $_POST['password'];
+			$password = $credential['password'];
 			$half_length = strlen($password) >> 1;
 			$password = sha1(substr($password, 0, $half_length) . $user['salt'] . substr($password, $half_length));
 

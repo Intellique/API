@@ -1,5 +1,6 @@
 import json, unittest
-import http.client, urllib.parse
+from io import StringIO
+import http.client
 
 class CommonTest(unittest.TestCase):
     scheme = 'http'
@@ -23,9 +24,10 @@ class CommonTest(unittest.TestCase):
         if (user not in self.users):
             self.fail("user < %s > not found is config" % (user))
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': self.users[user]['login'], 'password': self.users[user]['password']})
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
-        conn.request('POST', self.path + 'auth/', params, headers)
+        io = StringIO()
+        json.dump({'login': self.users[user]['login'], 'password': self.users[user]['password']}, io)
+        headers = {"Content-type": "application/json"}
+        conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
         res = conn.getresponse()
         message = json.loads(res.read().decode("utf-8"))
         conn.close()

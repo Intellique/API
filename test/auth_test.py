@@ -1,5 +1,6 @@
 from common_test import CommonTest
-import urllib.parse
+from io import StringIO
+import json
 
 class AuthTest(CommonTest):
     def test_01_get_not_logged(self):
@@ -11,43 +12,48 @@ class AuthTest(CommonTest):
 
     def test_02_post_without_params(self):
         conn = self.newConnection()
-        conn.request('POST', self.path + 'auth/')
+        headers = {"Content-type": "application/json"}
+        conn.request('POST', self.path + 'auth/', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_03_post_with_wrong_param(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'foo': 'bar'})
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
-        conn.request('POST', self.path + 'auth/', params, headers)
+        io = StringIO()
+        json.dump({'foo': 'bar'}, io)
+        headers = {"Content-type": "application/json"}
+        conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_04_post_with_login_only(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': self.users['admin']['login']})
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
-        conn.request('POST', self.path + 'auth/', params, headers)
+        io = StringIO()
+        json.dump({'login': self.users['admin']['login']}, io)
+        headers = {"Content-type": "application/json"}
+        conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_05_post_auth_ok(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': self.users['admin']['login'], 'password': self.users['admin']['password']})
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
-        conn.request('POST', self.path + 'auth/', params, headers)
+        io = StringIO()
+        json.dump({'login': self.users['admin']['login'], 'password': self.users['admin']['password']}, io)
+        headers = {"Content-type": "application/json"}
+        conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
 
     def test_06_post_auth_fail(self):
         conn = self.newConnection()
-        params = urllib.parse.urlencode({'login': self.users['admin']['login'], 'password': 'foo'})
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
-        conn.request('POST', self.path + 'auth/', params, headers)
+        io = StringIO()
+        json.dump({'login': self.users['admin']['login'], 'password': 'foo'}, io)
+        headers = {"Content-type": "application/json"}
+        conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)

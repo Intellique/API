@@ -212,10 +212,10 @@
 			if (!$_SESSION['user']['isadmin'])
 				httpResponse(403, array('message' => 'Permission denied'));
 
-			if (!isset($_POST['user']))
+			$user = httpParseInput();
+			if ($user === null)
 				httpResponse(400, array('message' => 'User information is required'));
 
-			$user = json_decode($_POST['user'], true);
 			$ok = (bool) $user;
 			$failed = false;
 
