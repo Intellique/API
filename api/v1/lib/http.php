@@ -67,7 +67,7 @@
 
 		if (!$found) {
 			header("Content-Type: application/json; charset=utf-8");
-			http_response_code(400);
+			http_response_code(406);
 			echo json_encode(array(
 				'message' => 'Ouput format is not available',
 				'available format' => $available_formats
