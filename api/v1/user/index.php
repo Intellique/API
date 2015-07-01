@@ -327,8 +327,7 @@
 		case 'PUT':
 			checkConnected();
 
-			$json = file_get_contents("php://input");
-			$user = json_decode($json, true);
+			$user = httpParseInput();
 
 			if (!isset($user) && $user !== null)
 				httpResponse(400, array('message' => 'User information is required'));

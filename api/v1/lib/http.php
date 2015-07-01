@@ -99,16 +99,34 @@
 		header("Allow: " . $allow);
 	}
 
-	function httpResponse($code, $message) {
+	function httpParseInput($option = array()) {
+		global $available_formats;
+
+		if (!isset($_SERVER['CONTENT_TYPE']) || array_key_exists($_SERVER['CONTENT_TYPE'], $available_formats) === false) {
+			header("Content-Type: application/json; charset=utf-8");
+			http_response_code(415);
+			echo json_encode(array(
+				'message' => 'Available formats',
+				'available formats' => $available_formats
+			));
+			exit;
+		}
+
+		include_once($available_formats[$_SERVER['CONTENT_TYPE']]);
+
+		return formatParseInput($option);
+	}
+
+	function httpResponse($code, $message, $option = array()) {
 		global $available_formats;
 		global $current_format;
 
-		include($available_formats[$current_format]);
+		include_once($available_formats[$current_format]);
 
 		http_response_code($code);
 
 		formatContentType();
-		formatPrint($message);
+		formatPrint($message, $option);
 
 		exit;
 	}

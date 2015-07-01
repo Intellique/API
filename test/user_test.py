@@ -1,6 +1,6 @@
 from common_test import CommonTest
 from io import StringIO
-import urllib.parse, json, unittest, copy
+import json, unittest, copy
 
 class UserTest(CommonTest):
     def test_01_get_user_not_logged(self):
@@ -141,7 +141,9 @@ class UserTest(CommonTest):
         self.assertEqual(res.status, 403)
 
     def test_19_post_admin_user_without_params(self):
-        conn, headers, message = self.newLoggedConnection('admin')
+        conn, cookie, message = self.newLoggedConnection('admin')
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
         conn.request('POST', self.path + 'user/', headers=headers)
         res = conn.getresponse()
         conn.close()
@@ -155,10 +157,9 @@ class UserTest(CommonTest):
             'password': 'toto79',
             'fullname': 'la tête à toto'
         }, io);
-        body = urllib.parse.urlencode({'user': io.getvalue()});
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'user/', body=body, headers=headers)
+        conn.request('POST', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
@@ -179,10 +180,9 @@ class UserTest(CommonTest):
             'poolgroup': 1,
             'disabled': False
         }, io);
-        body = urllib.parse.urlencode({'user': io.getvalue()});
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'user/', body=body, headers=headers)
+        conn.request('POST', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -216,10 +216,9 @@ class UserTest(CommonTest):
             'poolgroup': None,
             'disabled': False
         }, io);
-        body = urllib.parse.urlencode({'user': io.getvalue()});
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'user/', body=body, headers=headers)
+        conn.request('POST', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -239,7 +238,9 @@ class UserTest(CommonTest):
         self.assertEqual(res.status, 401)
 
     def test_24_put_user_logged_as_admin_without_params(self):
-        conn, headers, message = self.newLoggedConnection('admin')
+        conn, cookie, message = self.newLoggedConnection('admin')
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
         conn.request('PUT', self.path + 'user/', headers=headers)
         res = conn.getresponse()
         conn.close()
