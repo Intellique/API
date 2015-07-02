@@ -10,8 +10,10 @@
  *     \verbatim Jobtype name list is returned \endverbatim
  *   - \b 500 Query failure
  */
-	require_once("../lib/http.php");
-	require_once("../lib/dbSession.php");
+	require_once("../lib/env.php");
+
+	require_once("http.php");
+	require_once("dbSession.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':

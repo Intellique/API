@@ -96,6 +96,8 @@ COPY job (id, name, type, nextstart, "interval", repetition, status, update, arc
 \.
 ALTER SEQUENCE job_id_seq RESTART 3;
 
+INSERT INTO jobtoselectedfile(job, selectedfile) VALUES (5, 2);
+
 COPY jobrun (id, job, numrun, starttime, endtime, status, done, exitcode, stoppedbyuser) FROM stdin;
 4	4	1	2012-09-27 16:59:47	2012-09-27 17:02:15	finished	1	0	f
 5	4	1	2014-10-22 11:19:03	2014-10-22 11:40:08	finished	1	0	f

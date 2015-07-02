@@ -1,4 +1,6 @@
 from common_test import CommonTest
+from io import StringIO
+import json
 
 class ArchiveTest(CommonTest):
     def test_01_get_archive_without_params(self):
@@ -70,4 +72,73 @@ class ArchiveTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
+
+    def test_11_post_admin_user_with_no_pool_id(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'archive/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_12_post_admin_user_with_wrong_pool_id(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        io = StringIO()
+        json.dump({
+            'pool': 'toto'
+        }, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_13_post_basic_user_not_allowed(self):
+        conn, cookie, message = self.newLoggedConnection('basic')
+        io = StringIO()
+        json.dump({
+            'pool': 3
+        }, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_14_post_admin_user_with_wrong_params(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        io = StringIO()
+        json.dump({
+            'name': '',
+            'files': '["/mnt/raid/rcarchives/PRODUITS_DE_DIFFUSION/CEI_DIFFUSION/20081207_MCEI_DON_CARLO_SCALA"]',
+            'pool': 3,
+            'metadata': {},
+            'options': {}
+        }, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_15_post_admin_user_with_right_params(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        io = StringIO()
+        json.dump({
+            'name': 'ArchiveTest',
+            'files': ["/mnt/raid/shared/partage/5a7-resto/130007/mnt/raid/VERS LTO DOSSIER SUJET C000/TVR1050-TRANSPORT CIRCULATION-S10.mov"],
+            'pool': 3,
+            'metadata': {},
+            'options': {}
+        }, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
 

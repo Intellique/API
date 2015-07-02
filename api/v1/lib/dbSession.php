@@ -19,7 +19,7 @@
 		 * \li \c meta (JSON) : user metadata
 		 * \li \c poolgroup (integer) : user poolgroup
 		 * \li \c disabled (boolean) : login rights
-		 * \return <b>New user ID</b> or \b NULL on query execution failure
+		 * \return <b>New user id</b> or \b NULL on query execution failure
 		 */
 		public function createUser(&$user);
 
@@ -41,24 +41,25 @@
 		 * \brief get job by id
 		 * \param $id : Job id
 		 * \return <b>Job information</b>, \b FALSE if not found, \b NULL on query execution failure
+		 * \note \ref Date "Date time formats supported"
 		 */
 		public function getJob($id);
 
 		/**
-		 * \brief get jobs ID list
+		 * \brief get jobs id list
 		 *
 		 * <b>Optional parameters</b>
 		 * \li \c $params['order_by'] (enum) order by column
 		 * \li \c $params['order_asc'] (boolean) ascending/descending order
 		 * \li \c $params['limit'] (integer) maximum number of rows to return
 		 * \li \c $params['offset'] (integer) number of rows to skip before starting to return rows
-		 * \return <b>Jobs ID list</b> and <b>total rows</b>
+		 * \return <b>Jobs id list</b> and <b>total rows</b>
 		 */
 		public function getJobs(&$params);
 
 		/**
-		 * \brief get jobtype name list
-		 * \return <b>Jobtype name list</b>, <b>empty array</b> if not found, \b NULL on query execution failure
+		 * \brief get job type name list
+		 * \return <b>Job type name list</b>, <b>empty array</b> if not found, \b NULL on query execution failure
 		 */
 		public function getJobType();
 
@@ -78,14 +79,14 @@
 		public function getUser($id, $login);
 
 		/**
-		 * \brief get users ID list
+		 * \brief get users id list
 		 *
 		 * <b>Optional parameters</b>
 		 * \li \c $params['order_by'] (enum) order by column
 		 * \li \c $params['order_asc'] (boolean) ascending/descending order
 		 * \li \c $params['limit'] (integer) maximum number of rows to return
 		 * \li \c $params['offset'] (integer) number of rows to skip before starting to return rows
-		 * \return <b>Users ID list</b> and <b>total rows</b>
+		 * \return <b>Users id list</b> and <b>total rows</b>
 		 */
 		public function getUsers(&$params);
 

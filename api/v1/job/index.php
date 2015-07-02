@@ -67,11 +67,14 @@
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
  *
- * \note Date format is YYYY-MM-SS hh:mm:sszzz(:zz)
+ * \note \ref Date "Date time formats supported"
  */
-	require_once("../lib/http.php");
-	require_once("../lib/session.php");
-	require_once("../lib/dbSession.php");
+	require_once("../lib/env.php");
+
+	require_once("dateTime.php");
+	require_once("http.php");
+	require_once("session.php");
+	require_once("dbSession.php");
 
 	function checkPermissions($jobId, $returnJob) {
 		global $dbDriver;
@@ -180,11 +183,15 @@
 						'message' => 'Permission denied',
 						'job' => array()
 					));
-				else
+				else {
+					$job = $job['job'];
+					$job['nextstart'] = $job['nextstart']->format(DateTime::ISO8601);
+					$job['update'] = $job['update']->format(DateTime::ISO8601);
 					httpResponse(200, array(
 						'message' => 'Query successfull',
-						'job' => $job['job']
+						'job' => $job
 					));
+				}
 			} else {
 				$params = array();
 				$ok = true;
@@ -303,11 +310,10 @@
 			}
 
 			// nextstart
-			$temp = null;
 			if ($ok) {
 				$ok = isset($job['nextstart']);
-				$temp = $dateParsed = date_parse_from_format("Y-m-d H:i:sP", $job['nextstart']);
-				if ($dateParsed['error_count'] > 0)
+				$job['nextstart'] = dateTimeParse($job['nextstart']);
+				if ($job['nextstart'] === null)
 					$ok = false;
 			}
 

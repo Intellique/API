@@ -96,9 +96,11 @@
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
  */
-	require_once("../lib/http.php");
-	require_once("../lib/session.php");
-	require_once("../lib/dbSession.php");
+	require_once("../lib/env.php");
+
+	require_once("http.php");
+	require_once("session.php");
+	require_once("dbSession.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
@@ -317,7 +319,7 @@
 			if ($result)
 				httpResponse(200, array(
 					'message' => 'User created successfully',
-					'user_id' => $result['id']
+					'user_id' => $result
 				));
 			else
 				httpResponse(500, array('message' => 'Query failure'));

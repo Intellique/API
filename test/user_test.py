@@ -1,6 +1,6 @@
 from common_test import CommonTest
 from io import StringIO
-import json, unittest, copy
+import json, copy
 
 class UserTest(CommonTest):
     def test_01_get_user_not_logged(self):

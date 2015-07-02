@@ -6,15 +6,15 @@
 	 */
 	interface DB_Archive extends DB {
 		/**
-		 * \brief Get an archive by its ID
-		 * \param $id : archive's ID
+		 * \brief Get an archive by its id
+		 * \param $id : archive's id
 		 * \return archive's information
 		 * \note No permission check will be performed
 		 */
 		public function getArchive($id);
 
 		/**
-		 * \brief Get an archive ID list for user \i $user_id
+		 * \brief Get an archive id list for user \em $user_id
 		 * \param $user_id : a user
 		 * \param &$params : optional parameters
 		 * \return an object which contains 'rows', 'total_rows', etc

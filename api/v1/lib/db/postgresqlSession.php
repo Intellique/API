@@ -1,16 +1,19 @@
 <?php
+	require_once("dateTime.php");
 	require_once("postgresql.php");
+	require_once("postgresqlJob.php");
 
 	class PostgresqlDBSession extends PostgresqlDB implements DB_Session {
-		public function createUser(&$user) {
-			if (!$this->prepareQuery("insert_user", "INSERT INTO users(login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id"))
-				return null;
+		use PostgresqlDBJob;
 
+		public function createUser(&$user) {
+			if (!$this->prepareQuery("insert_user", "INSERT INTO users (login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id"))
+				return null;
 
 			$isadmin = $user['isadmin'] ? "TRUE" : "FALSE";
 			$canarchive = $user['canarchive'] ? "TRUE" : "FALSE";
 			$canrestore = $user['canrestore'] ? "TRUE" : "FALSE";
-			$meta = json_encode($user['meta']);
+			$meta = json_encode($user['meta'], JSON_FORCE_OBJECT);
 			$disabled = $user['disabled'] ? "TRUE" : "FALSE";
 
 			$result = pg_execute($this->connect, "insert_user", array($user['login'], $user['password'], $user['salt'], $user['fullname'], $user['email'], $user['homedirectory'], $isadmin, $canarchive, $canrestore, $meta, $user['poolgroup'], $disabled));
@@ -20,9 +23,7 @@
 
 			$row = pg_fetch_assoc($result);
 
-			$row['id'] = intval($row['id']);
-
-			return $row;
+			return intval($row['id']);
 		}
 
 		public function deleteJob($id) {
@@ -67,7 +68,10 @@
 			$row = pg_fetch_assoc($result);
 
 			$row['id'] = intval($row['id']);
+			$row['nextstart'] = dateTimeParse($row['nextstart']);
 			$row['interval'] = PostgresqlDB::getInteger($row['interval']);
+			$row['repetition'] = PostgresqlDB::getInteger($row['repetition']);
+			$row['update'] = dateTimeParse($row['update']);
 			$row['archive'] = PostgresqlDB::getInteger($row['archive']);
 			$row['backup'] = PostgresqlDB::getInteger($row['backup']);
 			$row['media'] = PostgresqlDB::getInteger($row['media']);
@@ -290,10 +294,10 @@
 			if (!$this->prepareQuery("update_job", "UPDATE job SET name = $1, nextstart = $2, interval = $3, repetition = $4, status = $5, metadata = $6, options = $7 WHERE id = $8"))
 				return null;
 
-			$metadata = json_encode($job['metadata']);
-			$options = json_encode($job['options']);
+			$metadata = json_encode($job['metadata'], JSON_FORCE_OBJECT);
+			$options = json_encode($job['options'], JSON_FORCE_OBJECT);
 
-			$result = pg_execute($this->connect, "update_job", array($job['name'], $job['nextstart'], $job['interval'], $job['repetition'], $job['status'], $metadata, $options, $job['id']));
+			$result = pg_execute($this->connect, "update_job", array($job['name'], $job['nextstart']->format(DateTime::ISO8601), $job['interval'], $job['repetition'], $job['status'], $metadata, $options, $job['id']));
 
 			if ($result === false)
 				return null;
@@ -309,7 +313,7 @@
 			$canarchive = $user['canarchive'] ? "TRUE" : "FALSE";
 			$canrestore = $user['canrestore'] ? "TRUE" : "FALSE";
 			$disabled = $user['disabled'] ? "TRUE" : "FALSE";
-			$meta = json_encode($user['meta']);
+			$meta = json_encode($user['meta'], JSON_FORCE_OBJECT);
 
 			$result = pg_execute($this->connect, "update_user", array($user['login'], $user['password'], $user['salt'], $user['fullname'], $user['email'], $user['homedirectory'], $isadmin, $canarchive, $canrestore, $meta, $user['poolgroup'], $disabled, $user['id']));
 

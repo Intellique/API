@@ -28,9 +28,11 @@
  * \return HTTP status codes :
  * - \b 200 Logged out
  */
-	require_once("../lib/http.php");
-	require_once("../lib/session.php");
-	require_once("../lib/dbSession.php");
+	require_once("../lib/env.php");
+
+	require_once("http.php");
+	require_once("session.php");
+	require_once("dbSession.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':

@@ -1,4 +1,6 @@
 <?php
+	require_once("http.php");
+
 	session_set_cookie_params(0, '/api/v1/');
 	if (session_id() == NULL)
 		session_start();
@@ -8,12 +10,8 @@
 	 * \return \b TRUE on success, <b>HTTP status code 401 Authentication failed</b> on failure
 	 */
 	function checkConnected() {
-		if (!isset($_SESSION["user"])) {
-			header("Content-Type: application/json; charset=utf-8");
-			http_response_code(401);
-			echo json_encode(array('message' => 'Not logged in'));
-			exit;
-		}
+		if (!isset($_SESSION["user"]))
+			httpResponse(401, array('message' => 'Not logged in'));
 		return true;
 	}
 
@@ -34,9 +32,6 @@
 		session_destroy();
 		error_log("session timeout");
 
-		header("Content-Type: application/json; charset=utf-8");
-		http_response_code(401);
-		echo json_encode(array('message' => 'Not logged in'));
-		exit;
+		httpResponse(401, array('message' => 'Not logged in'));
 	}
 ?>
