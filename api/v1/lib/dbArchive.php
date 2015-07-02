@@ -1,10 +1,12 @@
 <?php
 	require_once('db.php');
+	require_once("dbJob.php");
+	require_once("dbPermission.php");
 
 	/**
 	 * \brief specific interface for archive object
 	 */
-	interface DB_Archive extends DB {
+	interface DB_Archive extends DB, DB_Job, DB_Permission {
 		/**
 		 * \brief Get an archive by its id
 		 * \param $id : archive's id

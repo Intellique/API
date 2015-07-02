@@ -1,10 +1,12 @@
 <?php
 	require_once('db.php');
+	require_once("dbJob.php");
+	require_once("dbPermission.php");
 
 	/**
 	 * \brief specific interface for user, session, job, jobtype
 	 */
-	interface DB_Session extends DB {
+	interface DB_Session extends DB, DB_Job, DB_Permission {
 		/**
 		 * \brief create a user
 		 * \param $user : PHP object

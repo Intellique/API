@@ -2,9 +2,10 @@
 	require_once("dateTime.php");
 	require_once("postgresql.php");
 	require_once("postgresqlJob.php");
+	require_once("postgresqlPermission.php");
 
 	class PostgresqlDBSession extends PostgresqlDB implements DB_Session {
-		use PostgresqlDBJob;
+		use PostgresqlDBJob, PostgresqlDBPermission;
 
 		public function createUser(&$user) {
 			if (!$this->prepareQuery("insert_user", "INSERT INTO users (login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id"))

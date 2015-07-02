@@ -1,9 +1,10 @@
 <?php
 	require_once("postgresql.php");
 	require_once("postgresqlJob.php");
+	require_once("postgresqlPermission.php");
 
 	class PostgresqlDBArchive extends PostgresqlDB implements DB_Archive {
-		use PostgresqlDBJob;
+		use PostgresqlDBJob, PostgresqlDBPermission;
 
 		public function getArchive($id) {
 			if (!$this->prepareQuery("select_archive_by_id", "SELECT id, uuid, name, creator, owner, canappend, deleted FROM archive WHERE id = $1 AND NOT deleted"))
