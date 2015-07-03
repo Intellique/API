@@ -302,7 +302,9 @@
 			}
 
 			$dbDriver->finishTransaction();
-			httpResponse(200, array(
+
+			httpAddLocation('/job/?id=' . $jobId);
+			httpResponse(201, array(
 				'message' => 'Job created successfully',
 				'job_id' => $jobId
 			));

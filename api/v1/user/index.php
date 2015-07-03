@@ -316,12 +316,13 @@
 
 			$result = $dbDriver->createUser($user);
 
-			if ($result)
-				httpResponse(200, array(
+			if ($result) {
+				httpAddLocation('/user/?id=' . $result);
+				httpResponse(201, array(
 					'message' => 'User created successfully',
 					'user_id' => $result
 				));
-			else
+			} else
 				httpResponse(500, array('message' => 'Query failure'));
 
 			break;

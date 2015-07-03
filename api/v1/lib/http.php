@@ -28,6 +28,17 @@
 	$current_format = 'application/json';
 
 	/**
+	 * \brief add location header set to $path
+	 * \param $path : path starting after '/storiqone-backend/api/v1/'
+	 */
+	function httpAddLocation($path) {
+		$location = $_SERVER['HTTPS'] ? 'https://' : 'http://';
+		$location .= $_SERVER['SERVER_NAME'] . substr(dirname(__DIR__), strlen($_SERVER['DOCUMENT_ROOT'])) . $path;
+
+		header('Location: ' . $location);
+	}
+
+	/**
 	 * \brief check if output format is supported
 	 * \note special value 'help' return all available supported formats
 	 */
