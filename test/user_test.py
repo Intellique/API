@@ -186,7 +186,7 @@ class UserTest(CommonTest):
         res = conn.getresponse()
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
-        self.assertEqual(res.status, 200)
+        self.assertEqual(res.status, 201)
         self.assertIn('user_id', message)
         last_user_created = message['user_id']
         conn = self.newConnection()
@@ -222,7 +222,7 @@ class UserTest(CommonTest):
         res = conn.getresponse()
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
-        self.assertEqual(res.status, 200)
+        self.assertEqual(res.status, 201)
         last_user_created = message['user_id']
         conn = self.newConnection()
         conn.request('DELETE', "%suser/?id=%d" % (self.path, last_user_created), headers=cookie)
@@ -376,4 +376,3 @@ class UserTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
-

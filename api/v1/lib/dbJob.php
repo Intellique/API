@@ -40,6 +40,14 @@
 		public function getSelectedFile($path);
 
 		/**
+		 * \brief insert into restoreto table a job id with a destination path
+		 * \param $jobId : job id
+		 * \param $path : destination path
+		 * \return \b TRUE on insertion success, \b NULL on query execution failure
+		 */
+		public function insertIntoRestoreTo($jobId, $path);
+
+		/**
 		 * \brief link job table to selectedfile table
 		 * \param $jobId : Job id
 		 * \param $selectedfileId : Selectedfile id

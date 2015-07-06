@@ -140,5 +140,4 @@ class ArchiveTest(CommonTest):
         conn.request('POST', self.path + 'archive/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 200)
-
+        self.assertEqual(res.status, 201)

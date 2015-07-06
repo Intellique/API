@@ -50,12 +50,12 @@
  * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
  * \param job : hash table
  * \li \c pool id (integer) : pool id
- * \li \c files (JSON) : files to be archived
+ * \li \c files (string array) : files to be archived
  * \li \c name (string) : archive name
- * \li \c metadata [optional] (JSON) : archive metadata
- * \li \c date [optional] (JSON) : archival task nextstart date
+ * \li \c metadata [optional] (object) : archive metadata
+ * \li \c date [optional] (string) : archival task nextstart date
  * \return HTTP status codes :
- *   - \b 200 Job created successfully
+ *   - \b 201 Job created successfully
  *     \verbatim New job id is returned \endverbatim
  *   - \b 400 Pool id is required or pool id must be an integer or incorrect input
  *   - \b 401 Not logged in
@@ -205,13 +205,11 @@
 			);
 
 			// pool id
-			if (isset($infoJob['pool']) && intval($infoJob['pool'])) {
-				$checkPoolPermission = $dbDriver->checkPoolPermission($infoJob['pool'], $_SESSION['user']['id']);
-				if ($checkPoolPermission === null)
-					$failed = true;
-				else
-					$job['pool'] = intval($infoJob['pool']);
-			}
+			$checkPoolPermission = $dbDriver->checkPoolPermission($infoJob['pool'], $_SESSION['user']['id']);
+			if ($checkPoolPermission === null)
+				$failed = true;
+			else
+				$job['pool'] = intval($infoJob['pool']);
 
 			if (!$_SESSION['user']['canarchive'] || !$checkPoolPermission) {
 				$dbDriver->cancelTransaction();
@@ -287,7 +285,6 @@
 			}
 
 			foreach ($files as $file) {
-
 				$selectedfileId = $dbDriver->getSelectedFile($file);
 
 				if ($selectedfileId === null || !$dbDriver->linkJobToSelectedfile($jobId, $selectedfileId)) {

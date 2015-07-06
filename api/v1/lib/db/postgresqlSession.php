@@ -124,7 +124,7 @@
 				'query_name' => $query_name,
 				'query_prepared' => true,
 				'query_executed' => true,
-				'iterator' => new PostgresqlDBResultIterator($result, array('getInteger'))
+				'iterator' => new PostgresqlDBResultIterator($result, array('getInteger'), false)
 			);
 		}
 

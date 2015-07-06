@@ -1,4 +1,6 @@
 <?php
+	require_once("dateTime.php");
+
 	/**
 	 * \brief postgresql's implementation
 	 */
@@ -80,6 +82,19 @@
 		}
 
 		/**
+		 * \brief casts specified string into date
+		 * \param $string : string to be casted
+		 * \return \b date or \b null if string doesn't represent a date
+		 *
+		 * \note \ref Date "Date time formats supported"
+		 */
+		public static function getDate($string) {
+			if ($string == '')
+				return null;
+			return dateTimeParse($string);
+		}
+
+		/**
 		 * \brief casts specified string into integer
 		 * \param $string : string to be casted
 		 * \return \b integer or \b null if string doesn't represent a number
@@ -130,6 +145,11 @@
 		private $result;
 
 		/**
+		 * \brief boolean value
+		 */
+		private $fetchAssoc;
+
+		/**
 		 * \brief functions array to convert type
 		 */
 		private $functionsArray;
@@ -144,21 +164,25 @@
 		 */
 		private $nbResultFetched;
 
-		public function __construct($result, $functionsArray) {
+		public function __construct($result, $functionsArray, $fetchAssoc) {
 			$this->result = $result;
 			$this->functionsArray = $functionsArray;
+			$this->fetchAssoc = $fetchAssoc;
 			$this->currentRow = false;
 			$this->nbResultFetched = 0;
 		}
 
 		public function hasNext() {
-			$this->currentRow = pg_fetch_array($this->result);
+			if ($this->fetchAssoc)
+				$this->currentRow = pg_fetch_assoc($this->result);
+			else
+				$this->currentRow = pg_fetch_array($this->result);
 			return $this->currentRow === false ? false : true;
 		}
 
 		public function next() {
 			if ($this->currentRow !== false)
-				return new PostgresqlDBRow($this->result, $this->currentRow, $this->functionsArray, $this->nbResultFetched++);
+				return new PostgresqlDBRow($this->result, $this->currentRow, $this->fetchAssoc, $this->functionsArray, $this->nbResultFetched++);
 			return null;
 		}
 	}
@@ -171,6 +195,11 @@
 		 * \brief iterate over this result
 		 */
 		private $result;
+
+		/**
+		 * \brief boolean value
+		 */
+		private $resultAssoc;
 
 		/**
 		 * \brief functions array to convert type
@@ -187,15 +216,16 @@
 		 */
 		private $currentRow;
 
-		public function __construct($result, &$currentRow, &$functionsArray, $iResult) {
+		public function __construct($result, &$currentRow, $resultAssoc, &$functionsArray, $iResult) {
 			$this->result = $result;
 			$this->functionsArray = $functionsArray;
 			$this->currentRow = $currentRow;
+			$this->resultAssoc = $resultAssoc;
 			$this->iResult = $iResult;
 		}
 
-		public function getValue($column = 0) {
-			if ($column < count($this->currentRow)) {
+		public function getValue($column) {
+			if (($this->resultAssoc && array_key_exists($column, $this->currentRow)) || $column < count($this->currentRow)) {
 				if (pg_field_is_null($this->result, $this->iResult, $column))
 					return null;
 

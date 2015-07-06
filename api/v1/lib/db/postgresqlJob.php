@@ -85,6 +85,18 @@
 			return intval($row['id']);
 		}
 
+		public function insertIntoRestoreTo($jobId, $path) {
+			if (!$this->prepareQuery("insert_restoreto", "INSERT INTO restoreto (path, job) VALUES ($1, $2)"))
+				return null;
+
+			$result = pg_execute($this->connect, "insert_restoreto", array($path, $jobId));
+
+			if ($result === false)
+				return null;
+
+			return true;
+		}
+
 		public function linkJobToSelectedfile($jobId, $selectedfileId) {
 			if (!$this->prepareQuery("insert_jobtoselectedfile", "INSERT INTO jobtoselectedfile (job, selectedfile) VALUES ($1, $2)"))
 				return null;

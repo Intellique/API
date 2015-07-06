@@ -8,7 +8,7 @@
  * \param login : User login
  * \param password : User password
  * \return HTTP status codes :
- *   - \b 200 Logged in
+ *   - \b 201 Logged in
  *     \verbatim User ID is returned \endverbatim
  *   - \b 400 Missing parameters (login and/or password missing)
  *   - \b 401 Log in failed
@@ -78,7 +78,7 @@
 			break;
 
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_DELETE | HTTP_GET | HTTP_POST);
+			httpOptionsMethod(HTTP_ALL_METHODS & ~HTTP_PUT);
 			break;
 
 		default:

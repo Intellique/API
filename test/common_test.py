@@ -31,7 +31,7 @@ class CommonTest(unittest.TestCase):
         res = conn.getresponse()
         message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        self.assertEqual(res.status, 200)
+        self.assertEqual(res.status, 201)
         conn = self.newConnection()
         return conn, {'Cookie': res.getheader('Set-Cookie').split(';')[0]}, message
 

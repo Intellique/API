@@ -19,9 +19,16 @@
 		 * \brief Get an archive id list for user \em $user_id
 		 * \param $user_id : a user
 		 * \param &$params : optional parameters
-		 * \return an object which contains 'rows', 'total_rows', etc
+		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
 		 */
 		public function getArchives($user_id, &$params);
+
+		/**
+		 * \brief Get iterator on files list for a specific archive
+		 * \param $id : an archive
+		 * \return an iterator which allow to browse on a files list
+		 */
+		public function getFilesFromArchive($id, &$params);
 
 		/**
 		 * \brief Update an archive

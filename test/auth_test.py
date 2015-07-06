@@ -46,7 +46,7 @@ class AuthTest(CommonTest):
         conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 200)
+        self.assertEqual(res.status, 201)
 
     def test_06_post_auth_fail(self):
         conn = self.newConnection()

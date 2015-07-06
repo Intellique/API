@@ -65,7 +65,7 @@
  * \li \c poolgroup (integer) : user poolgroup
  * \li \c disabled (boolean) : login rights
  * \return HTTP status codes :
- *   - \b 200 User created successfully
+ *   - \b 201 User created successfully
  *     \verbatim New user id is returned \endverbatim
  *   - \b 400 User information required or incorrect input
  *   - \b 401 Not logged in

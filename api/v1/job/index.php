@@ -250,13 +250,13 @@
 
 				while ($iRow < $offset && $iter->hasNext()) {
 					$result = $iter->next();
-					if (checkPermissions($result->getValue(), false))
+					if (checkPermissions($result->getValue(0), false))
 						$iRow++;
 				}
 
 				while ((($limit !== null && $iRow < $offset + $limit) || $limit === null) && $iter->hasNext()) {
 					$result = $iter->next();
-					$jobId = $result->getValue();
+					$jobId = $result->getValue(0);
 
 					if (checkPermissions($jobId, false)) {
 						$jobsId[] = $jobId;
@@ -266,7 +266,7 @@
 
 				while ($iter->hasNext()) {
 					$result = $iter->next();
-					if (checkPermissions($result->getValue(), false))
+					if (checkPermissions($result->getValue(0), false))
 						$iRow++;
 				}
 

@@ -55,6 +55,6 @@
 		 * \brief get value from a specified column
 		 * \return <b>the value from a specified column</b>
 		 */
-		public function getValue($column = 0);
+		public function getValue($column);
 	}
 ?>

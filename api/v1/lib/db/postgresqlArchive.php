@@ -119,6 +119,49 @@
 			);
 		}
 
+		public function getFilesFromArchive($id, &$params) {
+			$query = "SELECT id, name, type, mimetype, ownerid, owner, groupid, groups, perm, ctime, mtime, size FROM archivefile WHERE id IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE archivevolume IN (SELECT id from archivevolume WHERE archive = $1))";
+			$query_params = array();
+
+			if (isset($params['order_by'])) {
+				$query .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query .= ' DESC';
+			}
+
+			$query .= ' FOR SHARE';
+
+			$query_name = "select_files_from_archive_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'iterator' => null
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'iterator' => null
+				);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'iterator' => new PostgresqlDBResultIterator($result, array('getInteger', 'get', 'get', 'get', 'getInteger', 'get', 'getInteger', 'get', 'getInteger', 'getDate', 'getDate', 'getInteger'), true)
+			);
+		}
+
 		public function updateArchive(&$archive) {
 			if (!$this->prepareQuery("update_archive", "UPDATE archive SET name = $1, owner = $2, canappend = $3, deleted = $4 WHERE id = $5"))
 				return null;
