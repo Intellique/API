@@ -121,7 +121,7 @@
 
 		public function getFilesFromArchive($id, &$params) {
 			$query = "SELECT id, name, type, mimetype, ownerid, owner, groupid, groups, perm, ctime, mtime, size FROM archivefile WHERE id IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE archivevolume IN (SELECT id from archivevolume WHERE archive = $1))";
-			$query_params = array();
+			$query_params = array($id);
 
 			if (isset($params['order_by'])) {
 				$query .= ' ORDER BY ' . $params['order_by'];
@@ -158,7 +158,20 @@
 				'query_name' => $query_name,
 				'query_prepared' => true,
 				'query_executed' => true,
-				'iterator' => new PostgresqlDBResultIterator($result, array('getInteger', 'get', 'get', 'get', 'getInteger', 'get', 'getInteger', 'get', 'getInteger', 'getDate', 'getDate', 'getInteger'), true)
+				'iterator' => new PostgresqlDBResultIterator($result, array(
+					'id' => 'getInteger',
+					'name' => 'get',
+					'type' => 'get',
+					'mimetype' => 'get',
+					'ownerid' => 'getInteger',
+					'owner' => 'get',
+					'groupid' => 'getInteger',
+					'groups' => 'get',
+					'perm' => 'getInteger',
+					'ctime' => 'getDate',
+					'mtime' => 'getDate',
+					'size' => 'getInteger'
+				), true)
 			);
 		}
 

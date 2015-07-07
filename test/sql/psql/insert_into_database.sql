@@ -53,6 +53,7 @@ ALTER SEQUENCE host_id_seq RESTART 7;
 COPY archiveformat (id, name, readable, writable) FROM stdin;
 1	Storiq One	t	t
 \.
+ALTER SEQUENCE archiveformat_id_seq RESTART 2;
 
 COPY selectedfile (id, path) FROM stdin;
 2	/mnt/raid/rcarchives/Archives_Audiovisuels/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN
@@ -94,7 +95,7 @@ COPY job (id, name, type, nextstart, "interval", repetition, status, update, arc
 4	OESC_AMON_LE_VICTORIEUX_C_BARBOTIN	4	2012-09-27 16:59:39	\N	0	finished	2014-11-12 12:31:17	\N	\N	\N	3	6	2	{"Nomenclature_Echo":"20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN"}
 5	Format-52	5	2014-10-24 10:51:38	\N	0	finished	2014-11-12 12:31:19	\N	\N	1	3	6	1	{}
 \.
-ALTER SEQUENCE job_id_seq RESTART 3;
+ALTER SEQUENCE job_id_seq RESTART 6;
 
 INSERT INTO jobtoselectedfile(job, selectedfile) VALUES (5, 2);
 
@@ -102,7 +103,7 @@ COPY jobrun (id, job, numrun, starttime, endtime, status, done, exitcode, stoppe
 4	4	1	2012-09-27 16:59:47	2012-09-27 17:02:15	finished	1	0	f
 5	4	1	2014-10-22 11:19:03	2014-10-22 11:40:08	finished	1	0	f
 \.
-ALTER SEQUENCE jobrun_id_seq RESTART 5;
+ALTER SEQUENCE jobrun_id_seq RESTART 6;
 
 COPY archivevolume (id, sequence, size, starttime, endtime, checksumok, checktime, archive, media, mediaposition, jobrun) FROM stdin;
 2	0	15448169984	2012-09-27 16:59:47	2012-09-27 17:02:08	f	\N	2	1	3	4
@@ -141,6 +142,7 @@ COPY archivefile (id, name, type, mimetype, ownerid, owner, groupid, groups, per
 34	/mnt/raid/rcarchives/Archives_Audiovisuels/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN_DOCS/Barbotin Jaquette DVD.psd	regular file		550	postgres	1050	postgres	373	2012-06-21 17:27:25	2012-06-21 17:27:25	52746988	2
 35	/mnt/raid/rcarchives/Archives_Audiovisuels/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN_DOCS/._Barbotin Jaquette DVD.psd	regular file		550	postgres	1050	postgres	373	2012-06-21 17:27:25	2012-06-21 17:27:25	63764	2
 \.
+ALTER SEQUENCE archivefile_id_seq RESTART 36;
 
 COPY archivefiletoarchivevolume (archivevolume, archivefile, blocknumber, archivetime, checktime, checksumok) FROM stdin;
 2	6	0	2012-09-27 16:59:47	\N	f

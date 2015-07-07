@@ -7,11 +7,12 @@
  * \verbatim path : /storiqone-backend/api/v1/archive/restore/ \endverbatim
  * \param job : hash table
  * \li \c archive id (integer) : archive id
- * \li \c name (string) : restore task name
+ * \li \c name [optional] (string) : restore task name, <em>default value : archive name</em>
+ * \li \c nextstart [optional] (string) : restore task nextstart date, <em>default value : now</em>
  * \param filesFound : archive files array
  * \li \c files (string array) : files to be restored
  * \param destination [optional] : restoration destination path
- * \li \c destination [optional] (string) : restoration destination path
+ * \li \c destination [optional] (string) : restoration destination path, <em>default value : original path</em>
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
  *     \verbatim New job id is returned \endverbatim
@@ -20,7 +21,7 @@
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
  */
-	require_once("../lib/env.php");
+	require_once("../../lib/env.php");
 
 	require_once("dateTime.php");
 	require_once("http.php");
@@ -29,8 +30,6 @@
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'POST':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
 			$infoJob = httpParseInput();
@@ -67,7 +66,7 @@
 				httpResponse(400, array('message' => 'Archive not found'));
 
 			// archive id
-			$checkArchivePermission = $dbDriver->checkPoolPermission($infoJob['archive'], $_SESSION['user']['id']);
+			$checkArchivePermission = $dbDriver->checkArchivePermission($infoJob['archive'], $_SESSION['user']['id']);
 			if ($checkArchivePermission === null)
 				$failed = true;
 			else
@@ -78,7 +77,7 @@
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
-			// name
+			// name [optional]
 			if (isset($infoJob['name'])) {
 				$ok = is_string($infoJob['name']);
 				if ($ok)
@@ -95,9 +94,9 @@
 					$job['type'] = $jobType;
 			}
 
-			// date [optional]
-			if ($ok && isset($infoJob['date'])) {
-				$job['nextstart'] = dateTimeParse($infoJob['date']);
+			// nextstart [optional]
+			if ($ok && isset($infoJob['nextstart'])) {
+				$job['nextstart'] = dateTimeParse($infoJob['nextstart']);
 				if ($job['nextstart'] === null)
 					$ok = false;
 			} elseif ($ok)
@@ -120,7 +119,8 @@
 			$files = $infoJob['files'];
 			$filesFound = array();
 			if ($ok) {
-				$result = $dbDriver->getFilesFromArchive($infoJob['archive'], array());
+				$params = array();
+				$result = $dbDriver->getFilesFromArchive($infoJob['archive'], $params);
 				if ($result['query_executed'] == false) {
 					$dbDriver->cancelTransaction();
 					httpResponse(500, array('message' => 'Query failure'));

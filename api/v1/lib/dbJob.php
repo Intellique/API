@@ -4,16 +4,24 @@
 	 */
 	interface DB_Job {
 		/**
-		 * \brief create a job
+		 * \brief create a archival task
 		 * \param $job : hash table
-		 * \li \c pool id (integer) : pool id
-		 * \li \c files (JSON) : files to be archived
+ 		 * \li \c pool id (integer) : pool id
+		 * \li \c files (string array) : files to be archived
 		 * \li \c name (string) : archive name
-		 * \li \c type (string) : archival task type
-		 * \li \c host (string) : machine name executes archival task
-		 * \li \c login (integer) : user id
-		 * \li \c metadata [optional] (JSON) : archive metadata
-		 * \li \c date [optional] (JSON) : archival task nextstart date
+		 * \li \c metadata [optional] (object) : archive metadata, <em>default value : empty object</em>
+		 * \li \c nextstart [optional] (string) : archival task nextstart date, <em>default value : now</em>
+		 * \return <b>New job id</b> or \b NULL on query execution failure
+		 *
+		 * \brief create a restore task
+		 * \param $job : hash table
+		 * \li \c archive id (integer) : archive id
+		 * \li \c name [optional] (string) : restore task name, <em>default value : archive name</em>
+		 * \li \c nextstart [optional] (string) : restore task nextstart date, <em>default value : now</em>
+		 * \param filesFound : archive files array
+		 * \li \c files (string array) : files to be restored
+		 * \param destination [optional] : restoration destination path
+		 * \li \c destination [optional] (string) : restoration destination path, <em>default value : original path</em>
 		 * \return <b>New job id</b> or \b NULL on query execution failure
 		 */
 		public function createJob(&$job);

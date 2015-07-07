@@ -52,8 +52,8 @@
  * \li \c pool id (integer) : pool id
  * \li \c files (string array) : files to be archived
  * \li \c name (string) : archive name
- * \li \c metadata [optional] (object) : archive metadata
- * \li \c date [optional] (string) : archival task nextstart date
+ * \li \c metadata [optional] (object) : archive metadata, <em>default value : empty object</em>
+ * \li \c nextstart [optional] (string) : archival task nextstart date, <em>default value : now</em>
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
  *     \verbatim New job id is returned \endverbatim
@@ -73,8 +73,6 @@
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
 			if (!$_SESSION['user']['isadmin'])
@@ -101,8 +99,6 @@
 			break;
 
 		case 'GET':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
 			if (isset($_GET['id'])) {
@@ -178,8 +174,6 @@
 			break;
 
 		case 'POST':
-			header("Content-Type: application/json; charset=utf-8");
-
 			checkConnected();
 
 			$infoJob = httpParseInput();
@@ -259,9 +253,9 @@
 					$job['metadata'] = $metadata;
 			}
 
-			// date [optional]
-			if ($ok && isset($infoJob['date'])) {
-				$job['nextstart'] = dateTimeParse($infoJob['date']);
+			// nextstart [optional]
+			if ($ok && isset($infoJob['nextstart'])) {
+				$job['nextstart'] = dateTimeParse($infoJob['nextstart']);
 				if ($job['nextstart'] === null)
 					$ok = false;
 			} elseif ($ok)

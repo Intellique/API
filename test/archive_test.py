@@ -73,7 +73,14 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_11_post_admin_user_with_no_pool_id(self):
+    def test_11_post_not_logged(self):
+        conn = self.newConnection()
+        conn.request('POST', self.path + 'archive/')
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_12_post_admin_user_with_no_pool_id(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -82,7 +89,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_12_post_admin_user_with_wrong_pool_id(self):
+    def test_13_post_admin_user_with_wrong_pool_id(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -95,7 +102,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_13_post_basic_user_not_allowed(self):
+    def test_14_post_basic_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         io = StringIO()
         json.dump({
@@ -108,12 +115,12 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 403)
 
-    def test_14_post_admin_user_with_wrong_params(self):
+    def test_15_post_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
             'name': '',
-            'files': '["/mnt/raid/rcarchives/PRODUITS_DE_DIFFUSION/CEI_DIFFUSION/20081207_MCEI_DON_CARLO_SCALA"]',
+            'files': ["/mnt/raid/rcarchives/PRODUITS_DE_DIFFUSION/CEI_DIFFUSION/20081207_MCEI_DON_CARLO_SCALA"],
             'pool': 3,
             'metadata': {},
             'options': {}
@@ -125,7 +132,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_15_post_admin_user_with_right_params(self):
+    def test_16_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
