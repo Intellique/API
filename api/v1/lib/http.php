@@ -56,7 +56,7 @@
 				http_response_code(200);
 				echo json_encode(array(
 					'message' => 'Available formats',
-					'available formats' => $available_formats
+					'available formats' => array_keys($available_formats)
 				));
 				exit;
 			}
@@ -67,7 +67,7 @@
 				break;
 			}
 
-			if (array_search($format, $available_formats) !== false) {
+			if (array_key_exists($format, $available_formats)) {
 				$current_format = $format;
 				$found = true;
 				break;
@@ -79,7 +79,7 @@
 			http_response_code(406);
 			echo json_encode(array(
 				'message' => 'Ouput format is not available',
-				'available format' => $available_formats
+				'available format' => array_keys($available_formats)
 			));
 			exit;
 		}
