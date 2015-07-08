@@ -121,6 +121,7 @@
 			exit;
 		}
 
+		$input_functions = true;
 		include_once($available_formats[$_SERVER['CONTENT_TYPE']]);
 
 		return formatParseInput($option);
@@ -130,6 +131,7 @@
 		global $available_formats;
 		global $current_format;
 
+		$input_functions = false;
 		include_once($available_formats[$current_format]);
 
 		http_response_code($code);
