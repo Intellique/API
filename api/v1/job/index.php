@@ -299,7 +299,7 @@
 			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $check_job['login']))
 				httpResponse(403, array('message' => 'Permission denied'));
 
-			$ok = (bool) $job;
+			$ok = true;
 
 			// name
 			if ($ok)

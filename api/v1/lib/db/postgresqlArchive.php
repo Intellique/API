@@ -1,10 +1,11 @@
 <?php
 	require_once("postgresql.php");
 	require_once("postgresqlJob.php");
+	require_once("postgresqlMetadata.php");
 	require_once("postgresqlPermission.php");
 
 	class PostgresqlDBArchive extends PostgresqlDB implements DB_Archive {
-		use PostgresqlDBJob, PostgresqlDBPermission;
+		use PostgresqlDBJob, PostgresqlDBMetadata, PostgresqlDBPermission;
 
 		public function getArchive($id) {
 			if (!$this->prepareQuery("select_archive_by_id", "SELECT id, uuid, name, creator, owner, canappend, deleted FROM archive WHERE id = $1 AND NOT deleted"))
@@ -17,15 +18,18 @@
 			if (pg_num_rows($result) == 0)
 				return false;
 
-			$row = pg_fetch_assoc($result);
+			$archive = pg_fetch_assoc($result);
 
-			$row['id'] = intval($row['id']);
-			$row['creator'] = intval($row['creator']);
-			$row['owner'] = intval($row['owner']);
-			$row['canappend'] = $row['canappend'] == 't' ? true : false;
-			$row['deleted'] = $row['deleted'] == 't' ? true : false;
+			$archive['id'] = intval($archive['id']);
+			$archive['creator'] = intval($archive['creator']);
+			$archive['owner'] = intval($archive['owner']);
+			$archive['canappend'] = $archive['canappend'] == 't' ? true : false;
+			$archive['deleted'] = $archive['deleted'] == 't' ? true : false;
 
-			return $row;
+
+			$archive['metadata'] = $this->getMetadatas($id, 'archive');
+
+			return $archive;
 		}
 
 		public function getArchives($user_id, &$params) {

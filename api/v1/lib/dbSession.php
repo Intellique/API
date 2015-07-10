@@ -4,7 +4,7 @@
 	require_once("dbPermission.php");
 
 	/**
-	 * \brief specific interface for user, session, job, jobtype
+	 * \brief Specific interface for user, session, job, jobtype
 	 */
 	interface DB_Session extends DB, DB_Job, DB_Permission {
 		/**
@@ -26,29 +26,29 @@
 		public function createUser(&$user);
 
 		/**
-		 * \brief delete a job
-		 * \param $id : Job id
+		 * \brief Delete a job
+		 * \param $id : job id
 		 * \return \b TRUE on deletion success, \b FALSE when no job was deleted, \b NULL on query execution failure
 		 */
 		public function deleteJob($id);
 
 		/**
-		 * \brief delete a user
-		 * \param $id : User id
+		 * \brief Delete a user
+		 * \param $id : user id
 		 * \return \b TRUE on deletion success, \b FALSE when no user was deleted, \b NULL on query execution failure
 		 */
 		public function deleteUser($id);
 
 		/**
-		 * \brief get job by id
-		 * \param $id : Job id
+		 * \brief Get job by id
+		 * \param $id : job id
 		 * \return <b>Job information</b>, \b FALSE if not found, \b NULL on query execution failure
 		 * \note \ref Date "Date time formats supported"
 		 */
 		public function getJob($id);
 
 		/**
-		 * \brief get jobs id list
+		 * \brief Get jobs id list
 		 *
 		 * <b>Optional parameters</b>
 		 * \li \c $params['order_by'] (enum) order by column
@@ -60,20 +60,20 @@
 		public function getJobs(&$params);
 
 		/**
-		 * \brief get job type name list
+		 * \brief Get job type name list
 		 * \return <b>Job type name list</b>, <b>empty array</b> if not found, \b NULL on query execution failure
 		 */
 		public function getJobType();
 
 		/**
-		 * \brief get poolgroup by id
+		 * \brief Get poolgroup by id
 		 * \param $id : Poolgroup id
 		 * \return <b>Poolgroup information</b>, \b FALSE if not found, \b NULL on query execution failure
 		 */
 		public function getPoolgroup($id);
 
 		/**
-		 * \brief get user by id or login
+		 * \brief Get user by id or login
 		 * \param $id : User id or null
 		 * \param $login : User login or null
 		 * \return <b>User informations</b>, \b FALSE if not found, \b NULL on query execution failure
@@ -81,7 +81,7 @@
 		public function getUser($id, $login);
 
 		/**
-		 * \brief get users id list
+		 * \brief Get users id list
 		 *
 		 * <b>Optional parameters</b>
 		 * \li \c $params['order_by'] (enum) order by column
@@ -93,7 +93,7 @@
 		public function getUsers(&$params);
 
 		/**
-		 * \brief update a job
+		 * \brief Update a job
 		 * \param $job : PHP object
 		 * \li \c id (integer) : job id
 		 * \li \c name (string) : job name
@@ -108,7 +108,7 @@
 		public function updateJob(&$job);
 
 		/**
-		 * \brief update a user
+		 * \brief Update a user
 		 * \param $user : PHP object
 		 * \li \c id (integer) : user id
 		 * \li \c login (string) : user login

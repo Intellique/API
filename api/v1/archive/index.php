@@ -63,6 +63,22 @@
  *   - \b 500 Query failure
  *
  * \note \ref Date "Date time formats supported"
+ *
+ * \section Update_archive Archive update
+ * To update an archive,
+ * use \b PUT method
+ * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
+ * \param archive : JSON encoded object
+ * \li \c id (integer) : archive id
+ * \li \c name [optional] (string) : archive name
+ * \li \c owner [optional] (integer) : archive owner id
+ * \li \c canappend [optional] (boolean) : archive extend rights
+ * \return HTTP status codes :
+ *   - \b 200 Archive updated successfully
+ *   - \b 400 Archive id is required or archive id must be an integer or archive not found or incorrect input
+ *   - \b 401 Not logged in
+ *   - \b 403 Permission denied
+ *   - \b 500 Query failure
  */
 	require_once("../lib/env.php");
 
@@ -302,8 +318,128 @@
 
 			break;
 
+		case 'PUT':
+			checkConnected();
+
+			$archive = httpParseInput();
+
+			// archive id
+			if (!isset($archive['id']))
+				httpResponse(400, array('message' => 'Archive id is required'));
+
+			if (!is_int($archive['id']))
+				httpResponse(400, array('message' => 'Archive id must be an integer'));
+
+			$dbDriver->startTransaction();
+
+			$ok = true;
+			$failed = false;
+
+			// check archive
+			$check_archive = $dbDriver->getArchive($archive['id']);
+
+			if (!$check_archive)
+				$dbDriver->cancelTransaction();
+
+			if ($check_archive === null)
+				httpResponse(500, array('message' => 'Query failure'));
+			elseif ($check_archive === false)
+				httpResponse(400, array('message' => 'Archive not found'));
+
+			// archive id
+			$checkArchivePermission = $dbDriver->checkArchivePermission($archive['id'], $_SESSION['user']['id']);
+			if ($checkArchivePermission === null)
+				$failed = true;
+
+			if (!$_SESSION['user']['isadmin'] || !$checkArchivePermission) {
+				$dbDriver->cancelTransaction();
+				httpResponse(403, array('message' => 'Permission denied'));
+			}
+
+			// name [optional]
+			if ($ok && isset($archive['name'])) {
+				$ok = is_string($archive['name']);
+				if ($ok && $archive['name'] != $check_archive['name'] && $check_archive['owner'] != $_SESSION['user']['id']) {
+					$dbDriver->cancelTransaction();
+					httpResponse(403, array('message' => 'Permission denied'));
+				}
+			} elseif ($ok)
+				$archive['name'] = $check_archive['name'];
+
+			// owner [optional]
+			if ($ok && isset($archive['owner'])) {
+				$ok = is_int($archive['owner']);
+				if ($ok && $archive['owner'] != $check_archive['owner'] && !$_SESSION['user']['isadmin']) {
+					$dbDriver->cancelTransaction();
+					httpResponse(403, array('message' => 'Permission denied'));
+				}
+			} elseif ($ok)
+				$archive['owner'] = $check_archive['owner'];
+
+			// metadata [optional]
+			if ($ok && isset($archive['metadata']))
+				$ok = is_array($archive['metadata']);
+			elseif ($ok)
+				$archive['metadata'] = &$check_archive['metadata'];
+
+			// canappend [optional]
+			if ($ok && isset($archive['canappend']))
+				$ok = is_bool($archive['canappend']);
+			elseif ($ok)
+				$archive['canappend'] = $check_archive['canappend'];
+
+			// deleted
+			if ($ok && $archive['deleted'] != $check_archive['deleted'] && isset($archive['deleted']))
+				$ok = false;
+
+			// gestion des erreurs
+			if ($failed || !$ok)
+				$dbDriver->cancelTransaction();
+
+			if ($failed)
+				httpResponse(500, array('message' => 'Query failure'));
+
+			if (!$ok)
+				httpResponse(400, array('message' => 'Incorrect input'));
+
+			$resultArchive = $dbDriver->updateArchive($archive);
+
+			if (!$resultArchive)
+				httpResponse(500, array('message' => 'Query failure'));
+
+			// update, create and delete metadata
+			foreach ($archive['metadata'] as $key => $value) {
+				if (array_key_exists($key, $check_archive['metadata'])) {
+					$resultMetadata = $dbDriver->updateMetadata($archive['id'], $key, $value, 'archive', $_SESSION['user']['id']);
+					if (!$resultMetadata) {
+						$dbDriver->cancelTransaction();
+						httpResponse(500, array('message' => 'Query failure'));
+					}
+				} else {
+					$resultMetadata = $dbDriver->createMetadata($archive['id'], $key, $value, 'archive', $_SESSION['user']['id']);
+					if (!$resultMetadata) {
+						$dbDriver->cancelTransaction();
+						httpResponse(500, array('message' => 'Query failure'));
+					}
+				}
+			}
+
+			foreach ($check_archive['metadata'] as $key => $value) {
+				if (!array_key_exists($key, $archive['metadata'])) {
+					$resultMetadata = $dbDriver->deleteMetadata($archive['id'], $key, 'archive', $_SESSION['user']['id']);
+					if (!$resultMetadata) {
+						$dbDriver->cancelTransaction();
+						httpResponse(500, array('message' => 'Query failure'));
+					}
+				}
+			}
+
+			$dbDriver->finishTransaction();
+
+			httpResponse(200, array('message' => 'Archive updated successfully'));
+
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_ALL_METHODS & ~HTTP_PUT);
+			httpOptionsMethod(HTTP_ALL_METHODS);
 			break;
 
 		default:

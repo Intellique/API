@@ -37,7 +37,7 @@
 			if (!isset($infoJob['archive']))
 				httpResponse(400, array('message' => 'Archive id is required'));
 
-			if (!intval($infoJob['archive']))
+			if (!is_int($infoJob['archive']))
 				httpResponse(400, array('message' => 'Archive id must be an integer'));
 
 			$dbDriver->startTransaction();
@@ -70,7 +70,7 @@
 			if ($checkArchivePermission === null)
 				$failed = true;
 			else
-				$job['archive'] = intval($infoJob['archive']);
+				$job['archive'] = $infoJob['archive'];
 
 			if (!$_SESSION['user']['canrestore'] || !$checkArchivePermission) {
 				$dbDriver->cancelTransaction();

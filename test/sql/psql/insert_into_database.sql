@@ -60,9 +60,9 @@ COPY selectedfile (id, path) FROM stdin;
 \.
 ALTER SEQUENCE selectedfile_id_seq RESTART 3;
 
-COPY pool (id, uuid, name, archiveformat, mediaformat, autocheck, growable, unbreakablelevel, rewritable, metadata, needproxy, pooloriginal, deleted, lockcheck, poolmirror) FROM stdin;
-3	60885acc-aa6f-47e2-8164-f80f039420a5	ARCHIVES_CAPTATIONS	1	2	none	f	file	t	[]	f	\N	f	f	\N
-5	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	1	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	f	\N	f	f	\N
+COPY pool (id, uuid, name, archiveformat, mediaformat, autocheck, growable, unbreakablelevel, rewritable, metadata, pooloriginal, deleted, lockcheck, poolmirror) FROM stdin;
+3	60885acc-aa6f-47e2-8164-f80f039420a5	ARCHIVES_CAPTATIONS	1	2	none	f	file	t	[]	\N	f	f	\N
+5	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	1	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	\N	f	f	\N
 \.
 ALTER SEQUENCE pool_id_seq RESTART 6;
 
