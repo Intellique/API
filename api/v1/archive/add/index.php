@@ -1,18 +1,16 @@
 <?php
 /**
- * \addtogroup restore
- * \section Create_restore_task Restore task creation
- * To create a restore task,
+ * \addtogroup add
+ * \section Create_add_task Add task creation
+ * To create an add task,
  * use \b POST method
- * \verbatim path : /storiqone-backend/api/v1/archive/restore/ \endverbatim
+ * \verbatim path : /storiqone-backend/api/v1/archive/add/ \endverbatim
  * \param job : hash table
  * \li \c archive id (integer) : archive id
- * \li \c name [optional] (string) : restore task name, <em>default value : archive name</em>
- * \li \c nextstart [optional] (string) : restore task nextstart date, <em>default value : now</em>
- * \param filesFound : archive files array
- * \li \c filesFound (string array) : files to be restored
- * \param destination [optional] : restoration destination path
- * \li \c destination [optional] (string) : restoration destination path, <em>default value : original path</em>
+ * \li \c name [optional] (string) : add task name, <em>default value : archive name</em>
+ * \li \c nextstart [optional] (string) : add task nextstart date, <em>default value : now</em>
+ * \param files : archive files array
+ * \li \c files (string array) : files to be added
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
  *     \verbatim New job id is returned \endverbatim
@@ -73,7 +71,7 @@
 			else
 				$job['archive'] = $infoJob['archive'];
 
-			if (!$_SESSION['user']['canrestore'] || !$checkArchivePermission) {
+			if (!$_SESSION['user']['canarchive'] || !$checkArchivePermission) {
 				$dbDriver->cancelTransaction();
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
@@ -88,7 +86,7 @@
 
 			// type
 			if ($ok) {
-				$jobType = $dbDriver->getJobTypeId("restore-archive");
+				$jobType = $dbDriver->getJobTypeId("create-archive");
 				if ($jobType === null || $jobType === false)
 					$failed = true;
 				else
@@ -112,36 +110,12 @@
 					$job['host'] = $host;
 			}
 
-			// files
+			// files (checking file access)
 			$files = $infoJob['files'];
-			$filesFound = array();
-			if ($ok) {
-				$params = array();
-				$result = $dbDriver->getFilesFromArchive($infoJob['archive'], $params);
-				if ($result['query_executed'] == false) {
-					$dbDriver->cancelTransaction();
-					httpResponse(500, array('message' => 'Query failure'));
-				}
-
-				$iter = $result['iterator'];
-
-				while (count($files) > 0 && $iter->hasNext()) {
-					$row = $iter->next();
-					$fileName = $row->getValue('name');
-
-					$pos = array_search($fileName, $files);
-					if ($pos !== false) {
-						array_push($filesFound, $fileName);
-						array_splice($files, $pos, 1);
-					}
-				}
-
-				$ok = count($files) == 0;
-			}
-
-			// destination [optional]
-			if ($ok && isset($infoJob['destination']))
-				$ok = is_string($infoJob['destination']);
+			$ok = isset($files) && is_array($files) && count($files) > 0;
+			if ($ok)
+				for ($i = 0, $n = count($files); $ok && $i < $n; $i++)
+					$ok = is_string($files[$i]) && posix_access($files[$i], POSIX_F_OK);
 
 			// gestion des erreurs
 			if ($failed || !$ok)
@@ -160,24 +134,13 @@
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
-			foreach ($filesFound as $file) {
+			foreach ($files as $file) {
 				$selectedfileId = $dbDriver->getSelectedFile($file);
 
 				if ($selectedfileId === null || !$dbDriver->linkJobToSelectedfile($jobId, $selectedfileId)) {
 					$failed = true;
 					break;
 				}
-			}
-
-			if (isset($infoJob['destination'])) {
-				$restoreto = $dbDriver->insertIntoRestoreTo($jobId, $infoJob['destination']);
-				if (!$restoreto)
-					$failed = true;
-			}
-
-			if ($failed) {
-				$dbDriver->cancelTransaction();
-				httpResponse(500, array('message' => 'Query failure'));
 			}
 
 			$dbDriver->finishTransaction();

@@ -2,10 +2,10 @@ from common_test import CommonTest
 from io import StringIO
 import json
 
-class ArchiveRestoreTest(CommonTest):
+class ArchiveAddTest(CommonTest):
     def test_01_post_not_logged(self):
         conn = self.newConnection()
-        conn.request('POST', self.path + 'archive/restore/')
+        conn.request('POST', self.path + 'archive/add/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
@@ -14,7 +14,7 @@ class ArchiveRestoreTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/restore/', headers=headers)
+        conn.request('POST', self.path + 'archive/add/', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
@@ -27,7 +27,7 @@ class ArchiveRestoreTest(CommonTest):
         }, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/restore/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/add/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
@@ -40,7 +40,7 @@ class ArchiveRestoreTest(CommonTest):
         }, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/restore/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/add/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
@@ -55,7 +55,7 @@ class ArchiveRestoreTest(CommonTest):
         }, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/restore/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/add/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
@@ -64,13 +64,13 @@ class ArchiveRestoreTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
-            'name': 'ArchiveRestoreTest',
-            'files': ["/mnt/raid/rcarchives/Archives_Audiovisuels/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN_DVD"],
+            'name': 'ArchiveAddTest',
+            'files': ["/mnt/raid/shared/partage/5a7-resto/130012/mnt/raid/TV RENNES/TVR-01 13/TVR-METROPOLITAIN-2008-04-04-S1.mov"],
             'archive': 2
         }, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/restore/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/add/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
@@ -86,22 +86,21 @@ class ArchiveRestoreTest(CommonTest):
         self.assertEqual(res.status, 200)
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
-        self.assertEqual(job['job']['name'], 'ArchiveRestoreTest')
+        self.assertEqual(job['job']['name'], 'ArchiveAddTest')
         self.assertEqual(job['job']['archive'], 2)
 
     def test_07_post_admin_user_with_right_params2(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
-            'name': 'ArchiveRestoreTest2',
-            'files': ["/mnt/raid/rcarchives/Archives_Audiovisuels/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN_DVD"],
+            'name': 'ArchiveAddTest2',
+            'files': ["/mnt/raid/shared/partage/5a7-resto/130012/mnt/raid/TV RENNES/TVR-01 13/TVR-METROPOLITAIN-2008-04-04-S1.mov"],
             'archive': 2,
-            'destination': '/mnt/raid/backup/',
-            'nextstart': '2016-01-01 11:09:09+02'
+            'nextstart': '2020-02-20 22:22:22+02'
         }, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/restore/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/add/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
@@ -117,6 +116,6 @@ class ArchiveRestoreTest(CommonTest):
         self.assertEqual(res.status, 200)
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
-        self.assertEqual(job['job']['name'], 'ArchiveRestoreTest2')
+        self.assertEqual(job['job']['name'], 'ArchiveAddTest2')
         self.assertEqual(job['job']['archive'], 2)
-        self.assertEqual(job['job']['nextstart'], '2016-01-01T09:09:09+0000')
+        self.assertEqual(job['job']['nextstart'], '2020-02-20T20:22:22+0000')
