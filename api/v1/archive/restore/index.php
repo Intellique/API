@@ -7,7 +7,7 @@
  * \verbatim path : /storiqone-backend/api/v1/archive/restore/ \endverbatim
  * \param job : hash table
  * \li \c archive id (integer) : archive id
- * \li \c name [optional] (string) : restore task name, <em>default value : archive name</em>
+ * \li \c name [optional] (string) : restore task name, <em>default value : "restore_" + archive name</em>
  * \li \c nextstart [optional] (string) : restore task nextstart date, <em>default value : now</em>
  * \param filesFound : archive files array
  * \li \c filesFound (string array) : files to be restored
@@ -84,7 +84,7 @@
 				if ($ok)
 					$job['name'] = $infoJob['name'];
 			} else
-				$job['name'] = $check_archive['name'];
+				$job['name'] = "restore_" . $check_archive['name'];
 
 			// type
 			if ($ok) {

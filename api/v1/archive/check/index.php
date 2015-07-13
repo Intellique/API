@@ -1,16 +1,15 @@
 <?php
 /**
- * \addtogroup add
- * \section Create_add_task Add task creation
- * To create an add task,
+ * \addtogroup check Check archive
+ * \section Create_check_archive_task Check archive task creation
+ * To create a check archive task,
  * use \b POST method
- * \verbatim path : /storiqone-backend/api/v1/archive/add/ \endverbatim
+ * \verbatim path : /storiqone-backend/api/v1/archive/check/ \endverbatim
  * \param job : hash table
  * \li \c archive id (integer) : archive id
- * \li \c name [optional] (string) : add task name, <em>default value : "add_" + archive name</em>
- * \li \c nextstart [optional] (string) : add task nextstart date, <em>default value : now</em>
- * \param files : archive files array
- * \li \c files (string array) : files to be added
+ * \li \c name [optional] (string) : check archive task name, <em>default value : "check_" + archive name</em>
+ * \li \c nextstart [optional] (string) : restore task nextstart date, <em>default value : now</em>
+ * \li \c options [optional] (hash table) : check archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
  *     \verbatim New job id is returned \endverbatim
@@ -31,6 +30,7 @@
 			checkConnected();
 
 			$infoJob = httpParseInput();
+
 			// archive id
 			if (!isset($infoJob['archive']))
 				httpResponse(400, array('message' => 'Archive id is required'));
@@ -44,7 +44,6 @@
 			$failed = false;
 
 			$job = array(
-				'interval' => null,
 				'backup' => null,
 				'media' => null,
 				'pool' => null,
@@ -71,7 +70,7 @@
 			else
 				$job['archive'] = $infoJob['archive'];
 
-			if (!$_SESSION['user']['canarchive'] || !$checkArchivePermission) {
+			if (!$checkArchivePermission) {
 				$dbDriver->cancelTransaction();
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
@@ -82,11 +81,11 @@
 				if ($ok)
 					$job['name'] = $infoJob['name'];
 			} else
-				$job['name'] = "add_" . $check_archive['name'];
+				$job['name'] = "check_" . $check_archive['name'];
 
 			// type
 			if ($ok) {
-				$jobType = $dbDriver->getJobTypeId("create-archive");
+				$jobType = $dbDriver->getJobTypeId("check-archive");
 				if ($jobType === null || $jobType === false)
 					$failed = true;
 				else
@@ -110,12 +109,11 @@
 					$job['host'] = $host;
 			}
 
-			// files (checking file access)
-			$files = $infoJob['files'];
-			$ok = isset($files) && is_array($files) && count($files) > 0;
-			if ($ok)
-				for ($i = 0, $n = count($files); $ok && $i < $n; $i++)
-					$ok = is_string($files[$i]) && posix_access($files[$i], POSIX_F_OK);
+			// options [optional]
+			if ($ok && isset($infoJob['options']['quick_mode']) && is_bool($infoJob['options']['quick_mode']))
+				$job['options']['quick_mode'] = $infoJob['options']['quick_mode'];
+			elseif ($ok && isset($infoJob['options']['thorough_mode']) && is_bool($infoJob['options']['thorough_mode']))
+				$job['options']['quick_mode'] = !$infoJob['options']['thorough_mode'];
 
 			// gestion des erreurs
 			if ($failed || !$ok)
@@ -132,15 +130,6 @@
 			if ($jobId === null) {
 				$dbDriver->cancelTransaction();
 				httpResponse(500, array('message' => 'Query failure'));
-			}
-
-			foreach ($files as $file) {
-				$selectedfileId = $dbDriver->getSelectedFile($file);
-
-				if ($selectedfileId === null || !$dbDriver->linkJobToSelectedfile($jobId, $selectedfileId)) {
-					$failed = true;
-					break;
-				}
 			}
 
 			$dbDriver->finishTransaction();
