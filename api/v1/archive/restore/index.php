@@ -1,6 +1,6 @@
 <?php
 /**
- * \addtogroup restore
+ * \addtogroup restore Restore archive
  * \section Create_restore_task Restore task creation
  * To create a restore task,
  * use \b POST method

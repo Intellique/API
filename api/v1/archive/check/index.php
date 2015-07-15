@@ -44,6 +44,7 @@
 			$failed = false;
 
 			$job = array(
+				'interval' => null,
 				'backup' => null,
 				'media' => null,
 				'pool' => null,
@@ -110,10 +111,17 @@
 			}
 
 			// options [optional]
-			if ($ok && isset($infoJob['options']['quick_mode']) && is_bool($infoJob['options']['quick_mode']))
-				$job['options']['quick_mode'] = $infoJob['options']['quick_mode'];
-			elseif ($ok && isset($infoJob['options']['thorough_mode']) && is_bool($infoJob['options']['thorough_mode']))
-				$job['options']['quick_mode'] = !$infoJob['options']['thorough_mode'];
+			if ($ok && isset($infoJob['options']['quick_mode'])) {
+				if (is_bool($infoJob['options']['quick_mode']))
+					$job['options']['quick_mode'] = $infoJob['options']['quick_mode'];
+				else
+					$ok = false;
+			} elseif ($ok && isset($infoJob['options']['thorough_mode'])) {
+				if (is_bool($infoJob['options']['thorough_mode']))
+					$job['options']['quick_mode'] = !$infoJob['options']['thorough_mode'];
+				else
+					$ok = false;
+			}
 
 			// gestion des erreurs
 			if ($failed || !$ok)
