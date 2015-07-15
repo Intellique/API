@@ -116,7 +116,7 @@
 			http_response_code(415);
 			echo json_encode(array(
 				'message' => 'Available formats',
-				'available formats' => $available_formats
+				'available formats' => array_keys($available_formats)
 			));
 			exit;
 		}
