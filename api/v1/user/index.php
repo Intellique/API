@@ -148,8 +148,6 @@
 							'user' => array()
 						));
 
-					$_SESSION['user'] = $user;
-
 					httpResponse(200, array(
 						'message' => 'Query successfull',
 						'user' => $user
