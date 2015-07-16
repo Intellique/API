@@ -1,6 +1,6 @@
 from common_test import CommonTest
 from io import StringIO
-import json, copy
+import copy, hashlib, json
 
 class UserTest(CommonTest):
     def test_01_get_user_not_logged(self):
@@ -166,6 +166,7 @@ class UserTest(CommonTest):
 
     def test_21_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
+        meta = {'Description': 'Toto est super content', 'Format': 'totomobile'}
         io = StringIO()
         json.dump({
             'login': 'toto',
@@ -176,7 +177,7 @@ class UserTest(CommonTest):
             'isadmin': False,
             'canarchive': True,
             'canrestore': True,
-            'meta': {'Description': 'Toto est super content', 'Format': 'totomobile'},
+            'meta': meta,
             'poolgroup': 1,
             'disabled': False
         }, io);
@@ -184,9 +185,36 @@ class UserTest(CommonTest):
         headers.update(cookie)
         conn.request('POST', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
+        location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 201)
+        self.assertIsNotNone(location)
+        self.assertIsNotNone(message)
+        conn = self.newConnection()
+        conn.request('GET', location, headers=cookie)
+        res = conn.getresponse()
+        user = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+        self.assertIsNotNone(user)
+        self.assertEqual(user['user']['id'], message['user_id'])
+        self.assertEqual(user['user']['login'], 'toto')
+        pwdlenh = int(len('toto79') / 2)
+        pwd = 'toto79'
+        hashpwd = hashlib.sha1((pwd[:pwdlenh] + user['user']['salt'] + pwd[pwdlenh:]).encode('utf-8')).hexdigest()
+        self.assertEqual(user['user']['password'], hashpwd)
+        self.assertEqual(user['user']['fullname'], 'la tête à toto')
+        self.assertEqual(user['user']['email'], 'toto@toto.com')
+        self.assertEqual(user['user']['homedirectory'], '/mnt/raid')
+        self.assertEqual(user['user']['isadmin'], False)
+        self.assertEqual(user['user']['canarchive'], True)
+        self.assertEqual(user['user']['canrestore'], True)
+        for k in meta:
+            self.assertIn(k, user['user']['meta'])
+            self.assertEqual(meta[k], user['user']['meta'][k])
+        self.assertEqual(user['user']['poolgroup'], 1)
+        self.assertEqual(user['user']['disabled'], False)
         self.assertIn('user_id', message)
         last_user_created = message['user_id']
         conn = self.newConnection()
@@ -202,6 +230,7 @@ class UserTest(CommonTest):
 
     def test_22_post_admin_user_with_right_params_and_poolgroup_is_null(self):
         conn, cookie, message = self.newLoggedConnection('admin')
+        meta = {'Description': 'Kiki est super content', 'Voiture': 'kikimobile'}
         io = StringIO()
         json.dump({
             'login': 'kiki',
@@ -212,7 +241,7 @@ class UserTest(CommonTest):
             'isadmin': False,
             'canarchive': True,
             'canrestore': True,
-            'meta': {'Description': 'Kiki est super content', 'Voiture': 'kikimobile'},
+            'meta': meta,
             'poolgroup': None,
             'disabled': False
         }, io);
@@ -220,9 +249,36 @@ class UserTest(CommonTest):
         headers.update(cookie)
         conn.request('POST', self.path + 'user/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
+        location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 201)
+        self.assertIsNotNone(location)
+        self.assertIsNotNone(message)
+        conn = self.newConnection()
+        conn.request('GET', location, headers=cookie)
+        res = conn.getresponse()
+        user = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+        self.assertIsNotNone(user)
+        self.assertEqual(user['user']['id'], message['user_id'])
+        self.assertEqual(user['user']['login'], 'kiki')
+        pwdlenh = int(len('kiki91') / 2)
+        pwd = 'kiki91'
+        hashpwd = hashlib.sha1((pwd[:pwdlenh] + user['user']['salt'] + pwd[pwdlenh:]).encode('utf-8')).hexdigest()
+        self.assertEqual(user['user']['password'], hashpwd)
+        self.assertEqual(user['user']['fullname'], 'la tête à kiki')
+        self.assertEqual(user['user']['email'], 'kiki@kiki.com')
+        self.assertEqual(user['user']['homedirectory'], '/mnt/raid')
+        self.assertEqual(user['user']['isadmin'], False)
+        self.assertEqual(user['user']['canarchive'], True)
+        self.assertEqual(user['user']['canrestore'], True)
+        for k in meta:
+            self.assertIn(k, user['user']['meta'])
+            self.assertEqual(meta[k], user['user']['meta'][k])
+        self.assertEqual(user['user']['poolgroup'], None)
+        self.assertEqual(user['user']['disabled'], False)
         last_user_created = message['user_id']
         conn = self.newConnection()
         conn.request('DELETE', "%suser/?id=%d" % (self.path, last_user_created), headers=cookie)
