@@ -69,7 +69,7 @@
 
 			$_SESSION['user'] = $user;
 
-			httpAddLocation('/auth/?id=' . $user['id']);
+			httpAddLocation('/auth/');
 			httpResponse(201, array(
 				'message' => 'Logged in',
 				'user_id' => $user['id']
