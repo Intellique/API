@@ -322,9 +322,7 @@ CREATE TABLE DriveFormatSupport (
     mediaFormat INTEGER NOT NULL REFERENCES MediaFormat(id) ON UPDATE CASCADE ON DELETE CASCADE,
 
     read BOOLEAN NOT NULL DEFAULT TRUE,
-    write BOOLEAN NOT NULL DEFAULT TRUE,
-
-    PRIMARY KEY (driveFormat, mediaFormat)
+    write BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE Host (
@@ -370,7 +368,7 @@ CREATE TABLE Drive (
 
     status DriveStatus NOT NULL,
     operationDuration FLOAT(3) NOT NULL DEFAULT 0 CHECK (operationDuration >= 0),
-    lastClean TIMESTAMP(0) WITH TIME ZONE,
+    lastClean TIMESTAMP(3) WITH TIME ZONE,
     enable BOOLEAN NOT NULL DEFAULT TRUE,
 
     changer INTEGER NULL REFERENCES Changer(id) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -412,7 +410,7 @@ CREATE TABLE Users (
 
     meta JSON NOT NULL,
 
-    poolgroup INTEGER REFERENCES PoolGroup(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    poolgroup INTEGER NOT NULL REFERENCES PoolGroup(id) ON UPDATE CASCADE ON DELETE RESTRICT,
 
     disabled BOOLEAN NOT NULL DEFAULT FALSE
 );
@@ -580,14 +578,30 @@ CREATE TABLE BackupVolume (
 );
 
 CREATE TABLE Metadata (
-    key TEXT NOT NULL,
-    value TEXT NOT NULL,
-
     id BIGINT NOT NULL,
     type MetaType NOT NULL,
 
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+
+    login INTEGER NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+
     PRIMARY KEY (id, type, key)
 );
+
+CREATE TABLE MetadataLog (
+    id BIGINT NOT NULL,
+    type MetaType NOT NULL,
+
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+
+    login INTEGER NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+
+    timestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated BOOLEAN NOT NULL
+);
+CREATE INDEX ON MetadataLog (id, type, key);
 
 CREATE TABLE Proxy (
     id BIGSERIAL PRIMARY KEY,
@@ -728,12 +742,25 @@ CREATE TABLE Vtl (
 );
 
 -- Triggers
-CREATE FUNCTION check_metadata() RETURNS TRIGGER AS $body$
+CREATE OR REPLACE FUNCTION check_metadata() RETURNS TRIGGER AS $body$
     BEGIN
         IF TG_OP = 'UPDATE' AND OLD.id != NEW.id THEN
             UPDATE Metadata SET id = NEW.id WHERE id = OLD.id AND type = TG_TABLE_NAME::MetaType;
         ELSIF TG_OP = 'DELETE' THEN
             DELETE FROM Metadata WHERE id = OLD.id AND type = TG_TABLE_NAME::MetaType;
+        END IF;
+        RETURN NEW;
+    END;
+$body$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION log_metadata() RETURNS TRIGGER AS $body$
+    BEGIN
+        IF TG_OP = 'UPDATE' AND (OLD.id != NEW.id OR OLD.type != NEW.type) THEN
+            RAISE EXCEPTION 'id or type of metadata should not be modified' USING ERRCODE = '09000';
+        END IF;
+        IF TG_OP = 'DELETE' OR OLD != NEW THEN
+            INSERT INTO MetadataLog(id, type, key, value, login, updated)
+                VALUES (OLD.id, OLD.type, OLD.key, OLD.value, OLD.login, TG_OP != 'UPDATE');
         END IF;
         RETURN NEW;
     END;
@@ -774,6 +801,10 @@ FOR EACH ROW EXECUTE PROCEDURE check_metadata();
 CREATE TRIGGER update_metadata
 AFTER UPDATE OR DELETE ON Vtl
 FOR EACH ROW EXECUTE PROCEDURE check_metadata();
+
+CREATE TRIGGER log_metadata
+BEFORE UPDATE OR DELETE ON Metadata
+FOR EACH ROW EXECUTE PROCEDURE log_metadata();
 
 -- Comments
 COMMENT ON COLUMN ArchiveVolume.starttime IS 'Start time of archive volume creation';

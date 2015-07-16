@@ -1,12 +1,12 @@
 <?php
 	trait PostgresqlDBMetadata {
 		public function createMetadata($id, $key, $value, $type, $userId) {
-			if (!$this->prepareQuery("insert_metadata", "INSERT INTO metadata (key, value, id, type) VALUES ($1, $2, $3, $4)"))
+			if (!$this->prepareQuery("insert_metadata", "INSERT INTO metadata (id, type, key, value, login) VALUES ($1, $2, $3, $4, $5)"))
 				return null;
 
 			$value = json_encode($value, JSON_FORCE_OBJECT);
 
-			$result = pg_execute($this->connect, "insert_metadata", array($key, $value, $id, $type));
+			$result = pg_execute($this->connect, "insert_metadata", array($id, $type, $key, $value, $userId));
 
 			if ($result === false)
 				return null;
@@ -15,10 +15,10 @@
 		}
 
 		public function deleteMetadata($id, $key, $type, $userId) {
-			if (!$this->prepareQuery('delete_metadata_by_key', "DELETE FROM metadata WHERE id = $1 AND key = $2 AND type = $3"))
+			if (!$this->prepareQuery('delete_metadata_by_key', "WITH up AS (UPDATE metadata SET login = $4 WHERE id = $1 AND type = $2 AND key = $3) DELETE FROM metadata WHERE id = $1 AND type = $2 AND key = $3"))
 				return null;
 
-			$result = pg_execute($this->connect, 'delete_metadata_by_key', array($id, $key, $type));
+			$result = pg_execute($this->connect, 'delete_metadata_by_key', array($id, $type, $key, $userId));
 
 			if ($result === false)
 				return null;
@@ -27,10 +27,10 @@
 		}
 
 		public function deleteMetadatas($id, $type, $userId) {
-			if (!$this->prepareQuery('delete_metadatas', "DELETE FROM metadata WHERE id = $1 AND type = $2"))
+			if (!$this->prepareQuery('delete_metadatas', "WITH up AS (UPDATE metadata SET login = $3 WHERE id = $1 AND type = $2) DELETE FROM metadata WHERE id = $1 AND type = $2"))
 				return null;
 
-			$result = pg_execute($this->connect, 'delete_metadatas', array($id, $type));
+			$result = pg_execute($this->connect, 'delete_metadatas', array($id, $type, $userId));
 
 			if ($result === false)
 				return null;
@@ -79,12 +79,12 @@
 		}
 
 		public function updateMetadata($id, $key, $value, $type, $userId) {
-			if (!$this->prepareQuery("update_metadata", "UPDATE metadata SET value = $1 WHERE id = $2 AND key = $3 AND type = $4"))
+			if (!$this->prepareQuery("update_metadata", "UPDATE metadata SET value = $4, login = $5 WHERE id = $1 AND type = $2 AND key = $3"))
 				return null;
 
 			$value = json_encode($value, JSON_FORCE_OBJECT);
 
-			$result = pg_execute($this->connect, "update_metadata", array($value, $id, $key, $type));
+			$result = pg_execute($this->connect, "update_metadata", array($id, $type, $key, $value, $userId));
 
 			if ($result === false)
 				return null;
