@@ -54,6 +54,7 @@
  * \li \c name (string) : archive name
  * \li \c metadata [optional] (object) : archive metadata, <em>default value : empty object</em>
  * \li \c nextstart [optional] (string) : archival task nextstart date, <em>default value : now</em>
+ * \li \c options [optional] (hash table) : check archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
  *     \verbatim New job id is returned \endverbatim
@@ -276,6 +277,19 @@
 					$ok = false;
 			} elseif ($ok)
 				$job['nextstart'] = new DateTime();
+
+			// options [optional]
+			if ($ok && isset($infoJob['options']['quick_mode'])) {
+				if (is_bool($infoJob['options']['quick_mode']))
+					$job['options']['quick_mode'] = $infoJob['options']['quick_mode'];
+				else
+					$ok = false;
+			} elseif ($ok && isset($infoJob['options']['thorough_mode'])) {
+				if (is_bool($infoJob['options']['thorough_mode']))
+					$job['options']['quick_mode'] = !$infoJob['options']['thorough_mode'];
+				else
+					$ok = false;
+			}
 
 			// gestion des erreurs
 			if ($failed || !$ok)

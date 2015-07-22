@@ -9,6 +9,7 @@
  * \li \c archive id (integer) : archive id
  * \li \c name [optional] (string) : add task name, <em>default value : "add_" + archive name</em>
  * \li \c nextstart [optional] (string) : add task nextstart date, <em>default value : now</em>
+ * \li \c options [optional] (hash table) : check archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
  * \param files : archive files array
  * \li \c files (string array) : files to be added
  * \return HTTP status codes :
@@ -100,6 +101,19 @@
 					$ok = false;
 			} elseif ($ok)
 				$job['nextstart'] = new DateTime();
+
+			// options [optional]
+			if ($ok && isset($infoJob['options']['quick_mode'])) {
+				if (is_bool($infoJob['options']['quick_mode']))
+					$job['options']['quick_mode'] = $infoJob['options']['quick_mode'];
+				else
+					$ok = false;
+			} elseif ($ok && isset($infoJob['options']['thorough_mode'])) {
+				if (is_bool($infoJob['options']['thorough_mode']))
+					$job['options']['quick_mode'] = !$infoJob['options']['thorough_mode'];
+				else
+					$ok = false;
+			}
 
 			// host
 			if ($ok) {
