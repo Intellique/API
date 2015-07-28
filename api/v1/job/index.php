@@ -8,7 +8,7 @@
  * \param id : job id
  * \return HTTP status codes :
  *   - \b 200 Deletion successfull
- *   - \b 400 Job id required
+ *   - \b 400 Job id is required
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 404 Job not found
@@ -62,7 +62,7 @@
  * \li \c options (JSON) : job options
  * \return HTTP status codes :
  *   - \b 200 Job updated successfully
- *   - \b 400 Job information required or incorrect input
+ *   - \b 400 Bad request - Either ; job information is required or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
@@ -117,7 +117,7 @@
 			checkConnected();
 
 			if (!isset($_GET['id']))
-				httpResponse(400, array('message' => 'Job id required'));
+				httpResponse(400, array('message' => 'Job id is required'));
 
 			$dbDriver->startTransaction();
 

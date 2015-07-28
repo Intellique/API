@@ -1,11 +1,4 @@
 <?php
-/**
- * \addtogroup Date Date time formats
- * \section Date Date time formats
- * <b>Input date time formats</b> : \verbatim ISO8601, RFC2822, RFC822, PostgreSQL ISO ("Y-m-d H:i:sO") \endverbatim
- *
- * <b>Output date time format</b> : \verbatim ISO8601 \endverbatim
- */
 	function dateTimeParse($strDate) {
 		if ($strDate == "now")
 			return new DateTime();

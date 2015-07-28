@@ -8,12 +8,12 @@
  * \param job : hash table
  * \li \c archive id (integer) : archive id
  * \li \c name [optional] (string) : check archive task name, <em>default value : "check_" + archive name</em>
- * \li \c nextstart [optional] (string) : restore task nextstart date, <em>default value : now</em>
+ * \li \c nextstart [optional] (string) : check task nextstart date, <em>default value : now</em>
  * \li \c options [optional] (hash table) : check archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
  *     \verbatim New job id is returned \endverbatim
- *   - \b 400 Archive id is required or archive id must be an integer or archive not found or incorrect input
+ *   - \b 400 Bad request - Either ; archive id is required or archive id must be an integer or archive not found or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 500 Query failure

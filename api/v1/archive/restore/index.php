@@ -1,14 +1,14 @@
 <?php
 /**
  * \addtogroup restore Restore archive
- * \section Create_restore_task Restore task creation
- * To create a restore task,
+ * \section Create_restoration_task Restoration task creation
+ * To create a restoration task,
  * use \b POST method
  * \verbatim path : /storiqone-backend/api/v1/archive/restore/ \endverbatim
  * \param job : hash table
  * \li \c archive id (integer) : archive id
- * \li \c name [optional] (string) : restore task name, <em>default value : "restore_" + archive name</em>
- * \li \c nextstart [optional] (string) : restore task nextstart date, <em>default value : now</em>
+ * \li \c name [optional] (string) : restoration task name, <em>default value : "restore_" + archive name</em>
+ * \li \c nextstart [optional] (string) : restoration task nextstart date, <em>default value : now</em>
  * \param filesFound : archive files array
  * \li \c filesFound (string array) : files to be restored
  * \param destination [optional] : restoration destination path
@@ -16,7 +16,7 @@
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
  *     \verbatim New job id is returned \endverbatim
- *   - \b 400 Archive id is required or archive id must be an integer or archive not found or incorrect input
+ *   - \b 400 Bad request - Either ; archive id is required or archive id must be an integer or archive not found or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 500 Query failure

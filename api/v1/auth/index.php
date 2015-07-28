@@ -5,12 +5,12 @@
  * To authenticate a user,
  * use \b POST method
  * \verbatim path : /storiqone-backend/api/v1/auth/ \endverbatim
- * \param login : User login
- * \param password : User password
+ * \param login : user login
+ * \param password : user password
  * \return HTTP status codes :
  *   - \b 201 Logged in
  *     \verbatim User ID is returned \endverbatim
- *   - \b 400 Missing parameters (login and/or password missing)
+ *   - \b 400 Bad request - Either ; login and/or password missing
  *   - \b 401 Log in failed
  *
  * \section Connection_status Connection status

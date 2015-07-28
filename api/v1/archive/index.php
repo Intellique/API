@@ -5,7 +5,7 @@
  * To mark archive as deleted,
  * use \b DELETE method
  * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
- * \param id : archive's id
+ * \param id : archive id
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
  *     \verbatim Archive information are returned \endverbatim
@@ -18,15 +18,15 @@
  * To get archive by its ID,
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
- * \param id : archive's id
+ * \param id : archive id
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
- *     \verbatim Archive information are returned \endverbatim
+ *     \verbatim Archive information is returned \endverbatim
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
  *
- * \section Archives Archives id,
+ * \section Archives Archives ids (multiple list),
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
  * <b>Optional parameters</b>
@@ -37,7 +37,7 @@
  * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
  * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
  *
- * \warning To get archives ID list do not pass an id as parameter
+ * \warning To get multiple archives ids list do not pass an id as parameter
  * \return HTTP status codes :
  *   - \b 200 Query successfull
  *   - \b 400 Incorrect input
@@ -58,7 +58,7 @@
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
  *     \verbatim New job id is returned \endverbatim
- *   - \b 400 Pool id is required or pool id must be an integer or incorrect input
+ *   - \b 400 Bad request - Either ; pool id is required or pool id must be an integer or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
@@ -76,7 +76,7 @@
  * \li \c canappend [optional] (boolean) : archive extend rights
  * \return HTTP status codes :
  *   - \b 200 Archive updated successfully
- *   - \b 400 Archive id is required or archive id must be an integer or archive not found or incorrect input
+ *   - \b 400 Bad request - Either ; archive id is required or archive id must be an integer or archive not found or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 500 Query failure

@@ -8,7 +8,7 @@
  * \param id : user id
  * \return HTTP status codes :
  *   - \b 200 Deletion successfull
- *   - \b 400 User id required
+ *   - \b 400 User id is required
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 404 User not found
@@ -27,8 +27,8 @@
  *   - \b 404 User not found
  *   - \b 500 Query failure
  *
- * \section Users_id Users id
- * To get users id list,
+ * \section Users_id Users ids
+ * To get users ids list,
  * use \b GET method : <i>without reference to specific id or ids</i>
  * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
  * <b>Optional parameters</b>
@@ -39,10 +39,10 @@
  * | limit    | integer |specifies the maximum number of rows to return                                       | limit > 0                                                              |
  * | offset   | integer |specifies the number of rows to skip before starting to return rows                  | offset >= 0                                                            |
  *
- * \warning To get users id list do not pass an id or ids as parameter
+ * \warning To get users ids list do not pass an id or ids as parameter
  * \return HTTP status codes :
  *   - \b 200 Query successfull
- *     \verbatim Users id list is returned \endverbatim
+ *     \verbatim Users ids list is returned \endverbatim
  *   - \b 400 Incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
@@ -67,7 +67,7 @@
  * \return HTTP status codes :
  *   - \b 201 User created successfully
  *     \verbatim New user id is returned \endverbatim
- *   - \b 400 User information required or incorrect input
+ *   - \b 400 Bad request - Either ; user information is required or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
@@ -91,7 +91,7 @@
  * \li \c disabled (boolean) : login rights
  * \return HTTP status codes :
  *   - \b 200 User updated successfully
- *   - \b 400 User information required or incorrect input
+ *   - \b 400 Bad request - Either ; user information is required or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
@@ -110,7 +110,7 @@
 				httpResponse(403, array('message' => 'Permission denied'));
 
 			if (!isset($_GET['id']))
-				httpResponse(400, array('message' => 'User id required'));
+				httpResponse(400, array('message' => 'User id is required'));
 
 			if ($_GET['id'] == $_SESSION['user']['id'])
 				httpResponse(400, array('message' => 'Suicide forbidden'));
