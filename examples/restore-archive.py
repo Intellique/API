@@ -47,6 +47,8 @@ if options.nextStart is not None:
         print("Failed to parse next start date parameter")
         ok = False
 
+options.files.extend(args)
+
 if not ok:
     sys.exit(1)
 
