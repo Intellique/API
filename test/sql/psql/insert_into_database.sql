@@ -63,11 +63,14 @@ ALTER SEQUENCE selectedfile_id_seq RESTART 3;
 COPY pool (id, uuid, name, archiveformat, mediaformat, autocheck, growable, unbreakablelevel, rewritable, metadata, pooloriginal, deleted, lockcheck, poolmirror) FROM stdin;
 3	60885acc-aa6f-47e2-8164-f80f039420a5	ARCHIVES_CAPTATIONS	1	2	none	f	file	t	[]	\N	f	f	\N
 5	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	1	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	\N	f	f	\N
+7	cf3d97b5-d5fe-4384-945e-927ab6fa7608	ARCHIVES_TESTS	1	2	none	f	file	t	[]	\N	f	f	\N
 \.
 ALTER SEQUENCE pool_id_seq RESTART 6;
 
 COPY pooltopoolgroup (pool, poolgroup) FROM stdin;
 3	1
+5	1
+7	1
 \.
 
 COPY media (id, uuid, label, mediumserialnumber, name, status, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, type, mediaformat, pool) FROM stdin;

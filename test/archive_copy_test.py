@@ -2,10 +2,10 @@ from common_test import CommonTest
 from io import StringIO
 import json
 
-class ArchiveCheckTest(CommonTest):
+class ArchiveCopyTest(CommonTest):
     def test_01_post_not_logged(self):
         conn = self.newConnection()
-        conn.request('POST', self.path + 'archive/check/')
+        conn.request('POST', self.path + 'archive/copy/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
@@ -14,7 +14,7 @@ class ArchiveCheckTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', headers=headers)
+        conn.request('POST', self.path + 'archive/copy/', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
@@ -27,50 +27,64 @@ class ArchiveCheckTest(CommonTest):
         }, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/copy/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_04_post_archiver_user_not_allowed(self):
-        conn, cookie, message = self.newLoggedConnection('archiver')
+    def test_04_post_admin_user_with_wrong_pool_id(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
-            'archive': 2
+            'pool': 'toto'
         }, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/copy/', body=io.getvalue(), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_05_post_basic_user_not_allowed(self):
+        conn, cookie, message = self.newLoggedConnection('basic')
+        io = StringIO()
+        json.dump({
+            'archive': 2,
+            'pool': 5
+        }, io);
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'archive/copy/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
 
-    def test_05_post_admin_user_with_wrong_params(self):
+    def test_06_post_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
             'name': '',
-            'archive': 2,
-            'options': {'quick_mode': 'toto'}
+            'archive': 3,
+            'pool': 1
         }, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/copy/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_06_post_admin_user_with_right_params(self):
+    def test_07_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
-            'name': 'ArchiveCheckTest',
+            'name': 'ArchiveCopyTest',
             'archive': 2,
-            'options': {'quick_mode': True}
+            'pool': 3
         }, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/copy/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
@@ -86,22 +100,23 @@ class ArchiveCheckTest(CommonTest):
         self.assertEqual(res.status, 200)
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
-        self.assertEqual(job['job']['name'], 'ArchiveCheckTest')
+        self.assertEqual(job['job']['name'], 'ArchiveCopyTest')
         self.assertEqual(job['job']['archive'], 2)
-        self.assertEqual(job['job']['options'], {'quick_mode': True})
+        self.assertEqual(job['job']['pool'], 3)
 
     def test_07_post_admin_user_with_right_params2(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
-            'name': None,
+            'name': 'ArchiveCopyTest2',
             'archive': 2,
-            'nextstart': '2000-05-05 05:05:05+02',
-            'options': {'thorough_mode': True}
+            'pool': 7,
+            'nextstart': '2016-06-06 06:06:06+02',
+            'options': {'quick_mode': True}
         }, io);
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/copy/', body=io.getvalue(), headers=headers)
         res = conn.getresponse()
         location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
@@ -117,7 +132,8 @@ class ArchiveCheckTest(CommonTest):
         self.assertEqual(res.status, 200)
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
-        self.assertEqual(job['job']['name'], 'check_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN')
+        self.assertEqual(job['job']['name'], 'ArchiveCopyTest2')
         self.assertEqual(job['job']['archive'], 2)
-        self.assertEqual(job['job']['nextstart'], '2000-05-05T03:05:05+0000')
-        self.assertEqual(job['job']['options'], {'quick_mode': False})
+        self.assertEqual(job['job']['pool'], 7)
+        self.assertEqual(job['job']['nextstart'], '2016-06-06T04:06:06+0000')
+        self.assertEqual(job['job']['options'], {'quick_mode': True})

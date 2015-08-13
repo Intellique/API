@@ -119,6 +119,19 @@
 			checkConnected();
 
 			if (isset($_GET['id'])) {
+
+				$archive = $dbDriver->getArchive($_GET['id']);
+				if ($archive === null)
+					httpResponse(500, array(
+						'message' => 'Query failure',
+						'archive' => array()
+					));
+				elseif ($archive === false)
+					httpResponse(400, array(
+						'message' => 'Archive not found',
+						'archive' => array()
+					));
+
 				$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
 				if ($permission_granted === null)
 					httpResponse(500, array(
@@ -127,13 +140,6 @@
 					));
 				elseif ($permission_granted === false)
 					httpResponse(403, array('message' => 'Permission denied'));
-
-				$archive = $dbDriver->getArchive($_GET['id']);
-				if ($archive === null)
-					httpResponse(500, array(
-						'message' => 'Query failure',
-						'archive' => array()
-					));
 
 				httpResponse(200, array(
 						'message' => 'Query succeeded',
@@ -199,7 +205,7 @@
 			if (!isset($infoJob['pool']))
 				httpResponse(400, array('message' => 'Pool id is required'));
 
-			if (!intval($infoJob['pool']))
+			if (!is_int($infoJob['pool']))
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
 
 			$dbDriver->startTransaction();

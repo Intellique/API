@@ -10,8 +10,8 @@
 	interface DB_Archive extends DB, DB_Job, DB_Metadata, DB_Permission {
 		/**
 		 * \brief Get an archive by its id
-		 * \param $id : archive's id
-		 * \return archive's information
+		 * \param $id : archive id
+		 * \return archive information
 		 * \note No permission check will be performed
 		 */
 		public function getArchive($id);
@@ -25,12 +25,44 @@
 		public function getArchives($user_id, &$params);
 
 		/**
+		 * \brief Get an archive format by its id
+		 * \param $id : archive id
+		 * \return archive format information
+		 * \note No permission check will be performed
+		 */
+		public function getArchiveFormat($id);
+
+		/**
 		 * \brief Get iterator on files list for a specific archive
 		 * \param $id : an archive
 		 * \param $params : optional parameters
 		 * \return an iterator which allow to browse on a files list
 		 */
 		public function getFilesFromArchive($id, &$params);
+
+		/**
+		 * \brief Get a media by its id
+		 * \param $id : media id
+		 * \return media information
+		 * \note No permission check will be performed
+		 */
+		public function getMedia($id);
+
+		/**
+		 * \brief Get a media format by its id
+		 * \param $id : media id
+		 * \return media format information
+		 * \note No permission check will be performed
+		 */
+		public function getMediaFormat($id);
+
+		/**
+		 * \brief Get a pool by its id
+		 * \param $id : pool id
+		 * \return media format information
+		 * \note No permission check will be performed
+		 */
+		public function getPool($id);
 
 		/**
 		 * \brief Update an archive
