@@ -39,7 +39,7 @@
 		}
 
 		public function getMetadata($id, $key, $type) {
-			if (!isset($id) || !isset($key) || !isset($type))
+			if (!isset($id) || !isset($key) || !isset($type) || !is_numeric($id))
 				return array('error' => true, 'founded' => false, 'value' => null);
 
 			if (!$this->prepareQuery('select_metadata_by_key', "SELECT value FROM metadata WHERE id = $1 AND key = $2 AND type = $3 LIMIT 1"))
@@ -59,7 +59,7 @@
 		}
 
 		public function getMetadatas($id, $type) {
-			if (!isset($id) || !isset($type))
+			if (!isset($id) || !isset($type) || !is_numeric($id))
 				return false;
 
 			if (!$this->prepareQuery('select_metadatas_by_id', "SELECT key, value FROM metadata WHERE id = $1 AND type = $2"))

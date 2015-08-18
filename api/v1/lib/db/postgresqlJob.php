@@ -58,6 +58,22 @@
 			return intval($row['id']);
 		}
 
+		public function getJobTypes() {
+			if (!$this->prepareQuery("select_job_types", "SELECT name FROM jobtype"))
+				return null;
+
+			$result = pg_execute("select_job_types", array());
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$jobtypes = pg_fetch_assoc($result);
+
+			return $jobtypes;
+		}
+
 		public function getSelectedFile($path) {
 			if (!$this->prepareQuery('select_selectedfile_by_path', "SELECT id FROM selectedfile WHERE path = $1 LIMIT 1"))
 				return null;

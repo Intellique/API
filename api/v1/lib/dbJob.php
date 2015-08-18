@@ -39,6 +39,12 @@
 		public function getJobTypeId($name);
 
 		/**
+		 * \brief Get job types list
+		 * \return <b>Job types list</b>, \b FALSE if no result, \b NULL on query execution failure
+		 */
+		public function getJobTypes();
+
+		/**
 		 * \brief Get selected file or create it if not exists
 		 * \param $path : selected file path
 		 * \return <b>Selected file id</b>, \b NULL on query execution failure

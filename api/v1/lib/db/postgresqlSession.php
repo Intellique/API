@@ -52,7 +52,7 @@
 		}
 
 		public function getJob($id) {
-			if (!isset($id))
+			if (!isset($id) || !is_numeric($id))
 				return false;
 
 			if (!$this->prepareQuery('select_job_by_id', "SELECT j.id, j.name, jt.name AS type, j.nextstart, EXTRACT(EPOCH FROM j.interval) AS interval, j.repetition, j.status, j.update, j.archive, j.backup, j.media, j.pool, j.host, j.login, j.metadata, j.options FROM job j INNER JOIN jobtype jt ON j.type = jt.id WHERE j.id = $1 LIMIT 1 FOR UPDATE"))
@@ -141,7 +141,7 @@
 		}
 
 		public function getPoolgroup($id) {
-			if (!isset($id))
+			if (!isset($id) || !is_numeric($id))
 				return false;
 
 			if (!$this->prepareQuery('select_poolgroup_by_id', "SELECT id, uuid, name FROM poolgroup WHERE id = $1 LIMIT 1"))
@@ -163,7 +163,7 @@
 		}
 
 		public function getUser($id, $login) {
-			if (!isset($id) && !isset($login))
+			if ((isset($id) && !is_numeric($id)) || (isset($login) && !is_string($login)))
 				return false;
 
 			if (isset($id)) {

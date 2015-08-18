@@ -173,13 +173,13 @@
 					}
 				}
 				if (isset($_GET['limit'])) {
-					if (ctype_digit($_GET['limit']) && $_GET['limit'] > 0)
+					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
 						$params['limit'] = intval($_GET['limit']);
 					else
 						$ok = false;
 				}
 				if (isset($_GET['offset'])) {
-					if (ctype_digit($_GET['offset']) && $_GET['offset'] >= 0)
+					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
 						$params['offset'] = intval($_GET['offset']);
 					else
 						$ok = false;

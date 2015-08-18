@@ -96,6 +96,9 @@
 				httpResponse(403, array('message' => 'Permission denied'));
 
 			if (isset($_GET['id'])) {
+				if (!is_numeric($_GET['id']))
+					httpResponse(400, array('message' => 'Archive id must be an integer'));
+
 				$archive = $dbDriver->getArchive($_GET['id']);
 				if ($archive === null)
 					httpResponse(500, array('message' => 'Query failure'));
@@ -119,6 +122,8 @@
 			checkConnected();
 
 			if (isset($_GET['id'])) {
+				if (!is_numeric($_GET['id']))
+					httpResponse(400, array('message' => 'Archive id must be an integer'));
 
 				$archive = $dbDriver->getArchive($_GET['id']);
 				if ($archive === null)
@@ -127,7 +132,7 @@
 						'archive' => array()
 					));
 				elseif ($archive === false)
-					httpResponse(400, array(
+					httpResponse(404, array(
 						'message' => 'Archive not found',
 						'archive' => array()
 					));
@@ -164,13 +169,13 @@
 					}
 				}
 				if (isset($_GET['limit'])) {
-					if (ctype_digit($_GET['limit']) && $_GET['limit'] > 0)
+					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
 						$params['limit'] = intval($_GET['limit']);
 					else
 						$ok = false;
 				}
 				if (isset($_GET['offset'])) {
-					if (ctype_digit($_GET['offset']) && $_GET['offset'] >= 0)
+					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
 						$params['offset'] = intval($_GET['offset']);
 					else
 						$ok = false;

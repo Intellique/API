@@ -100,7 +100,7 @@
 		 * \return \b integer or \b null if string doesn't represent a number
 		 */
 		public static function getInteger($string) {
-			if (ctype_digit($string))
+			if (is_numeric($string))
 				return intval($string);
 			else
 				return null;

@@ -17,12 +17,17 @@
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
-			$jobtype = $dbDriver->getJobtype();
+			$jobtype = $dbDriver->getJobTypes();
 
 			if ($jobtype === null)
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'jobtype' => array()
+				));
+			elseif ($jobtype === false)
+				httpResponse(404, array(
+					'message' => 'Job types not found',
+					'archive' => array()
 				));
 			else
 				httpResponse(200, array(

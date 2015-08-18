@@ -9,6 +9,9 @@
 		use PostgresqlDBJob, PostgresqlDBMetadata, PostgresqlDBPermission;
 
 		public function getArchive($id) {
+			if (!is_numeric($id))
+				return false;
+
 			if (!$this->prepareQuery("select_archive_by_id", "SELECT id, uuid, name, creator, owner, canappend, deleted FROM archive WHERE id = $1 AND NOT deleted"))
 				return null;
 
@@ -96,7 +99,6 @@
 				$total_rows = intval($row[0]);
 			}
 
-
 			$query = "SELECT id" . $query_common;
 
 			if (isset($params['order_by'])) {
@@ -154,6 +156,9 @@
 		}
 
 		public function getArchiveFormat($id) {
+			if (!is_numeric($id))
+				return false;
+
 			if (!$this->prepareQuery("select_archive_format_by_id", "SELECT id, name, readable, writable FROM archiveformat WHERE id = $1"))
 				return null;
 
@@ -230,6 +235,9 @@
 		}
 
 		public function getMedia($id) {
+			if (!is_numeric($id))
+				return false;
+
 			if (!$this->prepareQuery("select_media_by_id", "SELECT id, uuid, label, mediumserialnumber, name, status, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, append, type, writelock, archiveformat, mediaformat, pool FROM media WHERE id = $1"))
 				return null;
 
@@ -270,6 +278,9 @@
 		}
 
 		public function getMediaFormat($id) {
+			if (!is_numeric($id))
+				return false;
+
 			if (!$this->prepareQuery("select_media_format_by_id", "SELECT id, name, datatype, mode, maxloadcount, maxreadcount, maxwritecount, maxopcount, lifespan, capacity, blocksize, densitycode, supportpartition, supportmam FROM mediaformat WHERE id = $1"))
 				return null;
 
@@ -297,6 +308,9 @@
 		}
 
 		public function getPool($id) {
+			if (!is_numeric($id))
+				return false;
+
 			if (!$this->prepareQuery("select_pool_by_id", "SELECT id, uuid, name, archiveformat, mediaformat, autocheck, lockcheck, growable, unbreakablelevel, rewritable, metadata, backuppool, pooloriginal,  poolmirror, deleted FROM pool WHERE id = $1 AND NOT deleted"))
 				return null;
 
