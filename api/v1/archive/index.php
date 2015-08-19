@@ -26,7 +26,8 @@
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
  *
- * \section Archives Archives ids (multiple list),
+ * \section Archives Archives ids (multiple list)
+ * To get archives ids list,
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
  * <b>Optional parameters</b>
@@ -39,7 +40,8 @@
  *
  * \warning To get multiple archives ids list do not pass an id as parameter
  * \return HTTP status codes :
- *   - \b 200 Query successfull
+ *   - \b 200 Query succeeded
+ *     \verbatim Archives ids list is returned \endverbatim
  *   - \b 400 Incorrect input
  *   - \b 401 Not logged in
  *   - \b 500 Query failure

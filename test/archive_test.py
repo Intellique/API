@@ -7,8 +7,11 @@ class ArchiveTest(CommonTest):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'archive/', headers=headers)
         res = conn.getresponse()
+        archives = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
+        self.assertIsNotNone(archives)
+        self.assertIsInstance(archives['archives'], list)
 
     def test_02_get_archive_not_permitted(self):
         conn, headers, message = self.newLoggedConnection('archiver')

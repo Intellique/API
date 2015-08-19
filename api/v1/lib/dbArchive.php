@@ -65,6 +65,14 @@
 		public function getPool($id);
 
 		/**
+		 * \brief Get a pool id list by its user poolgroup
+		 * \param $user_poolgroup : user poolgroup id
+		 * \param $params : optional parameters
+		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
+		 */
+		public function getPoolsByPoolgroup($user_poolgroup, &$params);
+
+		/**
 		 * \brief Update an archive
 		 * \param $archive : an archive
 		 * \return \b NULL on failure, \b FALSE if no archive were updated or \b TRUE on success
