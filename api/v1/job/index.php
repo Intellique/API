@@ -27,8 +27,8 @@
  *   - \b 404 Job not found
  *   - \b 500 Query failure
  *
- * \section Jobs_id Jobs id
- * To get jobs id list,
+ * \section Jobs_id Jobs ids
+ * To get jobs ids list,
  * use \b GET method : <i>without reference to specific id or ids</i>
  * \verbatim path : /storiqone-backend/api/v1/job/ \endverbatim
  * <b>Optional parameters</b>
@@ -39,10 +39,10 @@
  * | limit    | integer |specifies the maximum number of rows to return                                       | limit > 0                                                              |
  * | offset   | integer |specifies the number of rows to skip before starting to return rows                  | offset >= 0                                                            |
  *
- * \warning To get jobs id list do not pass an id or ids as parameter
+ * \warning <b>To get multiple jobs ids list do not pass an id or ids as parameter</b>
  * \return HTTP status codes :
  *   - \b 200 Query successfull
- *     \verbatim Jobs id list is returned \endverbatim
+ *     \verbatim Jobs ids list is returned \endverbatim
  *   - \b 400 Incorrect input
  *   - \b 401 Not logged in
  *   - \b 500 Query failure

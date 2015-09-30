@@ -27,42 +27,49 @@ class PoolTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 404)
 
-    def test_04_get_pool_success(self):
+    def test_04_get_pool_wrong_id(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%spool/?id=%s" % (self.path, 'foo'), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_05_get_pool_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', "%spool/?id=%d" % (self.path, 3), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
 
-    def test_05_get_list_pool_user_not_logged(self):
+    def test_06_get_list_pool_user_not_logged(self):
         conn = self.newConnection()
         conn.request('GET', self.path + 'pool/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_06_get_list_pool_admin_wrong_limit_string(self):
+    def test_07_get_list_pool_admin_wrong_limit_string(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'pool/?limit=foo', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_07_get_list_pool_admin_wrong_limit_zero(self):
+    def test_08_get_list_pool_admin_wrong_limit_zero(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'pool/?limit=0', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_08_get_list_pool_admin_wrong_limit_negative(self):
+    def test_09_get_list_pool_admin_wrong_limit_negative(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'pool/?limit=-82', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_09_get_list_pool_admin_wrong_offset(self):
+    def test_10_get_list_pool_admin_wrong_offset(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'pool/?offset=-82', headers=headers)
         res = conn.getresponse()

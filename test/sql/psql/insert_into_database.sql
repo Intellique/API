@@ -75,6 +75,7 @@ COPY pooltopoolgroup (pool, poolgroup) FROM stdin;
 
 COPY media (id, uuid, label, mediumserialnumber, name, status, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, type, mediaformat, pool) FROM stdin;
 1	8a391d01-6139-4ad9-8463-2ba6e8852040	EXP006	HA1PFAp084	EXPORTS_RUSHS_06	in use	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	2	5
+2	4fb920af-afbd-4365-91b8-2019fa7297fb	EXP007	HA2PFAp093	EXPORTS_RUSHS_07	foreign	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	1	\N
 \.
 ALTER SEQUENCE media_id_seq RESTART 2;
 

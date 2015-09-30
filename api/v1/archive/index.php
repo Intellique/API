@@ -15,7 +15,7 @@
  *   - \b 500 Query failure
  *
  * \section Archive_ID Archive information
- * To get archive by its ID,
+ * To get archive by its id,
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
  * \param id : archive id
@@ -28,7 +28,7 @@
  *
  * \section Archives Archives ids (multiple list)
  * To get archives ids list,
- * use \b GET method
+ * use \b GET method : <i>without reference to specific id or ids</i>
  * \verbatim path : /storiqone-backend/api/v1/archive/ \endverbatim
  * <b>Optional parameters</b>
  * |   Name    |  Type   |                                  Description                                        |           Constraint            |
@@ -38,7 +38,7 @@
  * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
  * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
  *
- * \warning To get multiple archives ids list do not pass an id as parameter
+ * \warning <b>To get multiple archives ids list do not pass an id or ids as parameter</b>
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
  *     \verbatim Archives ids list is returned \endverbatim

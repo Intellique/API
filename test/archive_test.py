@@ -27,70 +27,77 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 404)
 
-    def test_04_get_archive_success(self):
+    def test_04_get_archive_wrong_id(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%sarchive/?id=%s" % (self.path, 'foo'), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_05_get_archive_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', "%sarchive/?id=%d" % (self.path, 2), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
 
-    def test_05_get_list_archive_user_not_logged(self):
+    def test_06_get_list_archive_user_not_logged(self):
         conn = self.newConnection()
         conn.request('GET', self.path + 'archive/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_06_get_list_archive_admin_wrong_order_by(self):
+    def test_07_get_list_archive_admin_wrong_order_by(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'archive/?order_by=foo', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_07_get_list_archive_admin_wrong_order_asc(self):
+    def test_08_get_list_archive_admin_wrong_order_asc(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'archive/?order_by=id&order_asc=bar', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_08_get_list_archive_admin_wrong_limit_string(self):
+    def test_09_get_list_archive_admin_wrong_limit_string(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'archive/?limit=foo', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_09_get_list_archive_admin_wrong_limit_zero(self):
+    def test_10_get_list_archive_admin_wrong_limit_zero(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'archive/?limit=0', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_10_get_list_archive_admin_wrong_limit_negative(self):
+    def test_11_get_list_archive_admin_wrong_limit_negative(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'archive/?limit=-82', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_11_get_list_archive_admin_wrong_offset(self):
+    def test_12_get_list_archive_admin_wrong_offset(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'archive/?offset=-82', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_12_post_not_logged(self):
+    def test_13_post_not_logged(self):
         conn = self.newConnection()
         conn.request('POST', self.path + 'archive/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_13_post_admin_user_with_no_pool_id(self):
+    def test_14_post_admin_user_with_no_pool_id(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -99,7 +106,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_14_post_admin_user_with_wrong_pool_id(self):
+    def test_15_post_admin_user_with_wrong_pool_id(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -112,7 +119,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_15_post_basic_user_not_allowed(self):
+    def test_16_post_basic_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         io = StringIO()
         json.dump({
@@ -125,7 +132,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 403)
 
-    def test_16_post_admin_user_with_wrong_params(self):
+    def test_17_post_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -142,7 +149,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_17_post_admin_user_with_right_params(self):
+    def test_18_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -173,14 +180,14 @@ class ArchiveTest(CommonTest):
         self.assertEqual(job['job']['name'], 'ArchiveTest')
         self.assertEqual(job['job']['pool'], 3)
 
-    def test_18_put_not_logged(self):
+    def test_19_put_not_logged(self):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'archive/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_19_put_admin_user_with_no_archive_id(self):
+    def test_20_put_admin_user_with_no_archive_id(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -189,7 +196,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_20_put_admin_user_with_wrong_archive_id(self):
+    def test_21_put_admin_user_with_wrong_archive_id(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -202,7 +209,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_21_put_basic_user_not_allowed(self):
+    def test_22_put_basic_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         io = StringIO()
         json.dump({
@@ -215,7 +222,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 403)
 
-    def test_22_put_admin_user_with_wrong_params(self):
+    def test_23_put_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({
@@ -232,7 +239,7 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_23_put_admin_user_with_right_params(self):
+    def test_24_put_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         io = StringIO()
         json.dump({

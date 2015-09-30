@@ -2,8 +2,7 @@
 /**
  * \addtogroup pool
  * \section Pool_ID Pool information
- * To get pool by its ID
- * To get pools ids list,
+ * To get pool by its id
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/pool/ \endverbatim
  * \param id : pool id
@@ -12,10 +11,12 @@
  *     \verbatim Pool information is returned \endverbatim
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
+ *   - \b 404 Pool not found
  *   - \b 500 Query failure
  *
- * \section Pools Pools ids (multiple list),
- * use \b GET method
+ * \section Pools Pools ids (multiple list)
+ * To get pools ids list,
+ * use \b GET method : <i>without reference to specific id or ids</i>
  * \verbatim path : /storiqone-backend/api/v1/pool/ \endverbatim
  * <b>Optional parameters</b>
  * |   Name    |  Type   |                                  Description                                        |           Constraint            |
@@ -23,7 +24,7 @@
  * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
  * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
  *
- * \warning To get multiple pools ids list do not pass an id as parameter
+ * \warning <b>To get multiple pools ids list do not pass an id or ids as parameter</b>
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
  *     \verbatim Pools ids list is returned \endverbatim

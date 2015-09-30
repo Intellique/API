@@ -39,7 +39,7 @@
  * | limit    | integer |specifies the maximum number of rows to return                                       | limit > 0                                                              |
  * | offset   | integer |specifies the number of rows to skip before starting to return rows                  | offset >= 0                                                            |
  *
- * \warning To get users ids list do not pass an id or ids as parameter
+ * \warning <b>To get users ids list do not pass an id or ids as parameter</b>
  * \return HTTP status codes :
  *   - \b 200 Query successfull
  *     \verbatim Users ids list is returned \endverbatim

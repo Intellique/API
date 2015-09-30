@@ -17,7 +17,7 @@
 		public function getArchive($id);
 
 		/**
-		 * \brief Get an archive id list for user \em $user_id
+		 * \brief Get an archives ids list for user \em $user_id
 		 * \param $user_id : a user
 		 * \param $params : optional parameters
 		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
@@ -49,6 +49,30 @@
 		public function getMedia($id);
 
 		/**
+		 * \brief Get a medias ids list by its pool
+		 * \param $pool : medias pool id
+		 * \param $params : optional parameters
+		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
+		 */
+		public function getMediasByPool($pool, &$params);
+
+		/**
+		 * \brief Get a medias ids list by its user poolgroup
+		 * \param $user_poolgroup : user poolgroup id
+		 * \param $params : optional parameters
+		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
+		 */
+		public function getMediasByPoolgroup($user_poolgroup, &$params);
+
+		/**
+		 * \brief Get a medias ids list without pool
+		 * \param $mediaformat : mediaformat id [optional]
+		 * \param $params : optional parameters
+		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
+		 */
+		public function getMediasWithoutPool($mediaformat, &$params);
+
+		/**
 		 * \brief Get a media format by its id
 		 * \param $id : media id
 		 * \return media format information
@@ -65,7 +89,7 @@
 		public function getPool($id);
 
 		/**
-		 * \brief Get a pool id list by its user poolgroup
+		 * \brief Get a pools ids list by its user poolgroup
 		 * \param $user_poolgroup : user poolgroup id
 		 * \param $params : optional parameters
 		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'

@@ -9,7 +9,7 @@
  * \param password : user password
  * \return HTTP status codes :
  *   - \b 201 Logged in
- *     \verbatim User ID is returned \endverbatim
+ *     \verbatim User id is returned \endverbatim
  *   - \b 400 Bad request - Either ; login and/or password missing
  *   - \b 401 Log in failed
  *
