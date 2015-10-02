@@ -138,9 +138,47 @@ class MediaTest(CommonTest):
         self.assertIsNotNone(medias)
         self.assertIsInstance(medias['medias'], list)
 
-    # def test_01_get_media_without_params(self):
-    #     conn, headers, message = self.newLoggedConnection('admin')
-    #     conn.request('GET', self.path + 'media/', headers=headers)
-    #     res = conn.getresponse()
-    #     conn.close()
-    #     self.assertEqual(res.status, 200)
+    def test_19_get_medias_by_poolgroup_not_logged(self):
+        conn = self.newConnection()
+        conn.request('GET', "%smedia/" % (self.path))
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_20_get_medias_by_poolgroup_wrong_limit_string(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%smedia/?limit=%s" % (self.path, 'foo'), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_21_get_medias_by_poolgroup_wrong_limit_zero(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%smedia/?limit=%d" % (self.path, 0), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_22_get_medias_by_poolgroup_wrong_limit_negative(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%smedia/?limit=%d" % (self.path, -82), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_23_get_medias_by_poolgroup_wrong_offset(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%smedia/?offset=%d" % (self.path, -82), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_24_get_medias_by_poolgroup_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%smedia/" % (self.path), headers=headers)
+        res = conn.getresponse()
+        medias = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 200)
+        self.assertIsNotNone(medias)
+        self.assertIsInstance(medias['medias'], list)

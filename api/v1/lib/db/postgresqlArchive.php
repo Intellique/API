@@ -392,7 +392,7 @@
 		}
 
 		public function getMediasByPoolgroup($user_poolgroup, &$params) {
-			$query_common = " FROM media m INNER JOIN pooltopoolgroup ptpg ON m.pool = ptpg.pool AND ptpg.poolgroup = 1 ORDER BY id";
+			$query_common = " FROM media m INNER JOIN pooltopoolgroup ptpg ON m.pool = ptpg.pool AND ptpg.poolgroup = $1 ORDER BY id";
 			$query_params = array($user_poolgroup);
 
 			$total_rows = 0;

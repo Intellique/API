@@ -14,6 +14,7 @@
  *   - \b 404 Media not found
  *   - \b 500 Query failure
  *
+ *
  * \section Medias_by_pool Medias by pool (multiple list)
  * To get medias ids list by pool,
  * use \b GET method
@@ -33,6 +34,26 @@
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
+ *
+ *
+ * \section Medias_by_poolgroup Medias by poolgroup (multiple list)
+ * To get medias ids list by poolgroup,
+ * use \b GET method
+ * \verbatim path : /storiqone-backend/api/v1/media/ \endverbatim
+ *
+ * <b>Optional parameters</b>
+ * |   Name    |  Type   |                                  Description                                        |           Constraint            |
+ * | :-------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------: |
+ * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
+ * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
+ *
+ * \return HTTP status codes :
+ *   - \b 200 Query succeeded
+ *     \verbatim Medias ids list by poolgroup is returned \endverbatim
+ *   - \b 400 Incorrect input
+ *   - \b 401 Not logged in
+ *   - \b 500 Query failure
+ *
  *
  * \section Medias_without_pool Medias without pool (multiple list)
  * To get medias ids list without pool,
@@ -171,7 +192,41 @@
 			}
 			// Medias by poolgroup
 			else {
-				// getMediasByPoolgroup() tous les medias de tous les pools du groupe de pools             /!\ A FAIRE /!\
+				$params = array();
+				$ok = true;
+
+				if (!isset($_SESSION['user']['poolgroup']))
+					$ok = false;
+
+				if (isset($_GET['limit'])) {
+					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
+						$params['limit'] = intval($_GET['limit']);
+					else
+						$ok = false;
+				}
+				if (isset($_GET['offset'])) {
+					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
+						$params['offset'] = intval($_GET['offset']);
+					else
+						$ok = false;
+				}
+
+				if (!$ok)
+					httpResponse(400, array('message' => 'Incorrect input'));
+
+				$result = $dbDriver->getMediasByPoolgroup($_SESSION['user']['poolgroup'], $params);
+				if ($result['query_executed'] == false)
+					httpResponse(500, array(
+						'message' => 'Query failure',
+						'medias' => array(),
+						'total_rows' => 0
+					));
+				else
+					httpResponse(200, array(
+						'message' => 'Query successfull',
+						'medias' => $result['rows'],
+						'total_rows' => $result['total_rows']
+					));
 			}
 
 			break;
