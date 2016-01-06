@@ -21,56 +21,52 @@ class ArchiveCheckTest(CommonTest):
 
     def test_03_post_admin_user_with_wrong_archive_id(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        io = StringIO()
-        json.dump({
+        check = json.dumps({
             'archive': 'toto'
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/check/', body=check, headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_04_post_archiver_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('archiver')
-        io = StringIO()
-        json.dump({
+        check = json.dumps({
             'archive': 2
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/check/', body=check, headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
 
     def test_05_post_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        io = StringIO()
-        json.dump({
+        check = json.dumps({
             'name': '',
             'archive': 2,
             'options': {'quick_mode': 'toto'}
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/check/', body=check, headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_06_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        io = StringIO()
-        json.dump({
+        check = json.dumps({
             'name': 'ArchiveCheckTest',
             'archive': 2,
             'options': {'quick_mode': True}
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/check/', body=check, headers=headers)
         res = conn.getresponse()
         location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
@@ -92,16 +88,15 @@ class ArchiveCheckTest(CommonTest):
 
     def test_07_post_admin_user_with_right_params2(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        io = StringIO()
-        json.dump({
+        check = json.dumps({
             'name': None,
             'archive': 2,
             'nextstart': '2000-05-05 05:05:05+02',
             'options': {'thorough_mode': True}
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/check/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/check/', body=check, headers=headers)
         res = conn.getresponse()
         location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))

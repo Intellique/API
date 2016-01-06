@@ -13,8 +13,12 @@
  * \param files : archive files array
  * \li \c files (string array) : files to be added
  * \return HTTP status codes :
- *   - \b 201 Job created successfully
- *     \verbatim New job id is returned \endverbatim
+ *   - \b 201 Job created successfully, new job id is returned
+ *     \verbatim {
+    "message":"Job created successfully",
+    "job_id":6
+ }
+      \endverbatim
  *   - \b 400 Bad request - Either ; archive id is required or archive id must be an integer or archive not found or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
