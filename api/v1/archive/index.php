@@ -8,7 +8,11 @@
  * \param id : archive id
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
- *     \verbatim Archive information are returned \endverbatim
+ *     \verbatim Archive information are returned
+ {
+   "message":"Archive deleted"
+ }
+       \endverbatim
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 404 Archive not found
@@ -21,7 +25,13 @@
  * \param id : archive id
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
- *     \verbatim Archive information is returned \endverbatim
+ *     \verbatim Archive information is returned
+
+{
+   "message":"Query successfull","archives":[2],"total_rows":1
+}
+
+       \endverbatim
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
@@ -41,7 +51,13 @@
  * \warning <b>To get multiple archives ids list do not pass an id or ids as parameter</b>
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
- *     \verbatim Archives ids list is returned \endverbatim
+
+ *     \verbatim Archives ids list is returned
+{
+   {
+   "message":"Query successfull","archives":[2],"total_rows":1
+   }
+}\endverbatim
  *   - \b 400 Incorrect input
  *   - \b 401 Not logged in
  *   - \b 500 Query failure
@@ -59,7 +75,10 @@
  * \li \c options [optional] (hash table) : check archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
- *     \verbatim New job id is returned \endverbatim
+ *     \verbatim New job id is returned
+{
+   'message': 'Job created successfully', 'job_id': 12
+}\endverbatim
  *   - \b 400 Bad request - Either ; pool id is required or pool id must be an integer or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
@@ -78,6 +97,7 @@
  * \li \c canappend [optional] (boolean) : archive extend rights
  * \return HTTP status codes :
  *   - \b 200 Archive updated successfully
+   * \verbatim 'message': 'Archive updated successfully' \endverbatim
  *   - \b 400 Bad request - Either ; archive id is required or archive id must be an integer or archive not found or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
@@ -116,7 +136,8 @@
 					httpResponse(404, array('message' => 'Archive not found'));
 				else
 					httpResponse(200, array('message' => 'Archive deleted'));
-			}
+			} else
+				httpResponse(400, array('message' => 'Archive ID required'));
 
 			break;
 

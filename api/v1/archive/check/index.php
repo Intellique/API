@@ -12,7 +12,12 @@
  * \li \c options [optional] (hash table) : check archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
- *     \verbatim New job id is returned \endverbatim
+ *     \verbatim New job id is returned
+ {
+    "message":"Job created successfully",
+    "job_id":6
+ }
+       \endverbatim
  *   - \b 400 Bad request - Either ; archive id is required or archive id must be an integer or archive not found or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied

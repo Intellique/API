@@ -13,8 +13,9 @@
  * \param files : archive files array
  * \li \c files (string array) : files to be added
  * \return HTTP status codes :
- *   - \b 201 Job created successfully, new job id is returned
- *     \verbatim {
+ *   - \b 201 Job created successfully
+ *     \verbatim New job id is returned
+ {
     "message":"Job created successfully",
     "job_id":6
  }
