@@ -251,6 +251,11 @@
 			$media = pg_fetch_assoc($result);
 
 			$media['id'] = intval($media['id']);
+			$media['uuid'] = $media['uuid'];
+			$media['label'] = $media['label'];
+			$media['mediumserialnumber'] = $media['mediumserialnumber'];
+			$media['name'] = $media['name'];
+			$media['type'] = $media['type'];
 			$media['firstused'] = dateTimeParse($media['firstused']);
 			$media['usebefore'] = dateTimeParse($media['usebefore']);
 			$media['lastread'] = dateTimeParse($media['lastread']);

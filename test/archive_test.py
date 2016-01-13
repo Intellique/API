@@ -256,3 +256,45 @@ class ArchiveTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
+ 
+    def test_25_delete_user_logged_as_admin_without_params(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', self.path + 'archive/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_26_delete_admin_with_wrong_params(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', self.path + 'archive/?id=test', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_27_delete_user_not_logged(self):
+        conn = self.newConnection()
+        conn.request('DELETE', self.path + 'archive/')
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_28_delete_user_not_admin(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('DELETE', self.path + 'archive/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status,403)
+
+    def test_29_archive_deleted_by_admin_successfully(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', self.path + 'archive/?id=2', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_30_admin_tries_to_delete_nonexistent_archive(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', self.path + 'archive/?id=47', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)
