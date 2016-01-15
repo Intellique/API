@@ -1,14 +1,14 @@
-<?php
+ <?php
 /**
- * \addtogroup MediaFormat Format a media
- * \section Format_media_task Format media task creation
- * To create a Format media task,
+ * \addtogroup MediaErase Erase a media
+ * \section Erase_media_task Erase media task creation
+ * To create an Erase media task,
  * use \b POST method
- * \verbatim path : /storiqone-backend/api/v1/media/format/ \endverbatim
+ * \verbatim path : /storiqone-backend/api/v1/media/erase/ \endverbatim
  * \param job : hash table
  * \li \c media id (integer) : media id
- * \li \c name [optional] (string) : format media task name, <em>default value : "formatMedia_" + media name</em>
- * \li \c nextstart [optional] (string) : format media task nextstart date, <em>default value : now</em>
+ * \li \c name [optional] (string) : Erase media task name, <em>default value : "eraseMedia_" + media name</em>
+ * \li \c nextstart [optional] (string) : Erase media task nextstart date, <em>default value : now</em>
  * \li \c options [optional] (hash table) : check media options
  * \param files : media files array
  * \li \c files (string array) : files to be added
@@ -26,6 +26,7 @@
  *   - \b 500 Query failure
  */
 
+
 	require_once("../../lib/env.php");
 
 	require_once("dateTime.php");
@@ -40,21 +41,14 @@
 			if (!$_SESSION['user']['isadmin'])
 				httpResponse(403, array('message' => 'Permission denied'));
 
-			$formatInfo = httpParseInput();
+			$eraseInfo = httpParseInput();
 			// media id
-			if (!isset($formatInfo['media']))
+			if (!isset($eraseInfo['media']))
 				httpResponse(400, array('message' => 'Media id is required'));
 
-			if (!is_int($formatInfo['media']))
+			if (!is_int($eraseInfo['media']))
 				httpResponse(400, array('message' => 'Media id must be an integer'));
 
-
-			// pool id
-			if (!isset($formatInfo['pool']))
-				httpResponse(400, array('message' => 'Pool id is required'));
-
-			if (!is_int($formatInfo['pool']))
-				httpResponse(400, array('message' => 'Pool id must be an integer'));
 
 			$dbDriver->startTransaction();
 
@@ -62,7 +56,7 @@
 			$failed = false;
 
 			// check media
-			$media = $dbDriver->getMedia($formatInfo['media']);
+			$media = $dbDriver->getMedia($eraseInfo['media']);
 
 			if (!$media)
 				$dbDriver->cancelTransaction();
@@ -72,57 +66,52 @@
 			elseif ($media === false)
 				httpResponse(400, array('message' => 'Media not found'));
 
-			$pool = $dbDriver->getPool($formatInfo['pool']);
-
-			if (!$pool)
-				$dbDriver->cancelTransaction();
-
-			if ($pool === null)
-				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($pool === false)
-				httpResponse(400, array('message' => 'Pool not found'));
-
-			if ($media['mediaformat']['id'] != $pool['mediaformat']['id']) {
-				$dbDriver->cancelTransaction();
-				httpResponse(400, array('message' => 'mediaformat of pool and media should match'));
-			}
-
 			if ($media['type'] == 'cleaning') {
 				$dbDriver->cancelTransaction();
-				httpResponse(400, array('message' => 'mediaformat of pool and media should match'));
+				httpResponse(400, array('message' => 'Trying to delete a cleaning media'));
 			}
 
-			if ($media['type'] == 'worm' && $media['nbfiles'] > 0) {
+			if ($media['type'] == 'worm') {
 				$dbDriver->cancelTransaction();
-				httpResponse(400, array('message' => 'Impossible to format a worm media containing data'));
+				httpResponse(400, array('message' => 'Trying to delete a worm media'));
 			}
 
-			if ($media['pool'] != NULL) {
+			$archives = $dbDriver->getArchivesByMedia($eraseInfo['media']);
+
+			if (!$archives and !is_array($archives))
 				$dbDriver->cancelTransaction();
-				httpResponse(400, array('message' => 'Trying to format a media which is member of a pool'));
+
+			if ($archives === null)
+				httpResponse(500, array('message' => 'Query failure'));
+
+			foreach ($archives as $archive_id) {
+				$archive = $dbDriver-> getArchive($archive_id);
+				if (!$archive)
+					$dbDriver->cancelTransaction();
+
+				if ($archive === null)
+					httpResponse(500, array('message' => 'Query failure'));
+
+				if (!$archive['deleted'])
+					httpResponse(400, array('message' => 'Archive "' . $archive['name'] . '" should be deleted'));
 			}
 
-			if ($pool['deleted'] ) {
-				$dbDriver->cancelTransaction();
-				httpResponse(400, array('message' => 'Trying to format a media to a deleted pool'));
-			}
-
-			$job = array(
+			 $job = array(
 				'interval' => null,
 				'backup' => null,
-				'media' => $formatInfo['media'],
+				'media' => $eraseInfo['media'],
 				'archive' => null,
-				'pool' => $formatInfo['pool'],
+				'pool' => null,
 				'login' => $_SESSION['user']['id'],
 				'metadata' => array(),
 				'options' => array()
 			);
 
 			// name [optional]
-			if (isset($formatInfo['name'])) {
-				$ok = is_string($formatInfo['name']);
+			if (isset($eraseInfo['name'])) {
+				$ok = is_string($eraseInfo['name']);
 				if ($ok)
-					$job['name'] = $formatInfo['name'];
+					$job['name'] = $eraseInfo['name'];
 			} elseif (isset($media['name']))
 				$job['name'] = "formatMedia_" . $media['name'];
 			 elseif (isset($media['label']))
@@ -132,7 +121,7 @@
 
 			// type
 			if ($ok) {
-				$jobType = $dbDriver->getJobTypeId("format-media");
+				$jobType = $dbDriver->getJobTypeId("erase-media");
 				if ($jobType === null || $jobType === false)
 					$failed = true;
 				else
@@ -149,18 +138,12 @@
 
 
 			// options [optional]
-			//option block size ne prend d'un entier ou une chaine de caractères (auto, default...)
-			if ($ok && isset($formatInfo['options']['block size'])) {
-				if (is_int($formatInfo['options']['block size']) and $formatInfo['options']['block size'] >= 0)
-					$job['options']['block size'] = $formatInfo['options']['block size'];
-				elseif (is_string($formatInfo['options']['block size'])) {
-					if (array_search($formatInfo['options']['block size'], array('auto', 'default') !== false))
-						$job['options']['block size'] = $formatInfo['options']['block size'];
-					else
-						$ok = false;
-				} else
+			if ($ok && isset($eraseInfo['options']['quick mode'])) {
+				if (is_bool($eraseInfo['options']['quick mode']))
+					$job['options']['quick mode'] = $eraseInfo['options']['quick mode'];
+				else
 					$ok = false;
-			}
+		        }
 
 			// host
 			if ($ok) {
@@ -187,6 +170,7 @@
 				$dbDriver->cancelTransaction();
 				httpResponse(500, array('message' => 'Query failure'));
 			}
+
 
 			$dbDriver->finishTransaction();
 

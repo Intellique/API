@@ -12,7 +12,7 @@ class MediaTest(CommonTest):
 
     def test_02_get_media_not_found(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%smedia/?id=%d" % (self.path, 3), headers=headers)
+        conn.request('GET', "%smedia/?id=%d" % (self.path, 520), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 404)

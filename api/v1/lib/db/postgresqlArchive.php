@@ -155,6 +155,24 @@
 			);
 		}
 
+		public function getArchivesByMedia($id) {
+			if (!is_numeric($id))
+				return false;
+
+			if (!$this->prepareQuery("select_archives_by_media", "SELECT DISTINCT archive FROM archivevolume WHERE media = $1"))
+				return null;
+
+			$result = pg_execute("select_archives_by_media", array($id));
+			if ($result === false)
+				return null;
+
+			$archives = array();
+			while ($row = pg_fetch_array($result))
+				$archives[] = $row[0];
+
+			return $archives;
+		}
+
 		public function getArchiveFormat($id) {
 			if (!is_numeric($id))
 				return false;

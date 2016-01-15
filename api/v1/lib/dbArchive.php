@@ -17,12 +17,19 @@
 		public function getArchive($id);
 
 		/**
-		 * \brief Get an archives ids list for user \em $user_id
+		 * \brief Get archives ids list for user \em $user_id
 		 * \param $user_id : a user
 		 * \param $params : optional parameters
 		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
 		 */
 		public function getArchives($user_id, &$params);
+
+		/**
+		 * \brief Get a list of archive ids by media id
+		 * \param $id : media id
+		 * \return an array of archive ids or NULL on query failure
+		 */
+		public function getArchivesByMedia($id);
 
 		/**
 		 * \brief Get an archive format by its id
