@@ -231,8 +231,47 @@
 
 			break;
 
+		case 'PUT' :
+		      checkConnected();
+
+		      if (!$_SESSION['user']['isadmin'])
+				httpResponse(403, array('message' => 'Permission denied'));
+
+			$media = httpParseInput();
+
+			if (isset($media['id'])) {
+				if (!is_numeric($media['id']))
+					httpResponse(400, array('message' => 'Media id must be an integer'));
+
+				$check_media = $dbDriver->getMedia($media['id']);
+				if ($check_media === null)
+					httpResponse(500, array(
+						'message' => 'Query failure',
+						'media' => array()
+					));
+				elseif ($check_media === false)
+					httpResponse(404, array(
+						'message' => 'Media not found',
+						'media' => array()
+					));
+
+				$check_media['name'] = $media['name'];
+				$check_media['label'] = $media['label'];
+
+				$result = $dbDriver->updateMedia($check_media);
+				if ($result === null)
+					httpResponse(500, array('message' => 'Query failure'));
+				elseif ($result === false)
+					httpResponse(404, array('message' => 'Media not found'));
+				else
+					httpResponse(200, array('message' => 'Media updated'));
+			} else
+				httpResponse(400, array('message' => 'Media ID required'));
+
+
+
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_GET);
+			httpOptionsMethod(HTTP_GET | HTTP_PUT);
 			break;
 
 		default:

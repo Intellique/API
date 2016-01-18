@@ -715,5 +715,16 @@
 
 			return pg_affected_rows($result) > 0;
 		}
+
+		public function updateMedia(&$media) {
+			if (!$this->prepareQuery("update_media", "UPDATE media SET name = $1, label = $2 WHERE id = $3"))
+				return null;
+
+			$result = pg_execute("update_media", array($media['name'], $media['label'], $media['id']));
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
+		}
 	}
 ?>

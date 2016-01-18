@@ -106,9 +106,16 @@
 		/**
 		 * \brief Update an archive
 		 * \param $archive : an archive
-		 * \return \b NULL on failure, \b FALSE if no archive were updated or \b TRUE on success
+		 * \return \b NULL on failure, \b FALSE if no archive was updated or \b TRUE on success
 		 */
 		public function updateArchive(&$archive);
+
+		/**
+		 * \brief Update a media
+		 * \param $media : a media
+		 * \return \b NULL on failure, \b False if no media was updated or \b TRUE on success
+		 */
+		public function updateMedia(&$media);
 	}
 
 	require_once("db/${db_config['driver']}Archive.php");

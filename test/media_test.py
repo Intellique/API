@@ -182,3 +182,61 @@ class MediaTest(CommonTest):
         self.assertEqual(res.status, 200)
         self.assertIsNotNone(medias)
         self.assertIsInstance(medias['medias'], list)
+
+    def test_25_put_not_logged(self):
+        conn = self.newConnection()
+        conn.request('PUT', "%smedia/" % (self.path))
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_26_put_basic_user_not_allowed(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('PUT', "%smedia/" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_27_put_media_wrong_id(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        headers = { 'content-type': 'application/json'}
+        headers.update(cookie)
+        media = { 'id': True }
+        conn.request('PUT', "%smedia/" % (self.path), body=json.dumps(media), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_28_put_media_not_found(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        headers = { 'content-type': 'application/json'}
+        headers.update(cookie)
+        media = { 'id': 36000 }
+        conn.request('PUT', "%smedia/" % (self.path), body=json.dumps(media), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)
+
+    def test_29_put_media_success(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        headers = { 'content-type': 'application/json'}
+        headers.update(cookie)
+        media = {
+            'id': 3,
+            'name': 'testeu',
+            'label': 'labl',
+        }
+        conn.request('PUT', "%smedia/" % (self.path), body=json.dumps(media), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_30_put_media_without_id(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        headers = { 'content-type': 'application/json'}
+        headers.update(cookie)
+        media = { 'name': 'bidon' }
+        conn.request('PUT', "%smedia/" % (self.path), body=json.dumps(media), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
