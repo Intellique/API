@@ -75,3 +75,45 @@ class PoolTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
+
+    def test_11_delete_user_logged_as_admin_without_params(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', self.path + 'pool/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_12_delete_admin_with_wrong_params(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', self.path + 'pool/?id=test', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_13_delete_user_not_logged(self):
+        conn = self.newConnection()
+        conn.request('DELETE', self.path + 'pool/')
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_14_delete_user_not_admin(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('DELETE', self.path + 'pool/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status,403)
+
+    def test_15_pool_deleted_by_admin_successfully(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', self.path + 'pool/?id=3', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_16_admin_tries_to_delete_nonexistent_pool(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', self.path + 'pool/?id=47', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)

@@ -116,6 +116,13 @@
 		 * \return \b NULL on failure, \b False if no media was updated or \b TRUE on success
 		 */
 		public function updateMedia(&$media);
+
+		/**
+		 * \brief Update a pool
+		 * \param $media : a pool
+		 * \return \b NULL on failure, \b False if no pool was updated or \b TRUE on success
+		 */
+		public function updatePool(&$pool);
 	}
 
 	require_once("db/${db_config['driver']}Archive.php");

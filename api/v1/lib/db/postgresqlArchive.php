@@ -726,5 +726,16 @@
 
 			return pg_affected_rows($result) > 0;
 		}
+
+		public function updatePool(&$pool) {
+			if (!$this->prepareQuery("update_pool", "UPDATE pool SET deleted = $1 WHERE id = $2"))
+				return null;
+
+			$result = pg_execute("update_pool", array($pool['deleted'], $pool['id']));
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
+		}
 	}
 ?>

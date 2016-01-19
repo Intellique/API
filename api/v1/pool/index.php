@@ -25,6 +25,9 @@
  * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
  *
  * \warning <b>To get multiple pools ids list do not pass an id or ids as parameter</b>
+ * \section Pools Pool deletion
+ * To delete a pool,
+ * use \b DELETE method : <i>with pool id</i>
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
  *     \verbatim Pools ids list is returned \endverbatim
@@ -40,14 +43,44 @@
 	require_once("dbArchive.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
+		case 'DELETE':
+			checkConnected();
+
+			if (!$_SESSION['user']['isadmin'])
+				httpResponse(403, array('message' => 'Permission denied'));
+
+			if (isset($_GET['id'])) {
+				if (!is_numeric($_GET['id']))
+					httpResponse(400, array('message' => 'Pool ID must be an integer'));
+
+				$pool = $dbDriver->getPool($_GET['id']);
+				if ($pool === null)
+					httpResponse(500, array('message' => 'Query failure'));
+				elseif ($pool === false)
+					httpResponse(404, array('message' => 'Pool not found'));
+
+				$pool['deleted'] = true;
+
+				$result = $dbDriver->updatePool($pool);
+				if ($result === null)
+					httpResponse(500, array('message' => 'Query failure'));
+				elseif ($result === false)
+					httpResponse(404, array('message' => 'Pool not found'));
+				else
+					httpResponse(200, array('message' => 'Pool deleted'));
+			} else
+				httpResponse(400, array('message' => 'Pool ID required'));
+
+		break;
+
 		case 'GET':
 			checkConnected();
 
 			if (isset($_GET['id'])) {
 				if (!is_numeric($_GET['id']))
-					httpResponse(400, array('message' => 'Pool id must be an integer'));
+					httpResponse(400, array('message' => 'Pool ID must be an integer'));
 
-				$pool = $dbDriver->getPool($_GET['id']);
+			$pool = $dbDriver->getPool($_GET['id']);
 				if ($pool === null)
 					httpResponse(500, array(
 						'message' => 'Query failure',
