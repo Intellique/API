@@ -2,16 +2,16 @@
 /**
  * \addtogroup ArchiveImport Import an archive
  * \section Import_archive_task Import archive task creation
- * To create a Import archive task,
+ * To create an Import archive task,
  * use \b POST method
  * \verbatim path : /storiqone-backend/api/v1/archive/import/ \endverbatim
  * \param job : hash table
- * \li \c archive id (integer) : archive id
+ * \li \c media id (integer) : media id
+ * \li \c pool id (integer) : pool id
  * \li \c name [optional] (string) : import archive task name, <em>default value : "importArchive_" + archive name</em>
  * \li \c nextstart [optional] (string) : import archive task nextstart date, <em>default value : now</em>
  * \li \c options [optional] (hash table) : check archive options
  * \param files : archive files array
- * \li \c files (string array) : files to be added
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
  *     \verbatim New job id is returned
@@ -25,8 +25,8 @@
  *   - \b 403 Permission denied
  *   - \b 500 Query failure
  */
-	require_once("../../lib/env.php");
 
+	require_once("../../lib/env.php");
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
