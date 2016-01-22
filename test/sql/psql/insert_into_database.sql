@@ -52,6 +52,7 @@ ALTER SEQUENCE host_id_seq RESTART 7;
 
 COPY archiveformat (id, name, readable, writable) FROM stdin;
 1	Storiq One	t	t
+2	LTFS	t	f
 \.
 ALTER SEQUENCE archiveformat_id_seq RESTART 2;
 

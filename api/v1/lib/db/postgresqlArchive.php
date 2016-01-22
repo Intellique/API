@@ -168,7 +168,7 @@
 
 			$archives = array();
 			while ($row = pg_fetch_array($result))
-				$archives[] = $row[0];
+				$archives[] = intval($row[0]);
 
 			return $archives;
 		}
@@ -194,6 +194,110 @@
 			$archiveformat['writable'] = $archiveformat['writable'] == 't' ? true : false;
 
 			return $archiveformat;
+		}
+
+		public function getArchiveFormats(&$params) {
+			$total_rows = 0;
+			$query_params = array();
+
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*) FROM archiveformat";
+				$query_name = "select_total_archiveformat";
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$query = "SELECT id FROM archiveformat";
+
+			if (isset($params['order_by'])) {
+				$query .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query .= ' DESC';
+			}
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_archive_formats_" . md5($query);
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			if ($total_rows == 0)
+				$total_rows = count($rows);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $rows,
+				'total_rows' => $total_rows
+			);
+		}
+
+		public function getArchiveFormatByName($name){
+			if (!$this->prepareQuery("select_archive_format_by_name", "SELECT id FROM archiveformat WHERE name = $1 LIMIT 1"))
+				return null;
+
+			$result = pg_execute("select_archive_format_by_name", array($name));
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$archiveformat = pg_fetch_array($result);
+			return intval($archiveformat[0]);
 		}
 
 		public function getFilesFromArchive($id, &$params) {

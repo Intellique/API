@@ -40,6 +40,20 @@
 		public function getArchiveFormat($id);
 
 		/**
+		 * \brief Get list of archive format ids
+		 * \param $params : optional parameters
+		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
+		 */
+		public function getArchiveFormats(&$params);
+
+		/**
+		 *\brief Get an archive format id by its name
+		 *\param $name : archive format name
+		 *\return archive format id or false if not found.
+		 */
+		public function getArchiveFormatByName($name);
+
+		/**
 		 * \brief Get iterator on files list for a specific archive
 		 * \param $id : an archive
 		 * \param $params : optional parameters
