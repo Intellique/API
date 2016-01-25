@@ -102,6 +102,21 @@
 		public function getMediaFormat($id);
 
 		/**
+		 * \brief Get iterator on files list for a specific media
+		 * \param $id : a media
+		 * \param $params : optional parameters
+		 * \return an iterator which allow to browse on a files list
+		 */
+		public function getMediaFormatByName($id);
+
+		/**
+		 * \brief Get list of media format ids
+		 * \param $params : optional parameters
+		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
+		 */
+		public function getMediaFormats(&$params);
+
+		/**
 		 * \brief Get a pool by its id
 		 * \param $id : pool id
 		 * \return media format information
