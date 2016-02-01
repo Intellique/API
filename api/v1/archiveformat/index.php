@@ -125,7 +125,7 @@
 				$ok = true;
 
 				if (isset($_GET['order_by'])) {
-					if (array_search($_GET['order_by'], array('id', 'name')))
+					if (array_search($_GET['order_by'], array('id', 'name')) !== false)
 						$params['order_by'] = $_GET['order_by'];
 					else
 						$ok = false;

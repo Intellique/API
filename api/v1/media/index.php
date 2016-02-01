@@ -95,12 +95,12 @@
 				if ($media === null)
 					httpResponse(500, array(
 						'message' => 'Query failure',
-						'media' => array()
+						'media' => null
 					));
 				elseif ($media === false)
 					httpResponse(404, array(
 						'message' => 'Media not found',
-						'media' => array()
+						'media' => null
 					));
 
 				httpResponse(200, array(

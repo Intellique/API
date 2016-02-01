@@ -28,7 +28,7 @@
  *     \verbatim Archive information is returned
 
 {
-   "message":"Query successfull","archives":[2],"total_rows":1
+   "message":"Query successful","archives":[2],"total_rows":1
 }
 
        \endverbatim
@@ -216,7 +216,7 @@
 					));
 				else
 					httpResponse(200, array(
-						'message' => 'Query successfull',
+						'message' => 'Query successful',
 						'archives' => $result['rows'],
 						'total_rows' => $result['total_rows']
 					));

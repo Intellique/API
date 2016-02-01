@@ -31,7 +31,7 @@
 				));
 			else
 				httpResponse(200, array(
-					'message' => 'Query successfull',
+					'message' => 'Query successful',
 					'jobtype' => $jobtype
 				));
 		break;
