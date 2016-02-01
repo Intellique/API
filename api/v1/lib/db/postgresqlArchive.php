@@ -8,6 +8,24 @@
 	class PostgresqlDBArchive extends PostgresqlDB implements DB_Archive {
 		use PostgresqlDBJob, PostgresqlDBMetadata, PostgresqlDBPermission;
 
+		public function createPool(&$pool) {
+			if (!$this->prepareQuery("create_pool", "INSERT INTO pool(uuid, name, archiveformat, mediaformat, autocheck, lockcheck, growable, unbreakablelevel, metadata, backuppool, poolmirror) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id"))
+			return NULL;
+
+
+			$lockcheck = $pool['lockcheck'] ? "TRUE" : "FALSE";
+			$growable = $pool['growable'] ? "TRUE" : "FALSE";
+			$backuppool = $pool['backuppool'] ? "TRUE" : "FALSE";
+			$metadata = json_encode($pool['metadata'], JSON_FORCE_OBJECT);
+
+			$result = pg_execute("create_pool", array($pool['uuid'], $pool['name'], $pool['archiveformat'], $pool['mediaformat'], $pool['autocheck'], $lockcheck, $growable, $pool['unbreakablelevel'], $metadata, $backuppool, $pool['poolmirror']));
+			if ($result === false)
+				return null;
+
+			$row = pg_fetch_array($result);
+			return intval($row[0]);
+		}
+
 		public function getArchive($id) {
 			if (!is_numeric($id))
 				return false;
@@ -825,6 +843,22 @@
 			$pool['deleted'] = $pool['deleted'] == 't' ? true : false;
 
 			return $pool;
+		}
+
+		public function getPoolByName($name) {
+
+		if (!$this->prepareQuery("select_pool_by_name", "SELECT id FROM pool WHERE name = $1 LIMIT 1"))
+				return null;
+
+			$result = pg_execute("select_pool_by_name", array($name));
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$pool = pg_fetch_array($result);
+			return intval($pool[0]);
 		}
 
 		public function getPoolsByPoolgroup($user_poolgroup, &$params) {

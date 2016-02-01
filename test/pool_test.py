@@ -117,3 +117,157 @@ class PoolTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 404)
+
+    def test_17_post_not_logged(self):
+        conn = self.newConnection()
+        conn.request('POST', self.path + 'pool/')
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
+
+    def test_18_post_basic_user_not_allowed(self):
+        conn, cookie, message = self.newLoggedConnection('basic')
+        data = json.dumps({
+            'uuid': '42',
+            'name' :'foo',
+            'archiveformat':2,
+            'mediaformat' :3
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_19_post_admin_user_with_wrong_uuid(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'uuid': '42',
+            'name' :'foo',
+            'archiveformat':2,
+            'mediaformat' :3
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_20_post_admin_user_with_no_name(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'uuid': '42',
+            'name' : None,
+            'archiveformat':2,
+            'mediaformat' :3
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_21_post_admin_user_with_wrong_name(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'uuid': '42',
+            'name' : 50,
+            'archiveformat':2,
+            'mediaformat' :3
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_22_post_admin_user_with_no_archiveformat(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'uuid': '42',
+            'name' :'foo',
+            'archiveformat':2,
+            'mediaformat' :3
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_23_post_admin_user_with_wrong_archiveformat(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'uuid': '42',
+            'name' :'foo',
+            'archiveformat':2,
+            'mediaformat' :3
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_24_post_admin_user_with_no_mediaformat(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'uuid': '42',
+            'name' :'foo',
+            'archiveformat':2,
+            'mediaformat' : None
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_25_post_admin_user_with_wrong_mediaformat(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'uuid': '42',
+            'name' :'foo',
+            'archiveformat':2,
+            'mediaformat' :'foo'
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_26_post_admin_user_with_right_params(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'uuid': 'b2719811-bad0-466a-8c00-7e7a51c7f475',
+            'name' :'EXPORT_PROVISOIRE_RUS',
+            'archiveformat':1,
+            'mediaformat' :2
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        location = res.getheader('location')
+        conn.close()
+        self.assertEqual(res.status, 201)
+        self.assertIsNotNone(location)
+        conn = self.newConnection()
+        #conn.set_debuglevel(1)
+        conn.request('GET', location, headers=headers)
+        res = conn.getresponse()
+        response = res.read()
+        conn.close()
+        print(response)
+        self.assertEqual(res.status, 200)
+
+

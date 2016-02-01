@@ -9,6 +9,13 @@
 	 */
 	interface DB_Archive extends DB, DB_Job, DB_Metadata, DB_Permission {
 		/**
+		 * \brief Create a pool
+		 * \param $pool : a pool
+		 * \return pool id or NULL on failure
+		 */
+		public function createPool(&$pool);
+
+		/**
 		 * \brief Get an archive by its id
 		 * \param $id : archive id
 		 * \return archive information
@@ -123,6 +130,13 @@
 		 * \note No permission check will be performed
 		 */
 		public function getPool($id);
+
+		/**
+		 * \brief Get a pool by its name
+		 * \param $name : pool name
+		 * \return pool id or false if not found
+		 */
+		public function getPoolByName($name);
 
 		/**
 		 * \brief Get a pools ids list by its user poolgroup

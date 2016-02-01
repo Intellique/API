@@ -25,12 +25,31 @@
  * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
  *
  * \warning <b>To get multiple pools ids list do not pass an id or ids as parameter</b>
- * \section Pools Pool deletion
+ * \section Pool_deletion Pool deletion
  * To delete a pool,
  * use \b DELETE method : <i>with pool id</i>
+ * \section Pool-creation Pool creation
+ * To create a pool,
+ * use \b POST method <i>with pool parameters (uuid, name, archiveformat, mediaformat) </i>
+ * \verbatim path : /storiqone-backend/api/v1/pool/ \endverbatim
+ *        Name          |         Type             |                     Value
+ * | :----------------: | :---------------------:  | :---------------------------------------------------------:
+ * |  id                |  integer                 | non NULL Default value, nextval('pool_id_seq'::regclass)
+ * |  uuid              |  uuid                    | non NULL
+ * |  name              |  character varying(64)   | non NULL
+ * |  archiveformat     |  integer                 | non NULL
+ * |  mediaformat       |  integer                 | non NULL
+ * |  autocheck         |  autocheckmode           | non NULL Default value, 'none'::autocheckmode
+ * |  lockcheck         |  boolean                 | non NULL Default value, false
+ * |  growable          |  boolean                 | non NULL Default value, false
+ * |  unbreakablelevel  |  unbreakablelevel        | non NULL Default value, 'none'::unbreakablelevel
+ * |  rewritable        |  boolean                 | non NULL Default value, true
+ * |  metadata          |  json                    | non NULL Default value, '{}'::json
+ * |  backuppool        |  boolean                 | non NULL Default value, false
+ * |  poolmirror        |  integer                 |                           _
+ * |  deleted           |  boolean                 | non NULL Default value, false
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
- *     \verbatim Pools ids list is returned \endverbatim
  *   - \b 400 Incorrect input
  *   - \b 401 Not logged in
  *   - \b 500 Query failure
@@ -40,6 +59,7 @@
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
+	require_once("uuid.php");
 	require_once("dbArchive.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
@@ -134,13 +154,146 @@
 					));
 				else
 					httpResponse(200, array(
-						'message' => 'Query successfull',
+						'message' => 'Query successful',
 						'pools' => $result['rows'],
 						'total_rows' => $result['total_rows']
 					));
 			}
 
-			break;
+		case 'POST':
+			checkConnected();
+
+			if (!$_SESSION['user']['isadmin'])
+				httpResponse(403, array('message' => 'Permission denied'));
+
+			$pool = httpParseInput();
+			if (isset($pool['uuid'])) {
+				if (!is_string($pool['uuid']))
+					httpResponse(400, array('message' => 'uuid must be a string'));
+
+				if (!uuid_is_valid($pool['uuid']))
+					httpResponse(400, array('message' => 'uuid is not valid'));
+			} else {
+				$pool['uuid'] = uuid_generate();
+			}
+
+			if (!isset($pool['name']))
+				httpResponse(400, array('message' => 'pool name is required'));
+
+			if (!isset($pool['archiveformat']))
+				httpResponse(400, array('message' => 'archiveformat is required'));
+
+			if (is_int($pool['archiveformat'])) {
+				$archiveformat = $dbDriver->getArchiveFormat($pool['archiveformat']);
+				if ($archiveformat === NULL)
+					httpResponse(500, array('message' => 'Query Failure'));
+				if ($archiveformat === False)
+					httpResponse(400, array('message' => 'archiveformat id does not exist'));
+			} elseif (is_array ($pool['archiveformat']) and (array_key_exists('id', $pool['archiveformat']) or array_key_exists('name', $pool['archiveformat']))) {
+				if (array_key_exists('id', $pool['archiveformat'])) {
+					$archiveformat = $dbDriver->getArchiveFormat($pool['archiveformat']['id']);
+					if ($archiveformat === NULL)
+						httpResponse(500, array('message' => 'Query Failure'));
+					if ($archiveformat === False)
+						httpResponse(400, array('message' => 'archiveformat id does not exist'));
+					$pool['archiveformat'] = $pool['archiveformat']['id'];
+				} else {
+					$archiveformat = $dbDriver->getArchiveFormatByName($pool['archiveformat']['name']);
+					if ($archiveformat === NULL)
+						httpResponse(500, array('message' => 'Query Failure'));
+					if ($archiveformat === False)
+						httpResponse(400, array('message' => 'archiveformat name does not exist'));
+					$pool['archiveformat'] = $archiveformat;
+				}
+			} else
+				httpResponse(400, array('message' => 'Specified archiveformat is invalid'));
+
+			if (!isset($pool['mediaformat']))
+				httpResponse(400, array('message' => 'mediaformat is required'));
+
+			if (is_int($pool['mediaformat'])) {
+				$mediaformat = $dbDriver->getMediaFormat($pool['mediaformat']);
+				if ($mediaformat === NULL)
+					httpResponse(500, array('message' => 'Query Failure'));
+				if ($mediaformat === False)
+					httpResponse(400, array('message' => 'mediaformat id does not exist'));
+			} elseif (is_array ($pool['mediaformat']) and (array_key_exists('id', $pool['mediaformat']) or array_key_exists('name', $pool['mediaformat']))) {
+				if (array_key_exists('id', $pool['mediaformat'])) {
+					$mediaformat = $dbDriver->getMediaFormat($pool['mediaformat']['id']);
+					if ($mediaformat === NULL)
+						httpResponse(500, array('message' => 'Query Failure'));
+					if ($mediaformat === False)
+						httpResponse(400, array('message' => 'mediaformat id does not exist'));
+					$pool['mediaformat'] = $pool['mediaformat']['id'];
+				} else {
+					$mediaformat = $dbDriver->getMediaFormatByName($pool['mediaformat']['name']);
+					if ($mediaformat === NULL)
+						httpResponse(500, array('message' => 'Query Failure'));
+					if ($mediaformat === False)
+						httpResponse(400, array('message' => 'mediaformat name does not exist'));
+					$pool['mediaformat'] = $mediaformat;
+				}
+			} else
+				httpResponse(400, array('message' => 'Specified mediaformat is invalid'));
+
+			$autocheckmode = array('quick mode', 'thorough mode', 'none');
+			if (!isset($pool['autocheck']))
+				$pool['autocheck'] = 'none';
+			elseif (!is_string ($pool['autocheck']))
+				httpResponse(400, array('message' => 'autocheckmode must be a string'));
+			elseif (array_search($pool['autocheck'], $autocheckmode) === false) {
+				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $autocheckmode));
+				httpResponse(400, array('message' => 'autocheckmode value is invalid. It should be in ' . $string_mode));
+			}
+
+			if (!isset($pool['lockcheck']))
+				$pool['lockcheck'] = False;
+			elseif (!is_bool($pool['lockcheck']))
+				httpResponse(400, array('message' => 'lockcheck must be a boolean'));
+			if (!isset($pool['growable']))
+				$pool['growable'] = False;
+			elseif (!is_bool($pool['growable']))
+				httpResponse(400, array('message' => 'growable must be a boolean'));
+
+			$unbreakablelevel = array('archive', 'file', 'none');
+			if (!isset($pool['unbreakablelevel']))
+				$pool['unbreakablelevel'] = 'none';
+			elseif (!is_string ($pool['unbreakablelevel']))
+				httpResponse(400, array('message' => 'unbreakablelevel must be a string'));
+			elseif (array_search($pool['unbreakablelevel'], $unbreakablelevel) === false) {
+				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $unbreakablelevel));
+				httpResponse(400, array('message' => 'unbreakablelevel value is invalid. It should be in ' . $string_mode));
+			}
+
+			if (!isset($pool['rewritable']))
+				$pool['rewritable'] = True;
+			elseif (!is_bool($pool['rewritable']))
+				httpResponse(400, array('message' => 'rewritable must be a boolean'));
+
+			if (!isset($pool['metadata']))
+				$pool['metadata'] = array();
+
+			if (!isset($pool['backuppool']))
+				$pool['backuppool'] = False;
+			elseif (!is_bool($pool['backuppool']))
+				httpResponse(400, array('message' => 'backuppool must be a boolean'));
+
+			if (!isset($pool['poolmirror']))
+				$pool['poolmirror'] = NULL;
+			elseif (!is_int($pool['poolmirror']))
+				httpResponse(400, array('message' => 'poolmirror must be an integer'));
+
+			$poolId = $dbDriver->createPool($pool);
+
+			if ($poolId === NULL)
+				httpResponse(500, array('message' => 'Query Failure'));
+
+			httpAddLocation('pool/?id=' . $poolId);
+			httpResponse(201, array(
+				'message' => 'Pool created successfully',
+				'pool_id' => $poolId
+			));
+
 
 		case 'OPTIONS':
 			httpOptionsMethod(HTTP_GET);
