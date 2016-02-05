@@ -971,10 +971,21 @@
 		}
 
 		public function updatePool(&$pool) {
-			if (!$this->prepareQuery("update_pool", "UPDATE pool SET deleted = $1 WHERE id = $2"))
+			if (!$this->prepareQuery("update_pool", "UPDATE pool SET uuid = $1, name = $2, archiveformat = $3, mediaformat = $4, autocheck = $5, lockcheck = $6, growable = $7, unbreakablelevel = $8, rewritable = $9, metadata = $10, backuppool = $11, poolmirror = $12, deleted = $13 WHERE id = $14"))
 				return null;
 
-			$result = pg_execute("update_pool", array($pool['deleted'], $pool['id']));
+			$lockcheck = $pool['lockcheck'] ? "TRUE" : "FALSE";
+			$growable = $pool['growable'] ? "TRUE" : "FALSE";
+			$rewritable = $pool['rewritable'] ? "TRUE" : "FALSE";
+			$backuppool = $pool['backuppool'] ? "TRUE" : "FALSE";
+			$deleted = $pool['deleted'] ? "TRUE" : "FALSE";
+			$metadata = json_encode($pool['metadata']);
+
+			error_log('pool: ' . json_encode($pool));
+			error_log(json_encode($pool['archiveformat']));
+			error_log(json_encode($pool['mediaformat']));
+
+			$result = pg_execute("update_pool", array($pool['uuid'], $pool['name'], $pool['archiveformat'], $pool['mediaformat'], $pool['autocheck'], $lockcheck, $growable, $pool['unbreakablelevel'], $rewritable, $metadata, $backuppool, $pool['poolmirror'], $deleted, $pool['id']));
 			if ($result === false)
 				return null;
 
