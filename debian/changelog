@@ -1,6 +1,11 @@
-storiqone-backend (0.1.0b1+jessie) polisher; urgency=low
+storiqone-backend (0.1.0b1-2+jessie) polisher; urgency=low
+
+  * Add documentation
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Mon, 11 Apr 2016 12:04:21 +0200
+
+storiqone-backend (0.1.0b1-1+jessie) polisher; urgency=low
 
   * First release
 
  -- Guillaume Clercin <gclercin@intellique.com>  Mon, 11 Apr 2016 10:35:01 +0200
-

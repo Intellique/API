@@ -19,8 +19,11 @@ export DH_OPTIONS
 override_dh_auto_configure:
 	@echo 'fake auto configure'
 
-override_dh_build:
-	@echo 'fake build'
+override_dh_auto_build:
+	@echo 'clean documentation'
+	rm -Rf doc
+	mkdir -vp doc/api/v1/
+	doxygen Doxyfile.api
 
 override_dh_auto_test:
 	@echo 'fake auto test'
