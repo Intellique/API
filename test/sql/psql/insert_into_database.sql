@@ -45,6 +45,13 @@ INSERT INTO UserEvent(event) VALUES
 	('connection'),
 	('disconnection');
 
+INSERT INTO Application(name) VALUES
+    ('StoriqOne Changer'),
+    ('StoriqOne Daemon'),
+    ('StoriqOne Drive'),
+    ('StoriqOne Job'),
+    ('StoriqOne Logger');
+
 COPY host (id, uuid, name, domaine, description, daemonVersion, updated) FROM stdin;
 6	9f89164e-9dd3-480d-8afd-a4d66807b6bc	taiko	\N	\N	1.3	2014-11-12 12:31:16.802855
 \.
