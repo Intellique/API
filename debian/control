@@ -1,0 +1,27 @@
+Source: storiqone-backend
+Section: utils
+Priority: extra
+Maintainer: Guillaume Clercin <gclercin@intellique.com>
+Build-Depends: debhelper (>= 8.0.0), doxygen, graphviz
+Standards-Version: 3.9.2
+Homepage: http://www.intellique.com
+
+Package: storiqone-backend
+Section: libs
+Architecture: all
+Depends: apache2, php5
+Recommends: ${misc:Recommends}
+Description: Storiq One (API)
+ API of Storiq One
+
+Package: storiqone-backend-doc-html
+Section: libs
+Architecture: all
+Description: Documentation (html) for Storiq One (API)
+ Documentation of API of Storiq One
+
+Package: storiqone-backend-doc-pdf
+Section: libs
+Architecture: all
+Description: Documentation (pdf) for Storiq One (API)
+ Documentation of API of Storiq One
