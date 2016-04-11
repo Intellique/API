@@ -55,6 +55,14 @@ CREATE TYPE JobRecordNotif AS ENUM (
     'read'
 );
 
+CREATE TYPE JobRunStep AS ENUM (
+    'job',
+    'on error',
+    'pre job',
+    'post job',
+    'warm up'
+);
+
 CREATE TYPE JobStatus AS ENUM (
     'disable',
     'error',
@@ -284,8 +292,8 @@ CREATE TABLE Media (
 
     nbFiles INTEGER NOT NULL DEFAULT 0 CHECK (nbFiles >= 0),
     blockSize INTEGER NOT NULL DEFAULT 0 CHECK (blockSize >= 0),
-    freeBlock INTEGER NOT NULL CHECK (freeblock >= 0),
-    totalBlock INTEGER NOT NULL CHECK (totalBlock >= 0),
+    freeBlock BIGINT NOT NULL CHECK (freeblock >= 0),
+    totalBlock BIGINT NOT NULL CHECK (totalBlock >= 0),
 
     hasPartition BOOLEAN NOT NULL DEFAULT FALSE,
     append BOOLEAN NOT NULL DEFAULT TRUE,
@@ -333,6 +341,8 @@ CREATE TABLE Host (
     domaine VARCHAR(255) NULL,
 
     description TEXT,
+
+    daemonVersion TEXT NOT NULL,
     updated TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
 
     UNIQUE (name, domaine)
@@ -447,7 +457,7 @@ CREATE TABLE ArchiveFile (
 
     name TEXT NOT NULL,
     type FileType NOT NULL,
-    mimeType VARCHAR(64) NOT NULL,
+    mimeType VARCHAR(255) NOT NULL,
 
     ownerId INTEGER NOT NULL DEFAULT 0,
     owner VARCHAR(255) NOT NULL,
@@ -511,7 +521,9 @@ CREATE TABLE JobRun (
     endtime TIMESTAMP(3) WITH TIME ZONE,
 
     status JobStatus NOT NULL DEFAULT 'running',
+    step JobRunStep NOT NULL DEFAULT 'pre job',
     done FLOAT NOT NULL DEFAULT 0,
+
     exitcode INTEGER NOT NULL DEFAULT 0,
     stoppedbyuser BOOLEAN NOT NULL DEFAULT FALSE,
 
@@ -547,21 +559,6 @@ CREATE TABLE ArchiveVolume (
     CONSTRAINT archiveVolume_time CHECK (starttime <= endtime)
 );
 
-CREATE TABLE ArchiveFileToArchiveVolume (
-    archiveVolume BIGINT NOT NULL REFERENCES ArchiveVolume(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    archiveFile BIGINT NOT NULL REFERENCES ArchiveFile(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    blockNumber BIGINT CHECK (blockNumber >= 0) NOT NULL,
-    archivetime TIMESTAMP(3) WITH TIME ZONE NOT NULL,
-
-    checktime TIMESTAMP(3) WITH TIME ZONE,
-    checksumok BOOLEAN NOT NULL DEFAULT FALSE,
-
-    PRIMARY KEY (archiveVolume, archiveFile)
-);
-
-ALTER TABLE Backup ADD jobrun BIGINT NOT NULL REFERENCES JobRun(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
 CREATE TABLE BackupVolume (
     id BIGSERIAL PRIMARY KEY,
 
@@ -577,12 +574,27 @@ CREATE TABLE BackupVolume (
     backup BIGINT NOT NULL REFERENCES Backup(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE ArchiveFileToArchiveVolume (
+    archiveVolume BIGINT NOT NULL REFERENCES ArchiveVolume(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    archiveFile BIGINT NOT NULL REFERENCES ArchiveFile(id) ON UPDATE CASCADE ON DELETE CASCADE,
+
+    blockNumber BIGINT CHECK (blockNumber >= 0) NOT NULL,
+    archivetime TIMESTAMP(3) WITH TIME ZONE NOT NULL,
+
+    checktime TIMESTAMP(3) WITH TIME ZONE,
+    checksumok BOOLEAN NOT NULL DEFAULT FALSE,
+
+    PRIMARY KEY (archiveVolume, archiveFile)
+);
+
+ALTER TABLE Backup ADD jobrun BIGINT NOT NULL REFERENCES JobRun(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
 CREATE TABLE Metadata (
     id BIGINT NOT NULL,
     type MetaType NOT NULL,
 
     key TEXT NOT NULL,
-    value JSON NOT NULL,
+    value JSONB NOT NULL,
 
     login INTEGER NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
 
@@ -594,7 +606,7 @@ CREATE TABLE MetadataLog (
     type MetaType NOT NULL,
 
     key TEXT NOT NULL,
-    value JSON NOT NULL,
+    value JSONB NOT NULL,
 
     login INTEGER NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
 
@@ -773,8 +785,7 @@ CREATE OR REPLACE FUNCTION log_metadata() RETURNS TRIGGER AS $body$
     BEGIN
         IF TG_OP = 'UPDATE' AND OLD.type != NEW.type THEN
             RAISE EXCEPTION 'type of metadata should not be modified' USING ERRCODE = '09000';
-        END IF;
-        IF TG_OP = 'DELETE' OR OLD != NEW THEN
+        ELSIF TG_OP = 'DELETE' OR OLD != NEW THEN
             INSERT INTO MetadataLog(id, type, key, value, login, updated)
                 VALUES (OLD.id, OLD.type, OLD.key, OLD.value, OLD.login, TG_OP != 'UPDATE');
         END IF;
