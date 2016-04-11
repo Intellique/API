@@ -17,5 +17,11 @@ Description: Storiq One (API)
 Package: storiqone-backend-doc-html
 Section: libs
 Architecture: all
-Description: Documentation for Storiq One (API)
+Description: Documentation (html) for Storiq One (API)
+ Documentation of API of Storiq One
+
+Package: storiqone-backend-doc-pdf
+Section: libs
+Architecture: all
+Description: Documentation (pdf) for Storiq One (API)
  Documentation of API of Storiq One
