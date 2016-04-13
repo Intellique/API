@@ -40,6 +40,13 @@
 		public function deleteUser($id);
 
 		/**
+		* \brief Get application's apikey by key
+		* \param $apikey : apikey
+		* \return <b>Id of Apikey</b>, \b FALSE if not found, \b NULL on query execution failure
+		*/
+		public function getApiKeyByKey($apikey);
+
+		/**
 		 * \brief Get job by id
 		 * \param $id : job id
 		 * \return <b>Job information</b>, \b FALSE if not found, \b NULL on query execution failure

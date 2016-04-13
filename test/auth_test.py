@@ -1,5 +1,4 @@
 from common_test import CommonTest
-from io import StringIO
 import json
 
 class AuthTest(CommonTest):
@@ -46,37 +45,35 @@ class AuthTest(CommonTest):
 
     def test_06_post_with_wrong_param(self):
         conn = self.newConnection()
-        io = StringIO()
-        json.dump({
+        params = json.dumps({
             'foo': 'bar'
-        }, io)
+        })
         headers = {"Content-type": "application/json"}
-        conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
+        conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_07_post_with_login_only(self):
         conn = self.newConnection()
-        io = StringIO()
-        json.dump({
+        params = json.dumps({
             'login': self.users['admin']['login']
-        }, io)
+        })
         headers = {"Content-type": "application/json"}
-        conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
+        conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_08_post_auth_ok(self):
         conn = self.newConnection()
-        io = StringIO()
-        json.dump({
+        params = json.dumps({
             'login': self.users['admin']['login'],
-            'password': self.users['admin']['password']
-        }, io)
+            'password': self.users['admin']['password'],
+            'apikey': self.apikey
+        })
         headers = {"Content-type": "application/json"}
-        conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
+        conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
         location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
@@ -96,13 +93,13 @@ class AuthTest(CommonTest):
 
     def test_09_post_auth_fail(self):
         conn = self.newConnection()
-        io = StringIO()
-        json.dump({
+        params = json.dumps({
             'login': self.users['admin']['login'],
-            'password': 'foo'
-        }, io)
+            'password': 'foo',
+            'apikey': self.apikey
+        })
         headers = {"Content-type": "application/json"}
-        conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
+        conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
@@ -130,5 +127,18 @@ class AuthTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 405)
+
+    def test_12_post_wrong_apikey(self):
+        conn = self.newConnection()
+        params = json.dumps({
+            'login': self.users['admin']['login'],
+            'password': self.users['admin']['password'],
+            'apikey': '0d58efeb-e322-45b6-aa9f-bd0d5cf45d49',
+        })
+        headers = {"Content-type": "application/json"}
+        conn.request('POST', self.path + 'auth/', params, headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 401)
 
     

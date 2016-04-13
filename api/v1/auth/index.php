@@ -7,6 +7,7 @@
  * \verbatim path : /storiqone-backend/api/v1/auth/ \endverbatim
  * \param login : user login
  * \param password : user password
+ * \param apikey : application key
  * \return HTTP status codes :
  *   - \b 201 Logged in
  *     \verbatim User id is returned \endverbatim
@@ -52,8 +53,17 @@
 
 		case 'POST':
 			$credential = httpParseInput();
-			if (!$credential || !isset($credential['login']) || !isset($credential['password']))
-				httpResponse(400, array('message' => '"login" and "password" are required'));
+
+			if (!$credential || !isset($credential['login']) || !isset($credential['password']) || !isset($credential['apikey']))
+				httpResponse(400, array('message' => '"login", "password" and "apikey" are required'));
+
+			$apikey = $dbDriver->getApiKeyByKey($credential['apikey']);
+
+			if ($apikey === null)
+				httpResponse(500, array('message' => 'Query failure'));
+
+			if ($apikey === false)
+				httpResponse(401, array('message' => 'Invalid API key'));
 
 			$user = $dbDriver->getUser(null, $credential['login']);
 
@@ -68,6 +78,7 @@
 				httpResponse(401, array('message' => 'Authentication failed'));
 
 			$_SESSION['user'] = $user;
+			$_SESSION['apkiey'] = $apikey;
 
 			httpAddLocation('/auth/');
 			httpResponse(201, array(

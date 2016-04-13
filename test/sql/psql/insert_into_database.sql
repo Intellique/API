@@ -52,6 +52,9 @@ INSERT INTO Application(name) VALUES
     ('StoriqOne Job'),
     ('StoriqOne Logger');
 
+INSERT INTO Application(name, apikey) VALUES
+    ('UnitTest','d017552c-e005-4bc7-86bc-5e3e8b3ade2b');
+
 COPY host (id, uuid, name, domaine, description, daemonVersion, updated) FROM stdin;
 6	9f89164e-9dd3-480d-8afd-a4d66807b6bc	taiko	\N	\N	1.3	2014-11-12 12:31:16.802855
 \.
