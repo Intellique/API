@@ -89,17 +89,19 @@
 
 		if (!$ok && isset($job['archive'])) {
 			$checkArchivePermission = $dbDriver->checkArchivePermission($job['archive'], $_SESSION['user']['id']);
-			if ($checkArchivePermission === null)
+			if ($checkArchivePermission === null) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkArchivePermission(%s, %s)', $job['archive'], $_SESSION['user']['id']), $_SESSION['user']['id']);
 				$failed = true;
-			elseif ($checkArchivePermission === true)
+			} elseif ($checkArchivePermission === true)
 				$ok = true;
 		}
 
 		if (!$failed && !$ok && isset($job['pool'])) {
 			$checkPoolPermission = $dbDriver->checkPoolPermission($job['pool'], $_SESSION['user']['id']);
-			if ($checkPoolPermission === null)
+			if ($checkPoolPermission === null) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $job['pool'], $_SESSION['user']['id']), $_SESSION['user']['id']);
 				$failed = true;
-			elseif ($checkPoolPermission === true)
+			} elseif ($checkPoolPermission === true)
 				$ok = true;
 		}
 
@@ -116,8 +118,10 @@
 		case 'DELETE':
 			checkConnected();
 
-			if (!isset($_GET['id']))
+			if (!isset($_GET['id'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'DELETE api/v1/job => Trying to delete a job without specifing job id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Job id is required'));
+			}
 
 			$dbDriver->startTransaction();
 
@@ -126,21 +130,25 @@
 			if ($job['job'] === null || $job['permission'] === false)
 				$dbDriver->cancelTransaction();
 
-			if ($job['failure'])
+			if ($job['failure']) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/job => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPermissions(%s, %s)', $_GET['id'], "true"), $_SESSION['user']['id']);
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'job' => array()
 				));
-			elseif (!$job['found'])
+			} elseif (!$job['found'])
 				httpResponse(404, array(
 					'message' => 'Job not found',
 					'job' => array()
 				));
-			elseif ($job['permission'] === false)
+			elseif ($job['permission'] === false) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'DELETE api/v1/job => A non-admin user tried to delete a job', $_SESSION['user']['id']);
 				httpResponse(403, array(
 					'message' => 'Permission denied',
 					'job' => array()
 				));
+			}
 
 			$delete_status = $dbDriver->deleteJob($_GET['id']);
 
@@ -149,12 +157,16 @@
 			else
 				$dbDriver->cancelTransaction();
 
-			if ($delete_status === null)
+			if ($delete_status === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/job => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('deleteJob(%s)', $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($delete_status === false)
+			} elseif ($delete_status === false)
 				httpResponse(404, array('message' => 'Job not found'));
-			else
+			else {
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('DELETE api/v1/job => Job %s deleted', $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(200, array('message' => 'Deletion successfull'));
+			}
 
 			break;
 
@@ -168,12 +180,14 @@
 
 				$dbDriver->cancelTransaction();
 
-				if ($job['failure'])
+				if ($job['failure']) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/job => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPermissions(%s, %s)', $_GET['id'], true), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'job' => array()
 					));
-				elseif (!$job['found'])
+				} elseif (!$job['found'])
 					httpResponse(404, array(
 						'message' => 'Job not found',
 						'job' => array()
@@ -236,7 +250,8 @@
 
 				if ($jobs['query_executed'] == false) {
 					$dbDriver->cancelTransaction();
-
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/job => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, vprintf('getJobs(%s)', $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'jobs_id' => array(),
@@ -285,19 +300,25 @@
 
 			$job = httpParseInput();
 
-			if (!isset($job) || !isset($job['id']))
+			if (!isset($job) || !isset($job['id'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/job => Trying to update a job without specifing job informations', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Job information is required'));
+			}
 
 			// id
 			$check_job = $dbDriver->getJob($job['id']);
 
-			if ($check_job === null)
+			if ($check_job === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/job => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJob(%s)', $job['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($check_job === false)
+			} elseif ($check_job === false)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
-			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $check_job['login']))
+			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $check_job['login'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/job => A non-admin user tried to update a job', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
+			}
 
 			$ok = true;
 
@@ -345,11 +366,15 @@
 
 			$result = $dbDriver->updateJob($job);
 
-			if ($result)
+			if ($result) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/job => Job %s updated',$job['id']) , $_SESSION['user']['id']);
 				httpResponse(200, array('message' => 'Job updated successfully'));
-			else
+			}
+			else {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/job => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, vprintf('updateJob(%s)', $job), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-
+			}
 			break;
 
 		case 'OPTIONS':

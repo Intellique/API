@@ -87,12 +87,14 @@
 					httpResponse(400, array('message' => 'Archiveformat id must be an integer'));
 
 				$archiveformat = $dbDriver->getArchiveFormat($_GET['id']);
-				if ($archiveformat === NULL)
+				if ($archiveformat === NULL) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archiveformat => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchiveFormat(%s)', $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query Failure',
 						'archiveformat' => null
 					));
-				elseif ($archiveformat === false)
+				} elseif ($archiveformat === false)
 					httpResponse(404, array (
 						'message' => 'Archive format not found',
 						'archiveformat' => NULL
@@ -105,12 +107,14 @@
 			} elseif (isset($_GET['name'])) {
 				$archiveformat = $dbDriver->getArchiveFormatByName($_GET['name']);
 
-				if ($archiveformat === NULL)
+				if ($archiveformat === NULL) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archiveformat => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchiveFormatByName(%s)', $_GET['name']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query Failure',
 						'archiveformat id' => null
 					));
-				elseif ($archiveformat === false)
+				} elseif ($archiveformat === false)
 					httpResponse(404, array (
 						'message' => 'Archive format not found',
 						'archiveformat id' => NULL
@@ -155,13 +159,15 @@
 					httpResponse(400, array('message' => 'Incorrect input'));
 
 				$result = $dbDriver->getArchiveFormats($params);
-				if ($result['query_executed'] == false)
+				if ($result['query_executed'] == false) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archiveformat => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchiveFormats(%s)', $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'archive formats' => array(),
 						'total_rows' => 0
 					));
-				else
+				} else
 					httpResponse(200, array(
 						'message' => 'Query successful',
 						'archive formats' => $result['rows'],

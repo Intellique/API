@@ -34,11 +34,15 @@
 
 			$infoJob = httpParseInput();
 			// archive id
-			if (!isset($infoJob['archive']))
+			if (!isset($infoJob['archive'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/restore => Trying to restore an archive without specifing archive id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive id is required'));
+			}
 
-			if (!is_int($infoJob['archive']))
+			if (!is_int($infoJob['archive'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/restore => Media id must be an integer and not %s', $infoJob['archive']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive id must be an integer'));
+			}
 
 			$dbDriver->startTransaction();
 
@@ -61,9 +65,11 @@
 			if (!$check_archive)
 				$dbDriver->cancelTransaction();
 
-			if ($check_archive === null)
+			if ($check_archive === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/restore => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchive(%s)', $infoJob['archive']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($check_archive === false)
+			} elseif ($check_archive === false)
 				httpResponse(400, array('message' => 'Archive not found'));
 
 			// archive id
@@ -75,6 +81,7 @@
 
 			if (!$_SESSION['user']['canrestore'] || !$checkArchivePermission) {
 				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/restore => A user that cannot restore tried to', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
@@ -89,9 +96,10 @@
 			// type
 			if ($ok) {
 				$jobType = $dbDriver->getJobTypeId("restore-archive");
-				if ($jobType === null || $jobType === false)
+				if ($jobType === null || $jobType === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypeId(%s)', "restore-archive"), $_SESSION['user']['id']);
 					$failed = true;
-				else
+				} else
 					$job['type'] = $jobType;
 			}
 
@@ -106,9 +114,10 @@
 			// host
 			if ($ok) {
 				$host = $dbDriver->getHost(posix_uname()['nodename']);
-				if ($host === null || $host === false)
+				if ($host === null || $host === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', posix_uname()['nodename']), $_SESSION['user']['id']);
 					$failed = true;
-				else
+				} else
 					$job['host'] = $host;
 			}
 
@@ -120,6 +129,8 @@
 				$result = $dbDriver->getFilesFromArchive($infoJob['archive'], $params);
 				if ($result['query_executed'] == false) {
 					$dbDriver->cancelTransaction();
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/restore => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getFilesFromArchive(%s, %s)', $infoJob['archive'], $params), $_SESSION['user']['id']);
 					httpResponse(500, array('message' => 'Query failure'));
 				}
 
@@ -147,9 +158,10 @@
 			if ($failed || !$ok)
 				$dbDriver->cancelTransaction();
 
-			if ($failed)
+			if ($failed) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/restore => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-
+			}
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
@@ -157,6 +169,8 @@
 
 			if ($jobId === null) {
 				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/restore => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createJob(%s)', $job), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
@@ -164,6 +178,7 @@
 				$selectedfileId = $dbDriver->getSelectedFile($file);
 
 				if ($selectedfileId === null || !$dbDriver->linkJobToSelectedfile($jobId, $selectedfileId)) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getSelectedFile(%s)', $file), $_SESSION['user']['id']);
 					$failed = true;
 					break;
 				}
@@ -171,18 +186,22 @@
 
 			if (isset($infoJob['destination'])) {
 				$restoreto = $dbDriver->insertIntoRestoreTo($jobId, $infoJob['destination']);
-				if (!$restoreto)
+				if (!$restoreto) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('insertIntoRestoreTo(%s, %s)', $jobId, $infoJob['destination']), $_SESSION['user']['id']);
 					$failed = true;
+				}
 			}
 
 			if ($failed) {
 				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/restore => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
 			$dbDriver->finishTransaction();
 
 			httpAddLocation('/job/?id=' . $jobId);
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/archive/restore => Job %s created', $jobId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Job created successfully',
 				'job_id' => $jobId

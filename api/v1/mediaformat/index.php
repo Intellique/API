@@ -110,12 +110,14 @@
 					httpResponse(400, array('message' => 'Mediaformat id must be an integer'));
 
 				$mediaformat = $dbDriver->getMediaFormat($_GET['id']);
-				if ($mediaformat === NULL)
+				if ($mediaformat === NULL) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/mediaformat => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediaFormat(%s)', $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query Failure',
 						'mediaformat' => null
 					));
-				elseif ($mediaformat === false)
+				} elseif ($mediaformat === false)
 					httpResponse(404, array (
 						'message' => 'Media format not found',
 						'mediaformat' => NULL
@@ -129,12 +131,14 @@
 			} elseif (isset($_GET['name'])) {
 				$mediaformat = $dbDriver->getMediaFormatByName($_GET['name']);
 
-				if ($mediaformat === NULL)
+				if ($mediaformat === NULL) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/mediaformat => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediaFormatByName(%s)', $_GET['name']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query Failure',
 						'mediaformat id' => null
 					));
-				elseif ($mediaformat === false)
+				} elseif ($mediaformat === false)
 					httpResponse(404, array (
 						'message' => 'Media format not found',
 						'mediaformat id' => NULL
@@ -181,13 +185,15 @@
 					httpResponse(400, array('message' => 'Incorrect input'));
 
 				$result = $dbDriver->getMediaFormats($params);
-				if ($result['query_executed'] == false)
+				if ($result['query_executed'] == false) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/mediaformat => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediaFormats(%s)', $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'media formats' => array(),
 						'total_rows' => 0
 					));
-				else
+				} else
 					httpResponse(200, array(
 						'message' => 'Query successful',
 						'media formats' => $result['rows'],

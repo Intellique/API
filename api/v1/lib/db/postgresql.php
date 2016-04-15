@@ -133,6 +133,30 @@
 			$query = pg_query($this->connect, "BEGIN");
 			return $query !== false;
 		}
+
+		public function writeLog($level, $message, $login) {
+			$enum = array(
+				DB::DB_LOG_EMERGENCY => 'emergency',
+				DB::DB_LOG_ALERT => 'alert',
+				DB::DB_LOG_CRITICAL => 'critical',
+				DB::DB_LOG_ERROR => 'error',
+				DB::DB_LOG_WARNING => 'warning',
+				DB::DB_LOG_NOTICE => 'notice',
+				DB::DB_LOG_INFO => 'info',
+				DB::DB_LOG_DEBUG => 'debug'
+			);
+
+			$isPrepared = $this->prepareQuery('insert_log', "WITH lh AS (SELECT $1, $2, NOW(), $3, id, $5FROM host WHERE name = $4 LIMIT 1) INSERT INTO log (application, level, time, message, host, login) SELECT * FROM lh");
+			if (!$isPrepared)
+				return null;
+
+			$result = pg_execute($this->connect, "insert_log", array($_SESSION['apikey'], $enum[$level], $message, posix_uname()['nodename'], $login);
+
+			if ($result === false)
+				return null;
+
+			return true;
+		}
 	}
 
 	/**
