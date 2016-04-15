@@ -134,7 +134,7 @@
 			return $query !== false;
 		}
 
-		public function writeLog($level, $message, $login) {
+		public function writeLog($level, $message, $login = null) {
 			$enum = array(
 				DB::DB_LOG_EMERGENCY => 'emergency',
 				DB::DB_LOG_ALERT => 'alert',
