@@ -53,6 +53,7 @@
 			if (!is_int($eraseInfo['media'])) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/erase => Media id must be an integer and not %s', $eraseInfo['media']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id must be an integer'));
+			}
 
 
 			$dbDriver->startTransaction();
@@ -198,6 +199,7 @@
 				'message' => 'Job created successfully',
 				'job_id' => $jobId,
 			));
+			break;
 
 		case 'OPTIONS':
 			httpOptionsMethod(HTTP_POST);

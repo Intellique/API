@@ -150,7 +150,7 @@
 			if (!$isPrepared)
 				return null;
 
-			$result = pg_execute($this->connect, "insert_log", array($_SESSION['apikey'], $enum[$level], $message, posix_uname()['nodename'], $login);
+			$result = pg_execute($this->connect, "insert_log", array($_SESSION['apikey'], $enum[$level], $message, posix_uname()['nodename'], $login));
 
 			if ($result === false)
 				return null;
