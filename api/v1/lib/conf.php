@@ -14,7 +14,7 @@
 	$db_config["db"]       = $config['database'][0]['db'] ;
 	$db_config['user']     = $config['database'][0]['user'] ;
 	$db_config['password'] = $config['database'][0]['password'] ;
-	$db_config['port']     = $config['database'][0]['port'] ;
+	$db_config['port']     = isset($config['database'][0]['port']) ? $config['database'][0]['port'] : null;
 
 	$db_config["db"]       = 'storiqone-backend-vincent';
 

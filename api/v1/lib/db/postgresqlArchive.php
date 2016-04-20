@@ -191,6 +191,25 @@
 			return $archives;
 		}
 
+		public function getArchiveFile($id) {
+			if (!is_numeric($id))
+				return false;
+
+			if (!$this->prepareQuery("select_archivefile_by_id", "SELECT id, name, mimetype, ownerid, owner, size FROM archivefile WHERE id = $1"))
+				return null;
+
+			$result = pg_execute("select_archivefile_by_id", array($id));
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$archivefile = pg_fetch_assoc($result);
+
+			return $archivefile;
+		}
+
 		public function getArchiveFormat($id) {
 			if (!is_numeric($id))
 				return false;
@@ -327,6 +346,15 @@
 
 				if (isset($params['order_asc']) && $params['order_asc'] === false)
 					$query .= ' DESC';
+			}
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
 			}
 
 			$query .= ' FOR SHARE';
@@ -958,6 +986,18 @@
 
 			return pg_affected_rows($result) > 0;
 		}
+
+		public function updateArchiveFile(&$archivefile) {
+			if (!$this->prepareQuery("update_archivefile", "UPDATE archivefile SET name = $1, owner = $2, groups = $3 WHERE id = $4"))
+				return null;
+
+			$result = pg_execute("update_archivefile", array($archivefile['name'], $archivefile['owner'], $archivefile['groups'], $archivefile['id']));
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
+		}
+
 
 		public function updateMedia(&$media) {
 			if (!$this->prepareQuery("update_media", "UPDATE media SET name = $1, label = $2 WHERE id = $3"))

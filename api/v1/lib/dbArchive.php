@@ -39,6 +39,14 @@
 		public function getArchivesByMedia($id);
 
 		/**
+		 * \brief Get an archive file by its id
+		 * \param $id : archive file id
+		 * \return archive file information
+		 * \note No permission check will be performed
+		 */ 
+		public function getArchiveFile($id);
+
+		/**
 		 * \brief Get an archive format by its id
 		 * \param $id : archive id
 		 * \return archive format information
