@@ -46,7 +46,7 @@
 			$eraseInfo = httpParseInput();
 			// media id
 			if (!isset($eraseInfo['media'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/erase => Trying to erase a media without specifing media id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/erase => Trying to erase a media without specifying media id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id is required'));
 			}
 

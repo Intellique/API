@@ -286,7 +286,7 @@
 					httpResponse(200, array('message' => 'Media updated'));
 				}
 			} else {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/media => Trying to update a media without specifing media id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/media => Trying to update a media without specifying media id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media ID required'));
 			}
 

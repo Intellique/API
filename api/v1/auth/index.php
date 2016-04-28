@@ -37,9 +37,11 @@
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
-			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('DELETE api/v1/auth => User %s logged out', $_SESSION['user']['id']), $_SESSION['user']['id']);
-			session_destroy();
-			httpResponse(200, array('message' => 'Logged out'));
+			if (isset($_SESSION['user'])) {
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('DELETE api/v1/auth => User %s logged out', $_SESSION['user']['login']), $_SESSION['user']['id']);
+				session_destroy();
+				httpResponse(200, array('message' => 'Logged out'));
+			}
 			break;
 
 		case 'GET':
@@ -81,10 +83,10 @@
 				httpResponse(401, array('message' => 'Authentication failed'));
 
 			$_SESSION['user'] = $user;
-			$_SESSION['apkiey'] = $apikey;
+			$_SESSION['apikey'] = $apikey;
 
 			httpAddLocation('/auth/');
-			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/auth => User %s logged in', $_SESSION['user']['id']), $_SESSION['user']['id']);
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/auth => User %s logged in', $_SESSION['user']['login']), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Logged in',
 				'user_id' => $user['id']

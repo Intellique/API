@@ -104,7 +104,6 @@
  *   - \b 500 Query failure
  */
 	require_once("../lib/env.php");
-
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
@@ -148,7 +147,7 @@
 				else
 					httpResponse(200, array('message' => 'Archive deleted'));
 			} else {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'Trying to delete an archive without specifing an archive id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'Trying to delete an archive without specifying an archive id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive ID required'));
 			}
 
@@ -284,7 +283,7 @@
 
 			if (!$_SESSION['user']['canarchive'] || !$checkPoolPermission) {
 				$dbDriver->cancelTransaction();
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('User %s cannot create an archive', $_SESSION['user']['id']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('User %s cannot create an archive', $_SESSION['user']['login']), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 

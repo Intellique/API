@@ -157,7 +157,7 @@
 			break;
 
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_ALL_METHODS);
+			httpOptionsMethod(HTTP_GET);
 			break;
 
 		default:

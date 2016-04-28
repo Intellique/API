@@ -34,7 +34,7 @@
 
 			// archive id
 			if (!isset($infoJob['archive'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/copy => Trying to copy an archive without specifing archive id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/copy => Trying to copy an archive without specifying archive id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive id is required'));
 			}
 
@@ -45,7 +45,7 @@
 
 			// pool id
 			if (!isset($infoJob['pool'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/copy => Trying to copy an archive without specifing pool id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/copy => Trying to copy an archive without specifying pool id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id is required'));
 			}
 

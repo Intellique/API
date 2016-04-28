@@ -93,7 +93,7 @@
 				$result = $dbDriver->updatePool($pool);
 				if ($result === null) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/pool => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updatePool(%s)', $pool), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updatePool(%s)', $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(500, array('message' => 'Query failure'));
 				} elseif ($result === false)
 					httpResponse(404, array('message' => 'Pool not found'));
@@ -202,12 +202,12 @@
 				$pool['uuid'] = uuid_generate();
 
 			if (!isset($pool['name'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/pool => Trying to create a pool without specifing pool name', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/pool => Trying to create a pool without specifying pool name', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'pool name is required'));
 			}
 
 			if (!isset($pool['archiveformat'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/pool => Trying to create a pool without specifing archiveformat', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/pool => Trying to create a pool without specifying archiveformat', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'archiveformat is required'));
 			}
 
@@ -246,7 +246,7 @@
 				httpResponse(400, array('message' => 'Specified archiveformat is invalid'));
 
 			if (!isset($pool['mediaformat'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/pool => Trying to create a pool without specifing mediaformat', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/pool => Trying to create a pool without specifying mediaformat', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'mediaformat is required'));
 			}
 
@@ -353,7 +353,7 @@
 				httpResponse(500, array('message' => 'Query Failure'));
 			}
 
-			httpAddLocation('pool/?id=' . $poolId);
+			httpAddLocation('/pool/?id=' . $poolId);
 			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Pool %s created', $poolId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Pool created successfully',
@@ -370,11 +370,11 @@
 
 			$pool = httpParseInput();
 			if ($pool === NULL) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/pool => Trying to update a pool without specifing it', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/pool => Trying to update a pool without specifying it', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool is required'));
 			}
 			if (!isset($pool['id'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/pool => Trying to update a pool without specifing its id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/pool => Trying to update a pool without specifying its id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id is required'));
 			}
 
@@ -458,13 +458,11 @@
 			} else
 				$pool['mediaformat'] = $pool_base['mediaformat']['id'];
 
-			error_log('pA, pool: ' . json_encode($pool));
-
 
 
 			if (isset($pool['archiveformat'])) {
 				if (is_int($pool['archiveformat'])) {
-				} elseif (is_array ($pool['archiveformat']) and (array_key_exists('id', $pool['archiveformat']) or array_key_exists('name', $pool['archiveformat']))) {
+				} elseif (is_array($pool['archiveformat']) and (array_key_exists('id', $pool['archiveformat']) or array_key_exists('name', $pool['archiveformat']))) {
 					if (array_key_exists('id', $pool['archiveformat'])) {
 						$pool['archiveformat'] = $pool['archiveformat']['id'];
 					} else {
@@ -513,8 +511,6 @@
 				}
 			} else
 				$pool['archiveformat'] = $pool_base['archiveformat']['id'];
-
-			error_log('pB, pool: ' . json_encode($pool));
 
 
 			$autocheckmode = array('quick mode', 'thorough mode', 'none');
@@ -580,6 +576,8 @@
 			}
 
 			$pool['deleted'] = $pool_base['deleted'];
+
+			error_log('update pool: ' . json_encode($pool));
 
 
 			$result = $dbDriver->updatePool($pool);

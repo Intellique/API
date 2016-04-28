@@ -45,7 +45,7 @@
 			$formatInfo = httpParseInput();
 			// media id
 			if (!isset($formatInfo['media'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/format => Trying to format a media without specifing media id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/format => Trying to format a media without specifying media id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id is required'));
 			}
 
@@ -57,7 +57,7 @@
 
 			// pool id
 			if (!isset($formatInfo['pool'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/format => Trying to format a media without specifing pool id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/format => Trying to format a media without specifying pool id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id is required'));
 			}
 

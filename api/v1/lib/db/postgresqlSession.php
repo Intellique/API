@@ -108,6 +108,63 @@
 		public function getJobs(&$params) {
 			$query = "SELECT id FROM job";
 			$query_params = array();
+			$clause_where = false;
+
+			if (isset($params['name'])) {
+				$query_params[] = $params['name'];
+				$query .= ' WHERE name = $' . count($query_params);
+				$clause_where = true;
+			}
+
+			if (isset($params['pool'])) {
+				$query_params[] = $params['pool'];
+				if ($clause_where)
+					$query .= ' AND pool = $' . count($query_params);
+				else {
+					$query .= ' WHERE pool = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['login'])) {
+				$query_params[] = $params['login'];
+				if ($clause_where)
+					$query .= ' AND login = $' . count($query_params);
+				else {
+					$query .= ' WHERE login = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['type'])) {
+				$query_params[] = $params['type'];
+				if ($clause_where)
+					$query .= ' AND type = $' . count($query_params);
+				else {
+					$query .= ' WHERE type = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['archive'])) {
+				$query_params[] = $params['archive'];
+				if ($clause_where)
+					$query .= ' AND archive = $' . count($query_params);
+				else {
+					$query .= ' WHERE archive = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['media'])) {
+				$query_params[] = $params['media'];
+				if ($clause_where)
+					$query .= ' AND media = $' . count($query_params);
+				else {
+					$query .= ' WHERE media = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
 
 			if (isset($params['order_by'])) {
 				$query .= ' ORDER BY ' . $params['order_by'];
@@ -221,7 +278,7 @@
 
 		public function getUsers(&$params) {
 			$query_common = " FROM users";
-
+			$clause_where = false;
 			$query_params = array();
 
 			$total_rows = 0;
@@ -255,6 +312,62 @@
 			}
 
 			$query = "SELECT id" . $query_common;
+
+			if (isset($params['poolgroup'])) {
+				$query_params[] = $params['poolgroup'];
+				$query .= ' WHERE poolgroup = $' . count($query_params);
+				$clause_where = true;
+			}
+
+			if (isset($params['login'])) {
+				$query_params[] = $params['login'];
+				if ($clause_where)
+					$query .= ' AND login = $' . count($query_params);
+				else {
+					$query .= ' WHERE login = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['isadmin'])) {
+				$query_params[] = $params['isadmin'];
+				if ($clause_where)
+					$query .= ' AND isadmin = $' . count($query_params);
+				else {
+					$query .= ' WHERE isadmin = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['canarchive'])) {
+				$query_params[] = $params['canarchive'];
+				if ($clause_where)
+					$query .= ' AND canarchive = $' . count($query_params);
+				else {
+					$query .= ' WHERE canarchive = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['canrestore'])) {
+				$query_params[] = $params['canrestore'];
+				if ($clause_where)
+					$query .= ' AND canrestore = $' . count($query_params);
+				else {
+					$query .= ' WHERE canrestore = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['disabled'])) {
+				$query_params[] = $params['disabled'];
+				if ($clause_where)
+					$query .= ' AND disabled = $' . count($query_params);
+				else {
+					$query .= ' WHERE disabled = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
 
 			if (isset($params['order_by'])) {
 				$query .= ' ORDER BY ' . $params['order_by'];
@@ -298,16 +411,13 @@
 			while ($row = pg_fetch_array($result))
 				$rows[] = intval($row[0]);
 
-			if ($total_rows == 0)
-				$total_rows = count($rows);
-
 			return array(
 				'query' => $query,
 				'query_name' => $query_name,
 				'query_prepared' => true,
 				'query_executed' => true,
 				'rows' => $rows,
-				'total_rows' => $total_rows
+				'total_rows' => count($rows)
 			);
 		}
 

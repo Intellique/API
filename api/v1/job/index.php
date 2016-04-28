@@ -119,7 +119,7 @@
 			checkConnected();
 
 			if (!isset($_GET['id'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'DELETE api/v1/job => Trying to delete a job without specifing job id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'DELETE api/v1/job => Trying to delete a job without specifying job id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Job id is required'));
 			}
 
@@ -251,7 +251,7 @@
 				if ($jobs['query_executed'] == false) {
 					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/job => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, vprintf('getJobs(%s)', $params), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobs(%s)', $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'jobs_id' => array(),
@@ -301,7 +301,7 @@
 			$job = httpParseInput();
 
 			if (!isset($job) || !isset($job['id'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/job => Trying to update a job without specifing job informations', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/job => Trying to update a job without specifying job informations', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Job information is required'));
 			}
 

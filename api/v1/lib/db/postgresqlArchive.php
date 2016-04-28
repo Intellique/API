@@ -84,7 +84,7 @@
 		}
 
 		public function getArchives($user_id, &$params) {
-			$query_common = " FROM archive WHERE creator = $1 OR owner = $1 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup))";
+			$query_common = " FROM archive WHERE (creator = $1 OR owner = $1 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)))";
 			$query_params = array($user_id);
 
 			$total_rows = 0;
@@ -118,6 +118,24 @@
 			}
 
 			$query = "SELECT id" . $query_common;
+
+			if (isset($params['name'])) {
+				$query_params[] = $params['name'];
+				$query .= ' AND name = $' . count($query_params);
+			}
+
+			if (isset($params['creator'])) {
+				$query_params[] = $params['creator'];
+				$query .= ' AND creator = $' . count($query_params);
+			}
+
+			if (isset($params['owner'])) {
+				$query_params[] = $params['owner'];
+				if (is_numeric($params['owner']))
+					$query .= ' AND owner = $' . count($query_params);
+				else
+					$query .= ' AND owner IN (SELECT id FROM users WHERE login = $' . count($query_params) .')';
+			}
 
 			if (isset($params['order_by'])) {
 				$query .= ' ORDER BY ' . $params['order_by'];
@@ -160,16 +178,13 @@
 			while ($row = pg_fetch_array($result))
 				$rows[] = intval($row[0]);
 
-			if ($total_rows == 0)
-				$total_rows = count($rows);
-
 			return array(
 				'query' => $query,
 				'query_name' => $query_name,
 				'query_prepared' => true,
 				'query_executed' => true,
 				'rows' => $rows,
-				'total_rows' => $total_rows
+				'total_rows' => count($rows)
 			);
 		}
 
@@ -208,6 +223,83 @@
 			$archivefile = pg_fetch_assoc($result);
 
 			return $archivefile;
+		}
+
+		public function getArchiveFilesByParams(&$params) {
+
+			$query = 'SELECT id FROM archivefile';
+			$query_params = array();
+			$clause_where = false;
+
+			if (isset($params['name'])) {
+				$query_params[] = $params['name'];
+				$query .= ' WHERE name = $' . count($query_params);
+				$clause_where = true;
+			}
+
+			if (isset($params['owner'])) {
+				$query_params[] = $params['owner'];
+				if ($clause_where)
+					$query .= ' AND owner = $' . count($query_params);
+				else {
+					$query .= ' WHERE owner = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['type'])) {
+				$query_params[] = $params['type'];
+				if ($clause_where)
+					$query .= ' AND type = $' . count($query_params);
+				else {
+					$query .= ' WHERE type = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['groups'])) {
+				$query_params[] = $params['groups'];
+				if ($clause_where)
+					$query .= ' AND groups = $' . count($query_params);
+				else {
+					$query .= ' WHERE groups = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['order_by'])) {
+				$query .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query .= ' DESC';
+			}
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_archive_files_by_params_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
+				return null;
+
+			$result = pg_execute($query_name, $query_params);
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$archivefiles = array();
+			while ($row = pg_fetch_array($result))
+				$archivefiles[] = intval($row[0]);
+
+			return $archivefiles;
 		}
 
 		public function getArchiveFormat($id) {
@@ -584,7 +676,6 @@
 			);
 		}
 
-
 		public function getMediasByPool($pool, &$params) {
 			$query_common = " FROM media WHERE pool = $1 ORDER BY id";
 			$query_params = array($pool);
@@ -866,8 +957,8 @@
 			$pool['rewritable'] = $pool['rewritable'] == 't' ? true : false;
 			$pool['metadata'] = json_decode($pool['metadata']);
 			$pool['backuppool'] = $pool['backuppool'] == 't' ? true : false;
-			$pool['pooloriginal'] = intval($pool['pooloriginal']);
-			$pool['poolmirror'] = intval($pool['poolmirror']);
+			$pool['pooloriginal'] = isset($pool['pooloriginal']) ? intval($pool['pooloriginal']) : null;
+			$pool['poolmirror'] = isset($pool['poolmirror']) ? intval($pool['poolmirror']) : null;
 			$pool['deleted'] = $pool['deleted'] == 't' ? true : false;
 
 			return $pool;
@@ -875,7 +966,7 @@
 
 		public function getPoolByName($name) {
 
-		if (!$this->prepareQuery("select_pool_by_name", "SELECT id FROM pool WHERE name = $1 LIMIT 1"))
+			if (!$this->prepareQuery("select_pool_by_name", "SELECT id FROM pool WHERE name = $1 LIMIT 1"))
 				return null;
 
 			$result = pg_execute("select_pool_by_name", array($name));
@@ -887,6 +978,73 @@
 
 			$pool = pg_fetch_array($result);
 			return intval($pool[0]);
+		}
+
+		public function getPoolsByParams(&$params) {
+			$query = 'SELECT p.id FROM pool p INNER JOIN pooltopoolgroup ppg ON p.id = ppg.pool';
+			$query_params = array();
+			$clause_where = false;
+
+			if (isset($params['name'])) {
+				$query_params[] = $params['name'];
+				$query .= ' WHERE p.name = $' . count($query_params) . '::TEXT';
+				$clause_where = true;
+			}
+
+			if (isset($params['poolgroup'])) {
+				$query_params[] = $params['poolgroup'];
+				if ($clause_where)
+					$query .= ' AND poolgroup = $' . count($query_params);
+				else {
+					$query .= ' WHERE poolgroup = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['mediaformat'])) {
+				$query_params[] = $params['mediaformat'];
+				if ($clause_where)
+					$query .= ' AND mediaformat = $' . count($query_params);
+				else {
+					$query .= ' WHERE mediaformat = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['order_by'])) {
+				$query .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query .= ' DESC';
+			}
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_pool_id_by_params _" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
+				return null;
+
+			$result = pg_execute($query_name, $query_params);
+
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$pools = array();
+			while ($row = pg_fetch_array($result))
+				$pools[] = intval($row[0]);
+
+			return $pools;
 		}
 
 		public function getPoolsByPoolgroup($user_poolgroup, &$params) {
@@ -987,18 +1145,6 @@
 			return pg_affected_rows($result) > 0;
 		}
 
-		public function updateArchiveFile(&$archivefile) {
-			if (!$this->prepareQuery("update_archivefile", "UPDATE archivefile SET name = $1, owner = $2, groups = $3 WHERE id = $4"))
-				return null;
-
-			$result = pg_execute("update_archivefile", array($archivefile['name'], $archivefile['owner'], $archivefile['groups'], $archivefile['id']));
-			if ($result === false)
-				return null;
-
-			return pg_affected_rows($result) > 0;
-		}
-
-
 		public function updateMedia(&$media) {
 			if (!$this->prepareQuery("update_media", "UPDATE media SET name = $1, label = $2 WHERE id = $3"))
 				return null;
@@ -1014,6 +1160,8 @@
 			if (!$this->prepareQuery("update_pool", "UPDATE pool SET uuid = $1, name = $2, archiveformat = $3, mediaformat = $4, autocheck = $5, lockcheck = $6, growable = $7, unbreakablelevel = $8, rewritable = $9, metadata = $10, backuppool = $11, poolmirror = $12, deleted = $13 WHERE id = $14"))
 				return null;
 
+			$archiveformat = is_array($pool['archiveformat']) ? $pool['archiveformat']['id'] : $pool['archiveformat'];
+			$mediaformat = is_array($pool['mediaformat']) ? $pool['mediaformat']['id'] : $pool['mediaformat'];
 			$lockcheck = $pool['lockcheck'] ? "TRUE" : "FALSE";
 			$growable = $pool['growable'] ? "TRUE" : "FALSE";
 			$rewritable = $pool['rewritable'] ? "TRUE" : "FALSE";
@@ -1021,11 +1169,7 @@
 			$deleted = $pool['deleted'] ? "TRUE" : "FALSE";
 			$metadata = json_encode($pool['metadata']);
 
-			error_log('pool: ' . json_encode($pool));
-			error_log(json_encode($pool['archiveformat']));
-			error_log(json_encode($pool['mediaformat']));
-
-			$result = pg_execute("update_pool", array($pool['uuid'], $pool['name'], $pool['archiveformat'], $pool['mediaformat'], $pool['autocheck'], $lockcheck, $growable, $pool['unbreakablelevel'], $rewritable, $metadata, $backuppool, $pool['poolmirror'], $deleted, $pool['id']));
+			$result = pg_execute("update_pool", array($pool['uuid'], $pool['name'], $archiveformat, $mediaformat, $pool['autocheck'], $lockcheck, $growable, $pool['unbreakablelevel'], $rewritable, $metadata, $backuppool, $pool['poolmirror'], $deleted, $pool['id']));
 			if ($result === false)
 				return null;
 
