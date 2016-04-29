@@ -17,7 +17,7 @@
  * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
  * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
  *
- * \warning <b>Make sure to pass at least one of the first three parameters</b>
+ * \warning <b>Make sure to pass at least one of the first three parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
 
@@ -100,8 +100,7 @@
 			if ($pools === null) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool/search => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolByParams(%s)', var_export($params, true)), $_SESSION['user']['id']);
-				httpResponse(500, array('message' => 'Query failure',
-							'params' => &$params));
+				httpResponse(500, array('message' => 'Query failure'));
 			}
 			if ($pools === false)
 				httpResponse(404, array('message' => 'Pools not found',

@@ -20,7 +20,7 @@
  * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
  * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
  *
- * \warning <b>Make sure to pass at least one of the first six parameters</b>
+ * \warning <b>Make sure to pass at least one of the first six parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
  *   - \b 200 Query successfull
 
