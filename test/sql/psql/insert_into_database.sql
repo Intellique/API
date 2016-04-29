@@ -50,7 +50,8 @@ INSERT INTO Application(name) VALUES
     ('StoriqOne Daemon'),
     ('StoriqOne Drive'),
     ('StoriqOne Job'),
-    ('StoriqOne Logger');
+    ('StoriqOne Logger'),
+    ('StoriqOne API');
 
 INSERT INTO Application(name, apikey) VALUES
     ('UnitTest','d017552c-e005-4bc7-86bc-5e3e8b3ade2b');

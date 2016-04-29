@@ -262,11 +262,11 @@ class PoolTest(CommonTest):
         self.assertEqual(res.status, 201)
         self.assertIsNotNone(location)
         conn = self.newConnection()
+        print('new location: %s' % location)
         conn.request('GET', location, headers=headers)
         res = conn.getresponse()
         response = res.read()
         conn.close()
-        print(response)
         self.assertEqual(res.status, 200)
 
     def test_27_put_user_not_logged(self):
