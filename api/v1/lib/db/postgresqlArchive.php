@@ -806,7 +806,7 @@
 
 		public function getMediasByPool($pool, &$params) {
 			$query_common = " FROM media WHERE pool = $1 ORDER BY id";
-			$query_params = array($pool);
+			$query_params = array($pool['id']);
 
 			$total_rows = 0;
 			if (isset($params['limit']) or isset($params['offset'])) {
@@ -1246,16 +1246,13 @@
 			while ($row = pg_fetch_array($result))
 				$rows[] = intval($row[0]);
 
-			if ($total_rows == 0)
-				$total_rows = count($rows);
-
 			return array(
 				'query' => $query,
 				'query_name' => $query_name,
 				'query_prepared' => true,
 				'query_executed' => true,
 				'rows' => $rows,
-				'total_rows' => $total_rows
+				'total_rows' => count($rows)
 			);
 		}
 
@@ -1303,5 +1300,6 @@
 
 			return pg_affected_rows($result) > 0;
 		}
+
 	}
 ?>

@@ -368,7 +368,7 @@
 				httpResponse(400, array('message' => 'User information is required'));
 
 			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $user['id'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried to update user informations', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/user => A non-admin user tried to update user informations', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
