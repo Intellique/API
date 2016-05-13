@@ -429,6 +429,144 @@
 			);
 		}
 
+		public function getDevices(&$params) {
+			$query_common = 'FROM changer WHERE enable = $1';
+			$query_params = array('t');
+
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_changers";
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$query = "SELECT id " . $query_common;
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_changers_" . md5($query);
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $rows,
+				'total_rows' => count($rows)
+			);
+		}
+
+		public function getDevice($id) {
+			if (!$this->prepareQuery("select_slots_and_media","SELECT cs.changer, cs.index, cs.drive, m.label, m.mediumserialnumber, m.status, m.freeblock, m.totalblock FROM changerslot cs LEFT JOIN media m ON cs.media = m.id WHERE changer = $1 AND cs.enable = $2 ORDER BY cs.index"))
+				return null;
+
+			if (!$this->prepareQuery("select_changer","SELECT id, model, vendor, serialnumber, status, isonline FROM changer WHERE id = $1 AND enable = $2"))
+				return null;
+
+			if (!$this->prepareQuery("select_drives","SELECT d.id, d.model, d.vendor, d.serialnumber, d.status, cs.index FROM drive d INNER JOIN changerslot cs ON id = drive WHERE d.changer = $1 AND d.enable = $2"))
+				return null;
+
+
+
+			$result = pg_execute($this->connect, 'select_changer', array($id, 't'));
+			if ($result === false)
+				return null;
+			if (pg_num_rows($result) == 0)
+				return false;
+			$row = pg_fetch_array($result);
+			$changer = array('changerid' => $row['id'], 'model' => $row['model'], 'vendor' => $row['vendor'], 'changerserialnumber' => $row['serialnumber'], 'status' => $row['status'], 'isonline' => $row['isonline'], 'drives' => array(), 'slots' => array());
+
+
+			$result = pg_execute($this->connect, 'select_drives', array($id, 't'));
+			if ($result === false)
+				return null;
+			$drives = array();
+			while ($row = pg_fetch_array($result))
+				$drives[] = array('drivenumber' => $row['index'], 'driveid' => $row['id'], 'model' => $row['model'], 'vendor' => $row['vendor'], 'driveserialnumber' => $row['serialnumber'], 'status' => $row['status'], 'slot' => array());
+
+
+			$result = pg_execute($this->connect, 'select_slots_and_media', array($id, 't'));
+			if ($result === false)
+				return null;
+			$slots = array();
+			$driveslot = array();
+			while ($row = pg_fetch_array($result)) {
+				if ($row['drive'] === null) {
+					$slots[] = array('slotnumber' => $row['index'], 'slottype' => "storage", 'chanegrid' => $row['changer'], 'chanegrslotid' => $row['changer']."_".$row['index'], 'medialabel' => $row['label'], 'mediaserialnumber' => $row['mediumserialnumber'], 'mediastatus' => $row['status'], 'freeblock' => $row['freeblock'], 'totalblock' => $row['totalblock']);
+				}
+				else {
+					$driveslot[] = array('driveid' => $row['drive'], 'slotid' => $row['drive'].'_'.$row['index'], 'slotnumber' => $row['index'], 'slottype' => "drive", 'medialabel' => $row['label'], 'mediaserialnumber' => $row['mediumserialnumber'], 'mediastatus' => $row['status'], 'freeblock' => $row['freeblock'], 'totalblock' => $row['totalblock']);
+
+					foreach ($drives as &$list) {
+					if ($list['driveid'] == $row['drive'])
+						$list['slot'] = end($driveslot);
+					}
+				}
+			}
+
+
+
+			$changer['drives'] = $drives;
+			$changer['slots'] = $slots;
+			$return = array('changer' => $changer);
+			return $return;
+		}
+
 		public function getFilesFromArchive($id, &$params) {
 			$query = "SELECT id, name, type, mimetype, ownerid, owner, groupid, groups, perm, ctime, mtime, size FROM archivefile WHERE id IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE archivevolume IN (SELECT id from archivevolume WHERE archive = $1))";
 			$query_params = array($id);
@@ -806,7 +944,7 @@
 
 		public function getMediasByPool($pool, &$params) {
 			$query_common = " FROM media WHERE pool = $1 ORDER BY id";
-			$query_params = array($pool['id']);
+			$query_params = array($pool);
 
 			$total_rows = 0;
 			if (isset($params['limit']) or isset($params['offset'])) {

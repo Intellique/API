@@ -446,7 +446,8 @@
 					httpResponse(400, array('message' => 'Specified mediaformat is invalid'));
 
 				if ($pool['mediaformat'] !== $pool_base['mediaformat']) {
-					$nbMedias = $dbDriver->getMediasByPool($pool);
+					$params = array();
+					$nbMedias = $dbDriver->getMediasByPool($pool['id'], $params);
 					if ($nbMedias === null) {
 						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/pool => Query failure', $_SESSION['user']['id']);
 						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediasByPool(%s)', $pool), $_SESSION['user']['id']);
@@ -500,7 +501,8 @@
 							httpResponse(400, array('message' => 'mediaformat must be in linear mode and must support partition'));
 					}
 
-					$nbMedias = $dbDriver->getMediasByPool($pool);
+					$params = array();
+					$nbMedias = $dbDriver->getMediasByPool($pool['id'], $params);
 					if ($nbMedias === null) {
 						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/pool => Query failure', $_SESSION['user']['id']);
 						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediasByPool(%s)', $pool), $_SESSION['user']['id']);

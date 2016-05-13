@@ -92,6 +92,39 @@ COPY media (id, uuid, label, mediumserialnumber, name, status, firstused, usebef
 \.
 ALTER SEQUENCE media_id_seq RESTART 2;
 
+INSERT INTO changer(id, model, vendor, firmwarerev, serialnumber, wwn, barcode, status, isonline, action, enable, host) VALUES
+	(1, 'FlexStor II', 'BDT', '5.00', '00MX64100694', 'sas:0x5000e1115d3d3002', 't', 'idle', 't', 'none', 't', 6);
+
+INSERT INTO drive (id, model, vendor, firmwarerev, serialnumber, status, operationduration, lastclean, enable, changer, driveformat) VALUES
+	(1, 'ULT3580-HH6', 'IBM', 'F9A1', '10WT067290', 'empty idle', '9923.5', NULL,'t', 1, 1);
+
+INSERT INTO changerslot(changer, index, drive, media, isieport, enable) VALUES
+	(1, 0, 1, NULL,'f', 't'),
+	(1, 1, NULL, NULL,'f', 't'),
+	(1, 2, NULL, NULL,'f', 't'),
+	(1, 3, NULL, NULL,'f', 't'),
+	(1, 4, NULL, 1,'f', 't'),
+	(1, 5, NULL, NULL,'f', 't'),
+	(1, 6, NULL, NULL,'f', 't'),
+	(1, 7, NULL, NULL,'f', 't'),
+	(1, 8, NULL, 3,'f', 't'),
+	(1, 9, NULL, NULL,'f', 't'),
+	(1, 10, NULL, NULL,'f', 't'),
+	(1, 11, NULL, NULL,'f', 't'),
+	(1, 12, NULL, NULL,'f', 't'),
+	(1, 13, NULL, NULL,'f', 't'),
+	(1, 14, NULL, NULL,'f', 't'),
+	(1, 15, NULL, NULL,'f', 't'),
+	(1, 16, NULL, NULL,'f', 't'),
+	(1, 17, NULL, NULL,'f', 't'),
+	(1, 18, NULL, NULL,'f', 't'),
+	(1, 19, NULL, NULL,'f', 't'),
+	(1, 20, NULL, NULL,'f', 't'),
+	(1, 21, NULL, NULL,'f', 't'),
+	(1, 22, NULL, NULL,'f', 't'),
+	(1, 23, NULL, NULL,'f', 't'),
+	(1, 24, NULL, NULL,'t', 't');
+
 COPY jobtype (id, name) FROM stdin;
 1	backup-db
 2	check-archive

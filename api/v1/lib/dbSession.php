@@ -73,6 +73,12 @@
 		public function getJobType();
 
 		/**
+		 * \brief Get pool(s) assigned to the poolgroup id
+		 * \return <b>Pool id list</b>, \b FALSE if not found, \b NULL on query execution failure
+		 */
+		public function getPooltopoolgroup($id);
+
+		/**
 		 * \brief Get poolgroup by id
 		 * \param $id : Poolgroup id
 		 * \return <b>Poolgroup information</b>, \b FALSE if not found, \b NULL on query execution failure
@@ -113,6 +119,15 @@
 		 * \return \b TRUE on update success, \b FALSE when no user was updated, \b NULL on query execution failure
 		 */
 		public function updateJob(&$job);
+
+		/**
+		 * \brief Update a poolgroup
+		 * \param $poolgroup : PHP object
+		 * \param $poolsToChange : PHP object
+		 * \param $newPools : PHP object
+		 * \return \b TRUE on update success, \b FALSE when no pool was found, \b NULL on query execution failure
+		 */
+		public function updatePoolgroup($poolgroup, $poolsToChange, $newPools);
 
 		/**
 		 * \brief Update a user

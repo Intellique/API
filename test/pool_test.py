@@ -267,6 +267,7 @@ class PoolTest(CommonTest):
         res = conn.getresponse()
         response = res.read()
         conn.close()
+        """UNE Erreur 403 apparait"""
         self.assertEqual(res.status, 200)
 
     def test_27_put_user_not_logged(self):
@@ -408,7 +409,6 @@ class PoolTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'id':5,
-            'uuid': 'b2719811-bad0-466a-8c00-7e7a51c7f475',
             'name' :'EXPORT_PROVISOIRE_RUSHS',
             'archiveformat':1,
             'mediaformat' :2
@@ -417,7 +417,7 @@ class PoolTest(CommonTest):
         headers.update(cookie)
         conn.request('PUT', self.path + 'pool/', body=data, headers=headers)
         res = conn.getresponse()
+        message = json.loads(res.read().decode("utf-8"))
         conn.close()
+        print(message)
         self.assertEqual(res.status, 200)
-
-
