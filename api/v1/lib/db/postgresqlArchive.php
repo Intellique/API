@@ -1439,5 +1439,76 @@
 			return pg_affected_rows($result) > 0;
 		}
 
+		public function getJob($id) {
+			if (!isset($id) || !is_numeric($id))
+				return false;
+
+			if (!$this->prepareQuery('select_job_by_id', "SELECT j.id, j.name, jt.name AS type, j.nextstart, EXTRACT(EPOCH FROM j.interval) AS interval, j.repetition, j.status, j.update, j.archive, j.backup, j.media, j.pool, j.host, j.login, j.metadata, j.options FROM job j INNER JOIN jobtype jt ON j.type = jt.id WHERE j.id = $1 LIMIT 1 FOR UPDATE"))
+				return null;
+
+			$result = pg_execute($this->connect, 'select_job_by_id', array($id));
+
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$row = pg_fetch_assoc($result);
+
+			$row['id'] = intval($row['id']);
+			$row['nextstart'] = dateTimeParse($row['nextstart']);
+			$row['interval'] = PostgresqlDB::getInteger($row['interval']);
+			$row['repetition'] = PostgresqlDB::getInteger($row['repetition']);
+			$row['update'] = dateTimeParse($row['update']);
+			$row['archive'] = PostgresqlDB::getInteger($row['archive']);
+			$row['backup'] = PostgresqlDB::getInteger($row['backup']);
+			$row['media'] = PostgresqlDB::getInteger($row['media']);
+			$row['pool'] = PostgresqlDB::getInteger($row['pool']);
+			$row['host'] = intval($row['host']);
+			$row['login'] = intval($row['login']);
+			$row['metadata'] = json_decode($row['metadata']);
+			$row['options'] = json_decode($row['options']);
+
+			return $row;
+		}
+
+		public function getUser($id, $login) {
+			if ((isset($id) && !is_numeric($id)) || (isset($login) && !is_string($login)))
+				return false;
+
+			if (isset($id)) {
+				$isPrepared = $this->prepareQuery('select_user_by_id', "SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE id = $1 LIMIT 1");
+				if (!$isPrepared)
+					return null;
+
+				$result = pg_execute($this->connect, 'select_user_by_id', array($id));
+			} else {
+				$isPrepared = $this->prepareQuery('select_user_by_login', "SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE login = $1 LIMIT 1");
+				if (!$isPrepared)
+					return null;
+
+				$result = pg_execute($this->connect, 'select_user_by_login', array($login));
+			}
+
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$row = pg_fetch_assoc($result);
+
+			$row['id'] = intval($row['id']);
+			$row['isadmin'] = $row['isadmin'] == 't' ? true : false;
+			$row['canarchive'] = $row['canarchive'] == 't' ? true : false;
+			$row['canrestore'] = $row['canrestore'] == 't' ? true : false;
+			$row['poolgroup'] = PostgresqlDB::getInteger($row['poolgroup']);
+			$row['disabled'] = $row['disabled'] == 't' ? true : false;
+			$row['meta'] = json_decode($row['meta']);
+
+			return $row;
+		}
+
 	}
 ?>

@@ -29,7 +29,6 @@
  * | :----------------: | :---------------------:  | :---------------------------------------------------------:
  * |  poolgroup         |  integer                 | non NULL
  * |  pools             |  integer                 | 'pools' format must be 'pools=pool1,pool2,pool3...' replace pool1, pool2, pool3 with the id of an \b existing pool to assign to the poolgroup. These pools will replace the current pools assigned to the poolgroup
- * \warning <b></b>
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
  *   - \b 400 Incorrect input
