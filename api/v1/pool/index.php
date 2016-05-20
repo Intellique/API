@@ -192,7 +192,7 @@
 			$pool = httpParseInput();
 			if (isset($pool['uuid'])) {
 				if (!is_string($pool['uuid'])) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => uuid must be an string and not "%s"', $pool['uuid']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => uuid must be a string and not "%s"', $pool['uuid']), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'uuid must be a string'));
 				}
 
