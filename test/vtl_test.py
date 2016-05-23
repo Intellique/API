@@ -137,7 +137,40 @@ class VTLTest(CommonTest):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('DELETE', self.path + 'vtl/?id=1', headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        print(message)
+        self.assertEqual(res.status, 200)
+
+    def test_11_get_vtl_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'vtl/?id=1', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_12_get_multiple_vtl_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'vtl/', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_13_get_multiple_vtl_offset_string(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'vtl/?offset=foo', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_14_get_multiple_vtl_limit_string(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'vtl/?limit=foo', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_15_get_multiple_vtl_limit_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'vtl/?limit=1', headers=headers)
+        res = conn.getresponse()
+        conn.close()
         self.assertEqual(res.status, 200)

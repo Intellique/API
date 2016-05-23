@@ -38,6 +38,63 @@
 
 
 	switch ($_SERVER['REQUEST_METHOD']) {
+
+		case 'GET':
+			if (isset($_GET['id'])) {
+				if (!is_numeric($_GET['id']))
+					httpResponse(400, array('message' => 'id must be an integer'));
+				$vtl = $dbDriver->getVTL($_GET['id']);
+				if ($vtl === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/vtl => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/vtl => getVTL(%s)', $_GET['id']), $_SESSION['user']['id']);
+					httpResponse(500, array('message' => 'Query failure'));
+				}
+				elseif ($vtl === false)
+					httpResponse(404, array('message' => 'VTL not found'));
+				httpResponse(200, array(
+							'message' => 'Query succeeded',
+							'vtl' => $vtl
+				));
+			} else {
+				$params = array();
+				$ok = true;
+
+				if (isset($_GET['limit'])) {
+					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
+						$params['limit'] = intval($_GET['limit']);
+					else
+						$ok = false;
+				}
+				if (isset($_GET['offset'])) {
+					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
+						$params['offset'] = intval($_GET['offset']);
+					else
+						$ok = false;
+				}
+
+				if (!$ok)
+					httpResponse(400, array('message' => 'Incorrect input'));
+
+				$vtl = $dbDriver->getVTLs($params);
+				if ($result['query_executed'] === false) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/vtl => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getVTLs(%s)', $params), $_SESSION['user']['id']);
+					httpResponse(500, array(
+						'message' => 'Query failure',
+						'vtls' => array(),
+						'query' => $vtl['query'],
+						'query_executed' => $vtl['query_executed'],
+						'total_rows' => $vtl['total_rows']
+					));
+				} else
+					httpResponse(200, array(
+						'message' => 'Query successful',
+						'vtls' => $vtl['rows'],
+						'total_rows' => $vtl['total_rows']
+					));
+			}
+			break;
+
 		case 'POST':
 			checkConnected();
 
