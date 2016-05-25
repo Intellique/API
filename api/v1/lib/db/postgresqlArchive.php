@@ -26,6 +26,24 @@
 			return intval($row[0]);
 		}
 
+		public function createPoolTemplate(&$pooltemplate) {
+			if (!$this->prepareQuery("create_pooltemplate", "INSERT INTO pooltemplate(name, autocheck, lockcheck, growable, unbreakablelevel, metadata, createproxy) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"))
+			return NULL;
+
+
+			$lockcheck = $pooltemplate['lockcheck'] ? "TRUE" : "FALSE";
+			$growable = $pooltemplate['growable'] ? "TRUE" : "FALSE";
+			$createproxy = $pooltemplate['createproxy'] ? "TRUE" : "FALSE";
+			$metadata = json_encode($pooltemplate['metadata'], JSON_FORCE_OBJECT);
+
+			$result = pg_execute("create_pooltemplate", array($pooltemplate['name'], $pooltemplate['autocheck'], $lockcheck, $growable, $pooltemplate['unbreakablelevel'], $metadata, $pooltemplate['createproxy']));
+			if ($result === false)
+				return null;
+
+			$row = pg_fetch_array($result);
+			return intval($row[0]);
+		}
+
 		public function createVTL(&$vtl) {
 			if (!$this->prepareQuery("create_vtl", "INSERT INTO vtl(uuid, path, prefix, nbslots, nbdrives, mediaformat, host, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id"))
 				return NULL;
@@ -42,6 +60,17 @@
 
 			$row = pg_fetch_array($result);
 			return intval($row[0]);
+		}
+
+		public function deletePoolTemplate($id) {
+			if (!$this->prepareQuery("delete_pooltemplate", "DELETE FROM pooltemplate WHERE id = $1"))
+				return NULL;
+
+			$result = pg_execute("delete_pooltemplate", array($id));
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
 		}
 
 		public function deleteVTL($id) {
@@ -1423,6 +1452,129 @@
 			);
 		}
 
+		public function getPoolTemplate($id) {
+			if (!is_numeric($id))
+				return false;
+
+			if (!$this->prepareQuery("select_pooltemplate_by_id", "SELECT id, name, autocheck, lockcheck, growable, unbreakablelevel, rewritable, metadata, createproxy FROM pooltemplate WHERE id = $1"))
+				return null;
+
+			$result = pg_execute("select_pooltemplate_by_id", array($id));
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$pooltemplate = pg_fetch_assoc($result);
+
+			$pooltemplate['id'] = intval($pooltemplate['id']);
+			$pooltemplate['lockcheck'] = $pooltemplate['lockcheck'] == 't' ? true : false;
+			$pooltemplate['growable'] = $pooltemplate['growable'] == 't' ? true : false;
+			$pooltemplate['rewritable'] = $pooltemplate['rewritable'] == 't' ? true : false;
+			$pooltemplate['metadata'] = json_decode($pooltemplate['metadata']);
+			$pooltemplate['createproxy'] = $pooltemplate['createproxy'] == 't' ? true : false;
+
+			return $pooltemplate;
+		}
+
+		public function getPoolTemplates(&$params) {
+			$query_common = " FROM pooltemplate";
+			$query_params = array();
+
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_pooltemplates";
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$query = "SELECT id" . $query_common;
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_pooltemplates_" . md5($query);
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $rows,
+				'total_rows' => count($rows)
+			);
+		}
+
+		public function getPoolTemplateByName($name) {
+
+			if (!$this->prepareQuery("select_pooltemplate_by_name", "SELECT id FROM pooltemplate WHERE name = $1 LIMIT 1"))
+				return null;
+
+			$result = pg_execute("select_pooltemplate_by_name", array($name));
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$pooltemplate = pg_fetch_array($result);
+			return intval($pooltemplate[0]);
+		}
+
 		public function getVTL($id) {
 			if (!is_numeric($id) || !isset($id))
 				return false;
@@ -1565,6 +1717,23 @@
 			$metadata = json_encode($pool['metadata']);
 
 			$result = pg_execute("update_pool", array($pool['uuid'], $pool['name'], $archiveformat, $mediaformat, $pool['autocheck'], $lockcheck, $growable, $pool['unbreakablelevel'], $rewritable, $metadata, $backuppool, $pool['poolmirror'], $deleted, $pool['id']));
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
+		}
+
+		public function updatePoolTemplate(&$pooltemplate) {
+			if (!$this->prepareQuery("update_pooltemplate", "UPDATE pooltemplate SET name = $1, autocheck = $2, lockcheck = $3, growable = $4, unbreakablelevel = $5, rewritable = $6, metadata = $7, createproxy = $8 WHERE id = $9"))
+				return null;
+
+			$lockcheck = $pooltemplate['lockcheck'] ? "TRUE" : "FALSE";
+			$growable = $pooltemplate['growable'] ? "TRUE" : "FALSE";
+			$rewritable = $pooltemplate['rewritable'] ? "TRUE" : "FALSE";
+			$createproxy = $pooltemplate['createproxy'] ? "TRUE" : "FALSE";
+			$metadata = json_encode($pooltemplate['metadata']);
+
+			$result = pg_execute("update_pooltemplate", array($pooltemplate['name'], $pooltemplate['autocheck'], $lockcheck, $growable, $pooltemplate['unbreakablelevel'], $rewritable, $metadata, $createproxy, $pooltemplate['id']));
 			if ($result === false)
 				return null;
 

@@ -1,6 +1,12 @@
 <?php
 /**
  * \addtogroup vtl
+ * \section VTL VTL information
+ * To get a VTL by its id
+ * use \b GET method : <i>with VTL id</i>
+ * \section VTL_id_list VTLs ids
+ * To get VTL ids list
+ * use \b GET method : <i>without reference to specific id or ids</i>
  * \section VTL_deletion VTL deletion
  * To delete a VTL,
  * use \b DELETE method : <i>with VTL id</i>
@@ -76,14 +82,12 @@
 					httpResponse(400, array('message' => 'Incorrect input'));
 
 				$vtl = $dbDriver->getVTLs($params);
-				if ($result['query_executed'] === false) {
+				if ($vtl['query_executed'] === false) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/vtl => Query failure', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getVTLs(%s)', $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'vtls' => array(),
-						'query' => $vtl['query'],
-						'query_executed' => $vtl['query_executed'],
 						'total_rows' => $vtl['total_rows']
 					));
 				} else

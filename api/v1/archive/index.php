@@ -520,14 +520,16 @@
 				}
 			}
 
-			foreach ($check_archive['metadata'] as $key => $value) {
-				if (!array_key_exists($key, $archive['metadata'])) {
-					$resultMetadata = $dbDriver->deleteMetadata($archive['id'], $key, 'archive', $_SESSION['user']['id']);
-					if (!$resultMetadata) {
-						$dbDriver->cancelTransaction();
-						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/archive => Query failure', $_SESSION['user']['id']);
-						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('deleteMetadata(%s, %s, "archive", %s)', $archive['id'], $key, $_SESSION['user']['id']), $_SESSION['user']['id']);
-						httpResponse(500, array('message' => 'Query failure'));
+			if (isset($check_archive['metadata'])) {
+				foreach ($check_archive['metadata'] as $key => $value) {
+					if (!array_key_exists($key, $archive['metadata'])) {
+						$resultMetadata = $dbDriver->deleteMetadata($archive['id'], $key, 'archive', $_SESSION['user']['id']);
+						if (!$resultMetadata) {
+							$dbDriver->cancelTransaction();
+							$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/archive => Query failure', $_SESSION['user']['id']);
+							$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('deleteMetadata(%s, %s, "archive", %s)', $archive['id'], $key, $_SESSION['user']['id']), $_SESSION['user']['id']);
+							httpResponse(500, array('message' => 'Query failure'));
+						}
 					}
 				}
 			}
