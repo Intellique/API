@@ -338,8 +338,6 @@
 				httpResponse(400, array('message' => 'createproxy must be a boolean'));
 			}
 
-			error_log('update pooltemplate: ' . json_encode($pooltemplate));
-
 
 			$result = $dbDriver->updatePoolTemplate($pooltemplate);
 

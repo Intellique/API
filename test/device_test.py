@@ -25,11 +25,9 @@ class DeviceTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 404)
 
-    def test_02_get_devices(self):
+    def test_04_get_devices(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', "%sdevice/?id=%s" % (self.path, '1'), headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        print(message)
         self.assertEqual(res.status, 200)

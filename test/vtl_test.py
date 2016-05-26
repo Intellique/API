@@ -18,7 +18,7 @@ class VTLTest(CommonTest):
         conn.request('POST', self.path + 'vtl/', body=data, headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 200)
+        self.assertEqual(res.status, 201)
 
     def test_02_post_vtl_wrong_input(self):
         conn, cookie, message = self.newLoggedConnection('admin')
@@ -71,9 +71,7 @@ class VTLTest(CommonTest):
         headers.update(cookie)
         conn.request('PUT', self.path + 'vtl/', body=data, headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        print(message)
         self.assertEqual(res.status, 200)
 
     def test_05_put_vtl_basic_user(self):

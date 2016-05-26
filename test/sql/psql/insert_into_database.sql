@@ -77,7 +77,7 @@ COPY pool (id, uuid, name, archiveformat, mediaformat, autocheck, growable, unbr
 5	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	1	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	\N	f	f	\N
 7	cf3d97b5-d5fe-4384-945e-927ab6fa7608	ARCHIVES_TESTS	1	2	none	f	file	t	[]	\N	f	f	\N
 \.
-ALTER SEQUENCE pool_id_seq RESTART 6;
+ALTER SEQUENCE pool_id_seq RESTART 8;
 
 COPY pooltopoolgroup (pool, poolgroup) FROM stdin;
 3	1
@@ -90,7 +90,7 @@ COPY media (id, uuid, label, mediumserialnumber, name, status, firstused, usebef
 2	4fb920af-afbd-4365-91b8-2019fa7297fb	EXP007	HA2PFAp093	EXPORTS_RUSHS_07	foreign	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	1	\N	1
 3	4fb920af-afbd-4365-91b8-2019fa7297fc	EXP008	HA2PFAp094	EXPORTS_RUSHS_08	foreign	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	2	\N	1
 \.
-ALTER SEQUENCE media_id_seq RESTART 2;
+ALTER SEQUENCE media_id_seq RESTART 4;
 
 INSERT INTO changer(id, model, vendor, firmwarerev, serialnumber, wwn, barcode, status, isonline, action, enable, host) VALUES
 	(1, 'FlexStor II', 'BDT', '5.00', '00MX64100694', 'sas:0x5000e1115d3d3002', 't', 'idle', 't', 'none', 't', 6);
@@ -226,3 +226,7 @@ COPY archivefiletoarchivevolume (archivevolume, archivefile, blocknumber, archiv
 2	34	469827	2012-09-27 16:59:47	\N	f
 2	35	471437	2012-09-27 16:59:47	\N	f
 \.
+
+INSERT INTO vtl(uuid, path, prefix, nbslots, nbdrives, mediaformat, host, deleted) VALUES ('17b74300-1e97-11e6-bdf4-0800200c9a66', '/mnt/vtl/VTL', 'VTL', 8, 2, 2, 6, 'f');
+
+INSERT INTO pooltemplate(name, autocheck, lockcheck, growable, unbreakablelevel, rewritable, createproxy) VALUES ('test_pool', 'none', 't', 'f', 'archive', 't', 'f');

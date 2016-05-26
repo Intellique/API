@@ -15,9 +15,7 @@ class PoolgroupTest(CommonTest):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', "%spoolgroup/?id=%s" % (self.path, 1), headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        print(message)
         self.assertEqual(res.status, 200)
 
     def test_03_get_poolgroup_wrong_input(self):
@@ -51,7 +49,7 @@ class PoolgroupTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'poolgroup':1,
-            'pools':'6,3,7,5'
+            'pools':'8,3,7,5'
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)

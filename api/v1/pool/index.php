@@ -30,7 +30,10 @@
  * use \b DELETE method : <i>with pool id</i>
  * \section Pool-creation Pool creation
  * To create a pool,
- * use \b POST method <i>with pool parameters (uuid, name, archiveformat, mediaformat) </i>
+ * use \b POST method <i>with pool parameters (uuid, name, archiveformat, mediaformat)</i>
+ * \section Pool-creation_Pooltemplate Pool creation using a pool template
+ * To create a pool based on a pool template,
+ * use \b POST method <i>with the id of the pool template to use to create the pool, \b plus pool parameters (uuid, name, archiveformat, mediaformat)</i>
  * \section Pool-update Pool update
  * To update a pool,
  * use \b PUT method <i>with pool parameters (id, uuid, name, archiveformat, mediaformat) </i>
@@ -190,6 +193,7 @@
 			}
 
 			$pool = httpParseInput();
+
 			if (isset($pool['uuid'])) {
 				if (!is_string($pool['uuid'])) {
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => uuid must be a string and not "%s"', $pool['uuid']), $_SESSION['user']['id']);
@@ -284,48 +288,68 @@
 			} else
 				httpResponse(400, array('message' => 'Specified mediaformat is invalid'));
 
-			$autocheckmode = array('quick mode', 'thorough mode', 'none');
-			if (!isset($pool['autocheck']))
-				$pool['autocheck'] = 'none';
-			elseif (!is_string ($pool['autocheck'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => autocheckmode must be a string and not "%s"', $pool['autocheck']), $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'autocheckmode must be a string'));
-			}
-			elseif (array_search($pool['autocheck'], $autocheckmode) === false) {
-				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $autocheckmode));
-				httpResponse(400, array('message' => 'autocheckmode value is invalid. It should be in ' . $string_mode));
-			}
+			//pooltemplate
+			if (isset($pool['pooltemplate'])) {
+				if (!is_int($pool['pooltemplate']))
+					httpResponse(400, array('message' => 'pool template id must be an integer'));
+				$pooltemplate = $dbDriver->getPoolTemplate($pool['pooltemplate']);
+				if ($pooltemplate === NULL) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/pool => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolTemplate(%s)', $pool['pooltemplate'], $_SESSION['user']['id']));
+					httpResponse(500, array('message' => 'Query Failure'));
+				}
+				if ($pooltemplate === False)
+					httpResponse(404, array('message' => 'This pool template does not exist'));
 
-			if (!isset($pool['lockcheck']))
-				$pool['lockcheck'] = False;
-			elseif (!is_bool($pool['lockcheck'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => lockcheck must be a boolean and not "%s"', $pool['lockcheck']), $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'lockcheck must be a boolean'));
-			}
-			if (!isset($pool['growable']))
-				$pool['growable'] = False;
-			elseif (!is_bool($pool['growable'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => growable must be a boolean and not "%s"', $pool['growable']), $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'growable must be a boolean'));
-			}
+				$pool['autocheck'] = $pooltemplate['autocheck'];
+				$pool['lockcheck'] = $pooltemplate['lockcheck'];
+				$pool['growable'] = $pooltemplate['growable'];
+				$pool['unbreakablelevel'] = $pooltemplate['unbreakablelevel'];
+				$pool['rewritable'] = $pooltemplate['rewritable'];
+			} else {
+				$autocheckmode = array('quick mode', 'thorough mode', 'none');
+				if (!isset($pool['autocheck']))
+					$pool['autocheck'] = 'none';
+				elseif (!is_string ($pool['autocheck'])) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => autocheckmode must be a string and not "%s"', $pool['autocheck']), $_SESSION['user']['id']);
+					httpResponse(400, array('message' => 'autocheckmode must be a string'));
+				}
+				elseif (array_search($pool['autocheck'], $autocheckmode) === false) {
+					$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $autocheckmode));
+					httpResponse(400, array('message' => 'autocheckmode value is invalid. It should be in ' . $string_mode));
+				}
 
-			$unbreakablelevel = array('archive', 'file', 'none');
-			if (!isset($pool['unbreakablelevel']))
-				$pool['unbreakablelevel'] = 'none';
-			elseif (!is_string ($pool['unbreakablelevel'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => unbreakablelevel must be a string and not "%s"', $pool['unbreakablelevel']), $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'unbreakablelevel must be a string'));
-			}
-			elseif (array_search($pool['unbreakablelevel'], $unbreakablelevel) === false) {
-				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $unbreakablelevel));
-				httpResponse(400, array('message' => 'unbreakablelevel value is invalid. It should be in ' . $string_mode));
-			}
+				if (!isset($pool['lockcheck']))
+					$pool['lockcheck'] = False;
+				elseif (!is_bool($pool['lockcheck'])) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => lockcheck must be a boolean and not "%s"', $pool['lockcheck']), $_SESSION['user']['id']);
+					httpResponse(400, array('message' => 'lockcheck must be a boolean'));
+				}
+				if (!isset($pool['growable']))
+					$pool['growable'] = False;
+				elseif (!is_bool($pool['growable'])) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => growable must be a boolean and not "%s"', $pool['growable']), $_SESSION['user']['id']);
+					httpResponse(400, array('message' => 'growable must be a boolean'));
+				}
 
-			if (!isset($pool['rewritable']))
-				$pool['rewritable'] = True;
-			elseif (!is_bool($pool['rewritable'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => rewritable must be a boolean and not "%s"', $pool['rewritable']), $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'rewritable must be a boolean'));
+				$unbreakablelevel = array('archive', 'file', 'none');
+				if (!isset($pool['unbreakablelevel']))
+					$pool['unbreakablelevel'] = 'none';
+				elseif (!is_string ($pool['unbreakablelevel'])) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => unbreakablelevel must be a string and not "%s"', $pool['unbreakablelevel']), $_SESSION['user']['id']);
+					httpResponse(400, array('message' => 'unbreakablelevel must be a string'));
+				}
+				elseif (array_search($pool['unbreakablelevel'], $unbreakablelevel) === false) {
+					$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $unbreakablelevel));
+					httpResponse(400, array('message' => 'unbreakablelevel value is invalid. It should be in ' . $string_mode));
+				}
+
+				if (!isset($pool['rewritable']))
+					$pool['rewritable'] = True;
+				elseif (!is_bool($pool['rewritable'])) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => rewritable must be a boolean and not "%s"', $pool['rewritable']), $_SESSION['user']['id']);
+					httpResponse(400, array('message' => 'rewritable must be a boolean'));
+				}
 			}
 
 			if (!isset($pool['metadata']))
@@ -344,12 +368,12 @@
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => poolmirror must be an integer and not "%s"', $pool['poolmirror']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'poolmirror must be an integer'));
 			}
-
+			error_log(json_encode($pool));
 			$poolId = $dbDriver->createPool($pool);
 
 			if ($poolId === NULL) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/pool => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createPool(%s)', $pool), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createPool(%s)', var_export($pool, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query Failure'));
 			}
 

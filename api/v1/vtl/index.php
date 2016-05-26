@@ -187,8 +187,9 @@
 			$result = $dbDriver->createVTL($vtl);
 
 			if ($result) {
+				httpAddLocation('/vtl/?id=' . $result);
 				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/vtl => VTL %s created', $result), $_SESSION['user']['id']);
-				httpResponse(200, array(
+				httpResponse(201, array(
 					'message' => 'VTL created successfully',
 					'vtl_id' => $result
 				));

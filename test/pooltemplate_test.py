@@ -38,24 +38,6 @@ class PoolTemplate(CommonTest):
         conn.close()
         self.assertEqual(res.status, 201)
 
-    def test_03_post_pooltemplate_success(self):
-        conn, cookie, message = self.newLoggedConnection('admin')
-        data = json.dumps({
-            'name': 'test3',
-            'autocheck': 'none',
-            'lockcheck': True,
-            'growable': True,
-            'unbreakablelevel': 'none',
-            'rewritable': False,
-            'createproxy' : True
-        });
-        headers = {"Content-type": "application/json"}
-        headers.update(cookie)
-        conn.request('POST', self.path + 'pooltemplate/', body=data, headers=headers)
-        res = conn.getresponse()
-        conn.close()
-        self.assertEqual(res.status, 201)
-
     def test_02_post_pooltemplate_not_permitted(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         data = json.dumps({
@@ -95,8 +77,8 @@ class PoolTemplate(CommonTest):
     def test_04_put_admin_name_already_existing(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'id':3,
-            'name' :'test3'
+            'id':1,
+            'name' :'test_pool'
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -130,9 +112,7 @@ class PoolTemplate(CommonTest):
         headers.update(cookie)
         conn.request('PUT', self.path + 'pooltemplate/', body=data, headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        print(message)
         self.assertEqual(res.status, 200)
 
     def test_07_get_pooltemplate_success(self):
@@ -146,9 +126,7 @@ class PoolTemplate(CommonTest):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', "%spooltemplate/" % (self.path), headers=headers)
         res = conn.getresponse()
-        message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        print(message)
         self.assertEqual(res.status, 200)
 
     def test_09_delete_pooltemplate_admin_with_wrong_params(self):

@@ -176,7 +176,7 @@
 			break;
 
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_GET);
+			httpOptionsMethod(HTTP_GET & HTTP_PUT);
 			break;
 
 		default:

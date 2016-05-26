@@ -520,7 +520,7 @@
 				}
 			}
 
-			if (isset($check_archive['metadata'])) {
+			if (isset($check_archive['metadata']) && $check_archive['metadata'] !== false) {
 				foreach ($check_archive['metadata'] as $key => $value) {
 					if (!array_key_exists($key, $archive['metadata'])) {
 						$resultMetadata = $dbDriver->deleteMetadata($archive['id'], $key, 'archive', $_SESSION['user']['id']);
