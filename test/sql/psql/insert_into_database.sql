@@ -230,3 +230,8 @@ COPY archivefiletoarchivevolume (archivevolume, archivefile, blocknumber, archiv
 INSERT INTO vtl(uuid, path, prefix, nbslots, nbdrives, mediaformat, host, deleted) VALUES ('17b74300-1e97-11e6-bdf4-0800200c9a66', '/mnt/vtl/VTL', 'VTL', 8, 2, 2, 6, 'f');
 
 INSERT INTO pooltemplate(name, autocheck, lockcheck, growable, unbreakablelevel, rewritable, createproxy) VALUES ('test_pool', 'none', 't', 'f', 'archive', 't', 'f');
+
+INSERT INTO poolmirror(uuid, name, synchronized) VALUES
+('609abc8a-3f92-4450-89df-5e6012baee70', 'test', 't'),
+('322980de-0af7-4e48-beaa-f58c6ab4a302', 'test2', 'f'),
+('44dc3636-fa69-4e5c-991a-0ebb6b20cdb2', 'test3', 't');

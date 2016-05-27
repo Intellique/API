@@ -26,9 +26,24 @@
 			return intval($row[0]);
 		}
 
+		public function createPoolMirror(&$poolmirror) {
+			if (!$this->prepareQuery("create_poolmirror", "INSERT INTO poolmirror(uuid, name, synchronized) VALUES ($1, $2, $3) RETURNING id"))
+				return NULL;
+
+
+			$synchronized = $poolmirror['synchronized'] ? "TRUE" : "FALSE";
+
+			$result = pg_execute("create_poolmirror", array($poolmirror['uuid'], $poolmirror['name'], $synchronized));
+			if ($result === false)
+				return null;
+
+			$row = pg_fetch_array($result);
+			return intval($row[0]);
+		}
+
 		public function createPoolTemplate(&$pooltemplate) {
 			if (!$this->prepareQuery("create_pooltemplate", "INSERT INTO pooltemplate(name, autocheck, lockcheck, growable, unbreakablelevel, metadata, createproxy) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"))
-			return NULL;
+				return NULL;
 
 
 			$lockcheck = $pooltemplate['lockcheck'] ? "TRUE" : "FALSE";
@@ -67,6 +82,17 @@
 				return NULL;
 
 			$result = pg_execute("delete_pooltemplate", array($id));
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
+		}
+
+		public function deletePoolMirror($id) {
+			if (!$this->prepareQuery("delete_poolmirror", "DELETE FROM poolmirror WHERE id = $1"))
+				return NULL;
+
+			$result = pg_execute("delete_poolmirror", array($id));
 			if ($result === false)
 				return null;
 
@@ -1452,6 +1478,107 @@
 			);
 		}
 
+		public function getPoolMirror($id) {
+			if (!is_numeric($id))
+				return false;
+
+			if (!$this->prepareQuery("select_poolmirror_by_id", "SELECT id, uuid, name, synchronized FROM poolmirror WHERE id = $1"))
+				return null;
+
+			$result = pg_execute("select_poolmirror_by_id", array($id));
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$poolmirror = pg_fetch_assoc($result);
+			$poolmirror['synchronized'] = $poolmirror['synchronized'] == 't' ? true : false;
+
+			return $poolmirror;
+		}
+
+		public function getPoolMirrors(&$params) {
+			$query_common = " FROM poolmirror";
+			$query_params = array();
+
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_poolmirrors";
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$query = "SELECT id" . $query_common;
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_poolmirrors_" . md5($query);
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $rows,
+				'total_rows' => count($rows)
+			);
+		}
+
 		public function getPoolTemplate($id) {
 			if (!is_numeric($id))
 				return false;
@@ -1717,6 +1844,19 @@
 			$metadata = json_encode($pool['metadata']);
 
 			$result = pg_execute("update_pool", array($pool['uuid'], $pool['name'], $archiveformat, $mediaformat, $pool['autocheck'], $lockcheck, $growable, $pool['unbreakablelevel'], $rewritable, $metadata, $backuppool, $pool['poolmirror'], $deleted, $pool['id']));
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
+		}
+
+		public function updatePoolMirror($poolmirror) {
+			if (!$this->prepareQuery("update_poolmirror", "UPDATE poolmirror SET name = $1, synchronized = $2 WHERE id = $3"))
+				return null;
+
+			$synchronized = $poolmirror['synchronized'] ? "TRUE" : "FALSE";
+
+			$result = pg_execute("update_poolmirror", array($poolmirror['name'], $synchronized, $poolmirror['id']));
 			if ($result === false)
 				return null;
 

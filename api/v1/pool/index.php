@@ -368,7 +368,6 @@
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => poolmirror must be an integer and not "%s"', $pool['poolmirror']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'poolmirror must be an integer'));
 			}
-			error_log(json_encode($pool));
 			$poolId = $dbDriver->createPool($pool);
 
 			if ($poolId === NULL) {
@@ -543,7 +542,7 @@
 			if (!isset($pool['autocheck']))
 				$pool['autocheck'] = $pool_base['autocheck'];
 			elseif (!is_string ($pool['autocheck'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => autocheck must be a string and not "%s"', $pool['autocheck']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pool => autocheck must be a string and not "%s"', $pool['autocheck']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'autocheckmode must be a string'));
 			}
 			elseif (array_search($pool['autocheck'], $autocheckmode) === false) {
@@ -554,14 +553,14 @@
 			if (!isset($pool['lockcheck']))
 				$pool['lockcheck'] = $pool_base['lockcheck'];
 			elseif (!is_bool($pool['lockcheck'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => lockcheck must be a boolean and not "%s"', $pool['lockcheck']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pool => lockcheck must be a boolean and not "%s"', $pool['lockcheck']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'lockcheck must be a boolean'));
 			}
 
 			if (!isset($pool['growable']))
 				$pool['growable'] = $pool_base['growable'];
 			elseif (!is_bool($pool['growable'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => growable must be a boolean and not "%s"', $pool['growable']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pool => growable must be a boolean and not "%s"', $pool['growable']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'growable must be a boolean'));
 			}
 
@@ -569,7 +568,7 @@
 			if (!isset($pool['unbreakablelevel']))
 				$pool['unbreakablelevel'] = $pool_base['unbreakablelevel'];
 			elseif (!is_string ($pool['unbreakablelevel'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => unbreakablelevel must be a string and not "%s"', $pool['unbreakablelevel']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pool => unbreakablelevel must be a string and not "%s"', $pool['unbreakablelevel']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'unbreakablelevel must be a string'));
 			}
 			elseif (array_search($pool['unbreakablelevel'], $unbreakablelevel) === false) {
@@ -580,7 +579,7 @@
 			if (!isset($pool['rewritable']))
 				$pool['rewritable'] = $pool_base['rewritable'];
 			elseif (!is_bool($pool['rewritable'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => rewritable must be a boolean and not "%s"', $pool['rewritable']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pool => rewritable must be a boolean and not "%s"', $pool['rewritable']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'rewritable must be a boolean'));
 			}
 
@@ -590,21 +589,18 @@
 			if (!isset($pool['backuppool']))
 				$pool['backuppool'] = $pool_base['backuppool'];
 			elseif (!is_bool($pool['backuppool'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => backuppool must be a boolean and not "%s"', $pool['backuppool']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pool => backuppool must be a boolean and not "%s"', $pool['backuppool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'backuppool must be a boolean'));
 			}
 
 			if (!isset($pool['poolmirror']))
 				$pool['poolmirror'] = $pool_base['poolmirror'];
 			elseif (!is_int($pool['poolmirror'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => poolmirror must be an integer and not "%s"', $pool['poolmirror']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pool => poolmirror must be an integer and not "%s"', $pool['poolmirror']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'poolmirror must be an integer'));
 			}
 
 			$pool['deleted'] = $pool_base['deleted'];
-
-			error_log('update pool: ' . json_encode($pool));
-
 
 			$result = $dbDriver->updatePool($pool);
 
