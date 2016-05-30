@@ -489,8 +489,8 @@
 					if ($result === false)
 						return null;
 				}
+				return true;
 			}
-			return true;
 
 			foreach($newPools as $key => $value) {
 				if (($key + 1) > count($poolsToChange)) {

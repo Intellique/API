@@ -651,6 +651,134 @@
 			return $return;
 		}
 
+		public function getDevicesByParams(&$params) {
+
+			$query_common = " FROM changer";
+			$query_params = array();
+
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_changers";
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$query = "SELECT id" . $query_common;
+
+			$clause_where = false;
+
+			if (isset($params['isonline'])) {
+				$query_params[] = $params['isonline'];
+				$query .= ' WHERE isonline = $' . count($query_params);
+				$clause_where = true;
+			}
+
+			if (isset($params['enable'])) {
+				$query_params[] = $params['enable'];
+				if ($clause_where)
+					$query .= ' AND enable = $' . count($query_params);
+				else {
+					$query .= ' WHERE enable = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['model'])) {
+				$query_params[] = $params['model'];
+				if ($clause_where)
+					$query .= ' AND model = $' . count($query_params);
+				else {
+					$query .= ' WHERE model = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['vendor'])) {
+				$query_params[] = $params['vendor'];
+				if ($clause_where)
+					$query .= ' AND vendor = $' . count($query_params);
+				else {
+					$query .= ' WHERE vendor = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['order_by'])) {
+				$query .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query .= ' DESC';
+			}
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_chagers_by_params_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $rows,
+				'total_rows' => count($rows)
+			);
+		}
+
 		public function getFilesFromArchive($id, &$params) {
 			$query = "SELECT id, name, type, mimetype, ownerid, owner, groupid, groups, perm, ctime, mtime, size FROM archivefile WHERE id IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE archivevolume IN (SELECT id from archivevolume WHERE archive = $1))";
 			$query_params = array($id);
@@ -1534,6 +1662,24 @@
 
 			$query = "SELECT id" . $query_common;
 
+			$clause_where = false;
+
+			if (isset($params['name'])) {
+				$query_params[] = $params['name'];
+				$query .= ' WHERE name = $' . count($query_params);
+				$clause_where = true;
+			}
+
+			if (isset($params['synchronized'])) {
+				$query_params[] = $params['synchronized'];
+				if ($clause_where)
+					$query .= ' AND synchronized = $' . count($query_params);
+				else {
+					$query .= ' WHERE synchronized = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
 			if (isset($params['limit'])) {
 				$query_params[] = $params['limit'];
 				$query .= ' LIMIT $' . count($query_params);
@@ -1640,6 +1786,44 @@
 			}
 
 			$query = "SELECT id" . $query_common;
+
+			$clause_where = false;
+
+			if (isset($params['name'])) {
+				$query_params[] = $params['name'];
+				$query .= ' WHERE name = $' . count($query_params);
+				$clause_where = true;
+			}
+
+			if (isset($params['autocheck'])) {
+				$query_params[] = $params['autocheck'];
+				if ($clause_where)
+					$query .= ' AND autocheck = $' . count($query_params);
+				else {
+					$query .= ' WHERE autocheck = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['lockcheck'])) {
+				$query_params[] = $params['lockcheck'];
+				if ($clause_where)
+					$query .= ' AND lockcheck = $' . count($query_params);
+				else {
+					$query .= ' WHERE lockcheck = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['rewritable'])) {
+				$query_params[] = $params['rewritable'];
+				if ($clause_where)
+					$query .= ' AND rewritable = $' . count($query_params);
+				else {
+					$query .= ' WHERE rewritable = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
 
 			if (isset($params['limit'])) {
 				$query_params[] = $params['limit'];

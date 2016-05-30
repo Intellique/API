@@ -203,3 +203,66 @@ class SearchTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
+
+    def test_29_search_device_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%sdevice/search/?isonline=t" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_30_search_device_not_found(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%sdevice/search/?vendor=foo" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)
+
+    def test_31_search_device_wrong_order_by(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%sdevice/search/?isonline=t&order_by=fooo" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_32_search_poolmirror_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%spoolmirror/search/?name=test" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_33_search_poolmirror_not_found(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%spoolmirror/search/?name=aaa" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)
+
+    def test_34_search_poolmirror_wrong_order_by(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%spoolmirror/search/?name=test&order_by=fooo" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_35_search_pooltemplate_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%spooltemplate/search/?name=foo" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_36_search_pooltemplate_not_found(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%spooltemplate/search/?name=bar" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)
+
+    def test_37_search_pooltemplate_wrong_order_by(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%spooltemplate/search/?name=foo&order_by=fooo" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
