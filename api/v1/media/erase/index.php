@@ -1,4 +1,4 @@
- <?php
+<?php
 /**
  * \addtogroup MediaErase Erase a media
  * \section Erase_media_task Erase media task creation
@@ -38,16 +38,22 @@
 		case 'POST':
 			checkConnected();
 
-			if (!$_SESSION['user']['isadmin'])
+			if (!$_SESSION['user']['isadmin']) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried to erase a media', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
+			}
 
 			$eraseInfo = httpParseInput();
 			// media id
-			if (!isset($eraseInfo['media']))
+			if (!isset($eraseInfo['media'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/erase => Trying to erase a media without specifying media id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id is required'));
+			}
 
-			if (!is_int($eraseInfo['media']))
+			if (!is_int($eraseInfo['media'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/erase => Media id must be an integer and not %s', $eraseInfo['media']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id must be an integer'));
+			}
 
 
 			$dbDriver->startTransaction();
@@ -61,18 +67,22 @@
 			if (!$media)
 				$dbDriver->cancelTransaction();
 
-			if ($media === null)
+			if ($media === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/erase => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMedia(%s)', $eraseInfo['media']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($media === false)
+			} elseif ($media === false)
 				httpResponse(400, array('message' => 'Media not found'));
 
 			if ($media['type'] == 'cleaning') {
 				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/erase => Trying to delete a cleaning media', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Trying to delete a cleaning media'));
 			}
 
 			if ($media['type'] == 'worm') {
 				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/erase => Trying to delete a worm media', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Trying to delete a worm media'));
 			}
 
@@ -81,16 +91,21 @@
 			if (!$archives and !is_array($archives))
 				$dbDriver->cancelTransaction();
 
-			if ($archives === null)
+			if ($archives === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/erase => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchivesByMedia(%s)', $eraseInfo['media']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-
+			}
 			foreach ($archives as $archive_id) {
 				$archive = $dbDriver-> getArchive($archive_id);
 				if (!$archive)
 					$dbDriver->cancelTransaction();
 
-				if ($archive === null)
+				if ($archive === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/erase => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchive(%s)', $archive_id), $_SESSION['user']['id']);
 					httpResponse(500, array('message' => 'Query failure'));
+				}
 
 				if (!$archive['deleted'])
 					httpResponse(400, array('message' => 'Archive "' . $archive['name'] . '" should be deleted'));
@@ -148,9 +163,10 @@
 			// host
 			if ($ok) {
 				$host = $dbDriver->getHost(posix_uname()['nodename']);
-				if ($host === null || $host === false)
+				if ($host === null || $host === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', posix_uname()['nodename']), $_SESSION['user']['id']);
 					$failed = true;
-				else
+				} else
 					$job['host'] = $host;
 			}
 
@@ -158,9 +174,10 @@
 			if ($failed || !$ok)
 				$dbDriver->cancelTransaction();
 
-			if ($failed)
+			if ($failed) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/erase => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-
+			}
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
@@ -168,6 +185,8 @@
 
 			if ($jobId === null) {
 				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/erase => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, vprintf('createJob(%s)', $job), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
@@ -175,10 +194,12 @@
 			$dbDriver->finishTransaction();
 
 			httpAddLocation('/job/?id=' . $jobId);
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/media/erase => Job created successfully', $jobId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Job created successfully',
 				'job_id' => $jobId,
 			));
+			break;
 
 		case 'OPTIONS':
 			httpOptionsMethod(HTTP_POST);

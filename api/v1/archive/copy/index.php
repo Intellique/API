@@ -33,18 +33,26 @@
 			$infoJob = httpParseInput();
 
 			// archive id
-			if (!isset($infoJob['archive']))
+			if (!isset($infoJob['archive'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/copy => Trying to copy an archive without specifying archive id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive id is required'));
+			}
 
-			if (!is_int($infoJob['archive']))
+			if (!is_int($infoJob['archive'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/copy => Archive id must be an integer and not %s', $infoJob['archive']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive id must be an integer'));
+			}
 
 			// pool id
-			if (!isset($infoJob['pool']))
+			if (!isset($infoJob['pool'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/copy => Trying to copy an archive without specifying pool id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id is required'));
+			}
 
-			if (!is_int($infoJob['pool']))
+			if (!is_int($infoJob['pool'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/copy => Pool id must be an integer and not %s', $infoJob['pool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
+			}
 
 			$dbDriver->startTransaction();
 
@@ -66,9 +74,11 @@
 			if (!$check_archive)
 				$dbDriver->cancelTransaction();
 
-			if ($check_archive === null)
+			if ($check_archive === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/copy => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchive(%s)', $infoJob['archive']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($check_archive === false)
+			} elseif ($check_archive === false)
 				httpResponse(400, array('message' => 'Archive not found'));
 
 			// archive id
@@ -80,6 +90,7 @@
 
 			if (!$checkArchivePermission) {
 				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/copy => A user that cannot check tried to', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
@@ -89,9 +100,11 @@
 			if (!$check_pool)
 				$dbDriver->cancelTransaction();
 
-			if ($check_pool === null)
+			if ($check_pool === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/copy => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPool(%s)', $infoJob['pool']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($check_pool === false)
+			} elseif ($check_pool === false)
 				httpResponse(400, array('message' => 'Pool not found'));
 
 			// pool id
@@ -103,6 +116,7 @@
 
 			if (!$_SESSION['user']['canarchive'] || !$checkPoolPermission) {
 				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/copy => A user that cannot archive tried to', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
@@ -112,9 +126,11 @@
 			if (!$check_media)
 				$dbDriver->cancelTransaction();
 
-			if ($check_media === null)
+			if ($check_media === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/copy => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMedia(%s)', $check_archive['volumes'][0]['media']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($check_media === false)
+			} elseif ($check_media === false)
 				httpResponse(400, array('message' => 'Media not found'));
 
 			if ($check_media['pool']['id'] != $check_pool['id'])
@@ -131,9 +147,10 @@
 			// type
 			if ($ok) {
 				$jobType = $dbDriver->getJobTypeId("copy-archive");
-				if ($jobType === null || $jobType === false)
+				if ($jobType === null || $jobType === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypeId(%s)', "copy-archive"), $_SESSION['user']['id']);
 					$failed = true;
-				else
+				} else
 					$job['type'] = $jobType;
 			}
 
@@ -148,9 +165,10 @@
 			// host
 			if ($ok) {
 				$host = $dbDriver->getHost(posix_uname()['nodename']);
-				if ($host === null || $host === false)
+				if ($host === null || $host === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', posix_uname()['nodename']), $_SESSION['user']['id']);
 					$failed = true;
-				else
+				} else
 					$job['host'] = $host;
 			}
 
@@ -171,22 +189,26 @@
 			if ($failed || !$ok)
 				$dbDriver->cancelTransaction();
 
-			if ($failed)
+			if ($failed) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/copy => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 
-			if (!$ok)
+			} if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$jobId = $dbDriver->createJob($job);
 
 			if ($jobId === null) {
 				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/copy => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createJob(%s)', $job), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
 			$dbDriver->finishTransaction();
 
 			httpAddLocation('/job/?id=' . $jobId);
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/archive/copy => Job %s created', $jobId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Job created successfully',
 				'job_id' => $jobId

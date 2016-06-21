@@ -51,6 +51,30 @@
 		public function getMetadatas($id, $type);
 
 		/**
+		 * \brief Get metadata from pool
+		 * \param $id : id
+		 * \param $key : key
+		 * \return <b>Hash table of metadata</b>, \b FALSE if not found, \b NULL on query execution failure
+		 */
+		public function getPoolMetadatas($id, $key);
+
+		/**
+		 * \brief Get metadata from user
+		 * \param $id : id
+		 * \param $key : key
+		 * \return <b>Hash table of metadata</b>, \b FALSE if not found, \b NULL on query execution failure
+		 */
+		public function getUserMetadatas($id, $key);
+
+		/**
+		 * \brief Get metadata from job
+		 * \param $id : id
+		 * \param $key : key
+		 * \return <b>Hash table of metadata</b>, \b FALSE if not found, \b NULL on query execution failure
+		 */
+		public function getJobMetadatas($id, $key);
+
+		/**
 		 * \brief Update a metadata
 		 * \param $id : id
 		 * \param $key : metadata key

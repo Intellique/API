@@ -19,12 +19,14 @@
 		case 'GET':
 			$jobtype = $dbDriver->getJobTypes();
 
-			if ($jobtype === null)
+			if ($jobtype === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/jobtype => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypes()'), $_SESSION['user']['id']);
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'jobtype' => array()
 				));
-			elseif ($jobtype === false)
+			} elseif ($jobtype === false)
 				httpResponse(404, array(
 					'message' => 'Job types not found',
 					'archive' => array()

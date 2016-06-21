@@ -262,21 +262,58 @@ class PoolTest(CommonTest):
         self.assertEqual(res.status, 201)
         self.assertIsNotNone(location)
         conn = self.newConnection()
+        print('new location: %s' % location)
         conn.request('GET', location, headers=headers)
         res = conn.getresponse()
         response = res.read()
         conn.close()
-        print(response)
+        """UNE Erreur 403 apparait"""
         self.assertEqual(res.status, 200)
 
-    def test_27_put_user_not_logged(self):
+    def test_27_post_pool_admin_using_pooltemplate(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'pooltemplate' : 1,
+            'name' :'foo',
+            'archiveformat':1,
+            'mediaformat' :2,
+            'backuppool' : False,
+            'deleted' : True
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 201)
+
+    def test_28_post_pool_admin_using_pooltemplate_not_found(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'pooltemplate' : 100,
+            'name' :'foo',
+            'archiveformat':1,
+            'mediaformat' :2,
+            'backuppool' : False,
+            'deleted' : True
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode("utf-8"))
+        conn.close()
+        print(message)
+        self.assertEqual(res.status, 404)
+
+    def test_29_put_user_not_logged(self):
         conn = self.newConnection()
         conn.request('PUT', self.path + 'pool/')
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 401)
 
-    def test_28_put_basic_user_not_allowed(self):
+    def test_30_put_basic_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         data = json.dumps({
             'id':5,
@@ -292,7 +329,7 @@ class PoolTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 403)
 
-    def test_29_put_admin_user_with_wrong_uuid(self):
+    def test_31_put_admin_user_with_wrong_uuid(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'id':5,
@@ -308,7 +345,7 @@ class PoolTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_30_put_admin_user_with_no_name(self):
+    def test_32_put_admin_user_with_no_name(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'id':5,
@@ -324,7 +361,7 @@ class PoolTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_31_put_admin_user_with_wrong_name(self):
+    def test_33_put_admin_user_with_wrong_name(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'id':5,
@@ -340,7 +377,7 @@ class PoolTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_32_put_admin_user_with_no_archiveformat(self):
+    def test_34_put_admin_user_with_no_archiveformat(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'id':5,
@@ -356,7 +393,7 @@ class PoolTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_33_put_admin_user_with_wrong_archiveformat(self):
+    def test_35_put_admin_user_with_wrong_archiveformat(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'id':5,
@@ -372,7 +409,7 @@ class PoolTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_34_put_admin_user_with_no_mediaformat(self):
+    def test_36_put_admin_user_with_no_mediaformat(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'id':5,
@@ -388,7 +425,7 @@ class PoolTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_35_put_admin_user_with_wrong_mediaformat(self):
+    def test_37_put_admin_user_with_wrong_mediaformat(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'id':5,
@@ -404,11 +441,10 @@ class PoolTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_36_put_admin_user_with_right_params(self):
+    def test_38_put_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'id':5,
-            'uuid': 'b2719811-bad0-466a-8c00-7e7a51c7f475',
             'name' :'EXPORT_PROVISOIRE_RUSHS',
             'archiveformat':1,
             'mediaformat' :2
@@ -419,5 +455,3 @@ class PoolTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
-
-

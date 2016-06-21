@@ -39,6 +39,22 @@
 		public function getArchivesByMedia($id);
 
 		/**
+		 * \brief Get an archive file by its id
+		 * \param $id : archive file id
+		 * \return archive file information
+		 * \note No permission check will be performed
+		 */
+		public function getArchiveFile($id);
+
+		/**
+		 * \brief Get an archive files ids list by an array of parameters
+		 * \param $params : optional parameters
+		 * \return array of archive file ids
+		 * \note No permission check will be performed
+		 */
+		public function getArchiveFilesByParams(&$params);
+
+		/**
 		 * \brief Get an archive format by its id
 		 * \param $id : archive id
 		 * \return archive format information
@@ -137,6 +153,13 @@
 		 * \return pool id or false if not found
 		 */
 		public function getPoolByName($name);
+
+		/**
+		 * \brief Get a pools ids list by an array of parameters
+		 * \param $params : optional parameters
+		 * \return an array of pool ids or false if not found
+		 */
+		public function getPoolsByParams(&$params);
 
 		/**
 		 * \brief Get a pools ids list by its user poolgroup

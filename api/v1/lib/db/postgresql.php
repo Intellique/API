@@ -122,8 +122,10 @@
 
 			$result = pg_prepare($this->connect, $stmtname, $query);
 
-			if ($result === false)
+			if ($result === false) {
+				error_log('failed to prepare: ' . $query);
 				return false;
+			}
 
 			$this->preparedQueries[$stmtname] = $query;
 			return true;
@@ -132,6 +134,43 @@
 		public function startTransaction() {
 			$query = pg_query($this->connect, "BEGIN");
 			return $query !== false;
+		}
+
+		public function writeLog($level, $message, $login = null) {
+			$enum = array(
+				DB::DB_LOG_EMERGENCY => 'emergency',
+				DB::DB_LOG_ALERT => 'alert',
+				DB::DB_LOG_CRITICAL => 'critical',
+				DB::DB_LOG_ERROR => 'error',
+				DB::DB_LOG_WARNING => 'warning',
+				DB::DB_LOG_NOTICE => 'notice',
+				DB::DB_LOG_INFO => 'info',
+				DB::DB_LOG_DEBUG => 'debug'
+			);
+
+			$apikey = 0;
+			if (!isset($_SESSION['apikey'])) {
+				if (!$this->prepareQuery('search_default_apikey', "SELECT id FROM application WHERE name = 'StoriqOne API'"));
+					return null;
+
+				$result = pg_execute($this->connect, 'search_default_apikey', array());
+				if ($result === false)
+					return null;
+
+				$apikey = pg_fetch_assoc($result);
+			} else
+				$apikey = $_SESSION['apikey'];
+
+			$isPrepared = $this->prepareQuery('insert_log', "WITH lh AS (SELECT $1::INTEGER, $2::loglevel, NOW(), $3::TEXT, id::INTEGER, $5::INTEGER FROM host WHERE name = $4 LIMIT 1) INSERT INTO log (application, level, time, message, host, login) SELECT * FROM lh");
+			if (!$isPrepared)
+				return null;
+
+			$result = pg_execute($this->connect, "insert_log", array($apikey, $enum[$level], $message, posix_uname()['nodename'], $login));
+
+			if ($result === false)
+				return null;
+
+			return true;
 		}
 	}
 

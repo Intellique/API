@@ -1,5 +1,4 @@
 import json, unittest
-from io import StringIO
 import http.client
 
 class CommonTest(unittest.TestCase):
@@ -13,6 +12,7 @@ class CommonTest(unittest.TestCase):
         }
     }
     parsed = False
+    apikey = "d017552c-e005-4bc7-86bc-5e3e8b3ade2b"
 
     def newConnection(self):
         if (self.scheme == 'http'):
@@ -24,10 +24,9 @@ class CommonTest(unittest.TestCase):
         if (user not in self.users):
             self.fail("user < %s > not found is config" % (user))
         conn = self.newConnection()
-        io = StringIO()
-        json.dump({'login': self.users[user]['login'], 'password': self.users[user]['password']}, io)
+        params = json.dumps({'login': self.users[user]['login'], 'password': self.users[user]['password'], 'apikey': self.apikey})
         headers = {"Content-type": "application/json"}
-        conn.request('POST', self.path + 'auth/', io.getvalue(), headers)
+        conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
         message = json.loads(res.read().decode("utf-8"))
         conn.close()
@@ -50,4 +49,6 @@ class CommonTest(unittest.TestCase):
             self.path = config['path']
         if ('users' in config):
             self.users = config['users']
+        if ('apikey' in config):
+            self.apikey = config['apikey']
 
