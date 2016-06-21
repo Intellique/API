@@ -45,6 +45,17 @@ INSERT INTO UserEvent(event) VALUES
 	('connection'),
 	('disconnection');
 
+INSERT INTO Application(name) VALUES
+    ('StoriqOne Changer'),
+    ('StoriqOne Daemon'),
+    ('StoriqOne Drive'),
+    ('StoriqOne Job'),
+    ('StoriqOne Logger'),
+    ('StoriqOne API');
+
+INSERT INTO Application(name, apikey) VALUES
+    ('UnitTest','d017552c-e005-4bc7-86bc-5e3e8b3ade2b');
+
 COPY host (id, uuid, name, domaine, description, daemonVersion, updated) FROM stdin;
 6	9f89164e-9dd3-480d-8afd-a4d66807b6bc	taiko	\N	\N	1.3	2014-11-12 12:31:16.802855
 \.
@@ -66,7 +77,7 @@ COPY pool (id, uuid, name, archiveformat, mediaformat, autocheck, growable, unbr
 5	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	1	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	\N	f	f	\N
 7	cf3d97b5-d5fe-4384-945e-927ab6fa7608	ARCHIVES_TESTS	1	2	none	f	file	t	[]	\N	f	f	\N
 \.
-ALTER SEQUENCE pool_id_seq RESTART 6;
+ALTER SEQUENCE pool_id_seq RESTART 8;
 
 COPY pooltopoolgroup (pool, poolgroup) FROM stdin;
 3	1
@@ -79,7 +90,40 @@ COPY media (id, uuid, label, mediumserialnumber, name, status, firstused, usebef
 2	4fb920af-afbd-4365-91b8-2019fa7297fb	EXP007	HA2PFAp093	EXPORTS_RUSHS_07	foreign	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	1	\N	1
 3	4fb920af-afbd-4365-91b8-2019fa7297fc	EXP008	HA2PFAp094	EXPORTS_RUSHS_08	foreign	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	2	\N	1
 \.
-ALTER SEQUENCE media_id_seq RESTART 2;
+ALTER SEQUENCE media_id_seq RESTART 4;
+
+INSERT INTO changer(id, model, vendor, firmwarerev, serialnumber, wwn, barcode, status, isonline, action, enable, host) VALUES
+	(1, 'FlexStor II', 'BDT', '5.00', '00MX64100694', 'sas:0x5000e1115d3d3002', 't', 'idle', 't', 'none', 't', 6);
+
+INSERT INTO drive (id, model, vendor, firmwarerev, serialnumber, status, operationduration, lastclean, enable, changer, driveformat) VALUES
+	(1, 'ULT3580-HH6', 'IBM', 'F9A1', '10WT067290', 'empty idle', '9923.5', NULL,'t', 1, 1);
+
+INSERT INTO changerslot(changer, index, drive, media, isieport, enable) VALUES
+	(1, 0, 1, NULL,'f', 't'),
+	(1, 1, NULL, NULL,'f', 't'),
+	(1, 2, NULL, NULL,'f', 't'),
+	(1, 3, NULL, NULL,'f', 't'),
+	(1, 4, NULL, 1,'f', 't'),
+	(1, 5, NULL, NULL,'f', 't'),
+	(1, 6, NULL, NULL,'f', 't'),
+	(1, 7, NULL, NULL,'f', 't'),
+	(1, 8, NULL, 3,'f', 't'),
+	(1, 9, NULL, NULL,'f', 't'),
+	(1, 10, NULL, NULL,'f', 't'),
+	(1, 11, NULL, NULL,'f', 't'),
+	(1, 12, NULL, NULL,'f', 't'),
+	(1, 13, NULL, NULL,'f', 't'),
+	(1, 14, NULL, NULL,'f', 't'),
+	(1, 15, NULL, NULL,'f', 't'),
+	(1, 16, NULL, NULL,'f', 't'),
+	(1, 17, NULL, NULL,'f', 't'),
+	(1, 18, NULL, NULL,'f', 't'),
+	(1, 19, NULL, NULL,'f', 't'),
+	(1, 20, NULL, NULL,'f', 't'),
+	(1, 21, NULL, NULL,'f', 't'),
+	(1, 22, NULL, NULL,'f', 't'),
+	(1, 23, NULL, NULL,'f', 't'),
+	(1, 24, NULL, NULL,'t', 't');
 
 COPY jobtype (id, name) FROM stdin;
 1	backup-db
@@ -182,3 +226,12 @@ COPY archivefiletoarchivevolume (archivevolume, archivefile, blocknumber, archiv
 2	34	469827	2012-09-27 16:59:47	\N	f
 2	35	471437	2012-09-27 16:59:47	\N	f
 \.
+
+INSERT INTO vtl(uuid, path, prefix, nbslots, nbdrives, mediaformat, host, deleted) VALUES ('17b74300-1e97-11e6-bdf4-0800200c9a66', '/mnt/vtl/VTL', 'VTL', 8, 2, 2, 6, 'f');
+
+INSERT INTO pooltemplate(name, autocheck, lockcheck, growable, unbreakablelevel, rewritable, createproxy) VALUES ('test_pool', 'none', 't', 'f', 'archive', 't', 'f');
+
+INSERT INTO poolmirror(uuid, name, synchronized) VALUES
+('609abc8a-3f92-4450-89df-5e6012baee70', 'test', 't'),
+('322980de-0af7-4e48-beaa-f58c6ab4a302', 'test2', 'f'),
+('44dc3636-fa69-4e5c-991a-0ebb6b20cdb2', 'test3', 't');

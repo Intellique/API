@@ -92,12 +92,14 @@
 					httpResponse(400, array('message' => 'Media id must be an integer'));
 
 				$media = $dbDriver->getMedia($_GET['id']);
-				if ($media === null)
+				if ($media === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMedia(%s)', $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'media' => null
 					));
-				elseif ($media === false)
+				} elseif ($media === false)
 					httpResponse(404, array(
 						'message' => 'Media not found',
 						'media' => null
@@ -111,12 +113,14 @@
 			// Medias by pool
 			elseif (isset($_GET['pool']) && is_numeric($_GET['pool'])) {
 				$permission_granted = $dbDriver->checkPoolPermission($_GET['pool'], $_SESSION['user']['id']);
-				if ($permission_granted === null)
+				if ($permission_granted === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $_GET['pool'], $_SESSION['user']['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'pool' => array()
 					));
-				elseif ($permission_granted === false)
+				} elseif ($permission_granted === false)
 					httpResponse(403, array('message' => 'Permission denied'));
 
 				$params = array();
@@ -139,13 +143,15 @@
 					httpResponse(400, array('message' => 'Incorrect input'));
 
 				$result = $dbDriver->getMediasByPool($_GET['pool'], $params);
-				if ($result['query_executed'] == false)
+				if ($result['query_executed'] == false) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediasByPool(%s, %s)', $_GET['pool'], $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'medias' => array(),
 						'total_rows' => 0
 					));
-				else
+				} else
 					httpResponse(200, array(
 						'message' => 'Query successfull',
 						'medias' => $result['rows'],
@@ -177,13 +183,15 @@
 				if (isset($_GET['mediaformat']))
 					$mediaformat = $_GET['mediaformat'];
 				$result = $dbDriver->getMediasWithoutPool($mediaformat, $params);
-				if ($result['query_executed'] == false)
+				if ($result['query_executed'] == false) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediasWithoutPool(%s, %s)', $mediaformat, $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'medias' => array(),
 						'total_rows' => 0
 					));
-				else
+				} else
 					httpResponse(200, array(
 						'message' => 'Query successfull',
 						'medias' => $result['rows'],
@@ -215,13 +223,15 @@
 					httpResponse(400, array('message' => 'Incorrect input'));
 
 				$result = $dbDriver->getMediasByPoolgroup($_SESSION['user']['poolgroup'], $params);
-				if ($result['query_executed'] == false)
+				if ($result['query_executed'] == false) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediasByPoolgroup(%s, %s)', $_SESSION['user']['poolgroup'], $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'medias' => array(),
 						'total_rows' => 0
 					));
-				else
+				} else
 					httpResponse(200, array(
 						'message' => 'Query successfull',
 						'medias' => $result['rows'],
@@ -232,24 +242,30 @@
 			break;
 
 		case 'PUT' :
-		      checkConnected();
+			checkConnected();
 
-		      if (!$_SESSION['user']['isadmin'])
+			if (!$_SESSION['user']['isadmin']) {
 				httpResponse(403, array('message' => 'Permission denied'));
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried to update a media', $_SESSION['user']['id']);
+			}
 
 			$media = httpParseInput();
 
 			if (isset($media['id'])) {
-				if (!is_numeric($media['id']))
+				if (!is_numeric($media['id'])) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/media => Media id must be an integer and not %s', $media['id']), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'Media id must be an integer'));
+				}
 
 				$check_media = $dbDriver->getMedia($media['id']);
-				if ($check_media === null)
+				if ($check_media === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMedia(%s)', $media['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'media' => array()
 					));
-				elseif ($check_media === false)
+				} elseif ($check_media === false)
 					httpResponse(404, array(
 						'message' => 'Media not found',
 						'media' => array()
@@ -259,14 +275,20 @@
 				$check_media['label'] = $media['label'];
 
 				$result = $dbDriver->updateMedia($check_media);
-				if ($result === null)
+				if ($result === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updateMedia(%s)', $check_media), $_SESSION['user']['id']);
 					httpResponse(500, array('message' => 'Query failure'));
-				elseif ($result === false)
+				} elseif ($result === false)
 					httpResponse(404, array('message' => 'Media not found'));
-				else
+				else {
+					$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Media %s updated', $media['id']), $_SESSION['user']['id']);
 					httpResponse(200, array('message' => 'Media updated'));
-			} else
+				}
+			} else {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/media => Trying to update a media without specifying media id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media ID required'));
+			}
 
 
 

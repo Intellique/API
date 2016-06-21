@@ -1,33 +1,21 @@
 <?php
 	/**
-	 * \brief read database configuration
-	 */
-	$file = file('/etc/storiq/stone.conf');
+	* \file conf.php
+	* Script de lecture du fichier de configuration contenant les informations de la base.
+	*/
 
-	$section;
-	$conf;
+	$file = file_get_contents('/etc/storiq/storiqone.conf');
+	$config=json_decode($file, true);
 
 	$db_config = array();
 
-	foreach ($file as $num => $line) {
-		if (preg_match('"^;"', $line))
-			continue;
-		else if (preg_match('"^\[(\w+)\]"', $line, $captures))
-			$section = $captures[1];
-		else if (preg_match('"(\w+?)\s*=\s*(.+)"', $line, $captures))
-			$conf[$captures[1]] = $captures[2];
-		else if (preg_match('"^$"', $line)) {
-			if ($section == 'database')
-				foreach ($conf as $key => $val)
-					$db_config[$key] = $val;
-			$conf = array();
-		}
-	}
+	$db_config["driver"]   = $config['database'][0]['type'] ;
+	$db_config["host"]     = $config['database'][0]['host'] ;
+	$db_config["db"]       = $config['database'][0]['db'] ;
+	$db_config['user']     = $config['database'][0]['user'] ;
+	$db_config['password'] = $config['database'][0]['password'] ;
+	$db_config['port']     = isset($config['database'][0]['port']) ? $config['database'][0]['port'] : null;
 
-	if (count($conf) > 0) {
-		foreach ($conf as $key => $val)
-			$db_config[$key] = $val;
-	}
+	$db_config["db"]       = 'storiqone-backend-vincent';
 
-	unset($file, $section, $conf);
-?>
+	unset($file);

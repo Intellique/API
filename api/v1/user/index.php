@@ -106,8 +106,10 @@
 		case 'DELETE':
 			checkConnected();
 
-			if (!$_SESSION['user']['isadmin'])
+			if (!$_SESSION['user']['isadmin']) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried to delete a user', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
+			}
 
 			if (!isset($_GET['id']))
 				httpResponse(400, array('message' => 'User id is required'));
@@ -116,18 +118,26 @@
 				httpResponse(400, array('message' => 'Suicide forbidden'));
 
 			$check_user = $dbDriver->getUser($_GET['id'], null);
-			if ($check_user === null)
+			if ($check_user === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/user => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $_GET['id'], 'null'), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
+			}
 			elseif ($check_user === false)
 				httpResponse(404, array('message' => 'User not found'));
 
 			$delete_status = $dbDriver->deleteUser($_GET['id']);
-			if ($delete_status === null)
+			if ($delete_status === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/user => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('deleteUser(%s)', $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
+			}
 			elseif ($delete_status === false)
 				httpResponse(404, array('message' => 'User not found'));
-			else
+			else {
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('User %s deleted', $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(200, array('message' => 'Deletion successfull'));
+			}
 
 			break;
 
@@ -137,23 +147,29 @@
 			if (isset($_GET['id'])) {
 				if ($_GET['id'] == $_SESSION['user']['id'] || $_SESSION['user']['isadmin']) {
 					$user = $dbDriver->getUser($_GET['id'], null);
-					if ($user === null)
+					if ($user === null) {
+						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/user => Query failure', $_SESSION['user']['id']);
+						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $_GET['id'], 'null'), $_SESSION['user']['id']);
 						httpResponse(500, array(
 							'message' => 'Query failure',
 							'user' => array()
 						));
+					}
 					elseif ($user === false)
 						httpResponse(404, array(
 							'message' => 'User not found',
 							'user' => array()
 						));
 
+					$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Getting informations from user %s', $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(200, array(
 						'message' => 'Query successfull',
 						'user' => $user
 					));
-				} else
+				} else {
+					$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried get user informations', $_SESSION['user']['id']);
 					httpResponse(403, array('message' => 'Permission denied'));
+				}
 			} elseif ($_SESSION['user']['isadmin']) {
 				$params = array();
 				$ok = true;
@@ -190,27 +206,35 @@
 
 				$users = $dbDriver->getUsers($params);
 
-				if ($users['query_executed'] == false)
+				if ($users['query_executed'] == false) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/user => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUsers(%s)', $params), $_SESSION['user']['id']);
+
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'users_id' => array(),
 						'total_rows' => 0
 					));
-
+				}
+				$dbDriver->writeLog(DB::DB_LOG_INFO, 'Getting list of users', $_SESSION['user']['id']);
 				httpResponse(200, array(
 					'message' => 'Query successfull',
 					'users_id' => $users['rows'],
 					'total_rows' => $users['total_rows']
 				));
-			} else
+			} else {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried get the user id list', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
+			}
 			break;
 
 		case 'POST':
 			checkConnected();
 
-			if (!$_SESSION['user']['isadmin'])
+			if (!$_SESSION['user']['isadmin']) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried to create a user', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
+			}
 
 			$user = httpParseInput();
 			if ($user === null)
@@ -224,8 +248,10 @@
 				$ok = isset($user['login']) && is_string($user['login']);
 			if ($ok) {
 				$check_user = $dbDriver->getUser(null, $user['login']);
-				if ($check_user === null)
+				if ($check_user === null) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', 'null', $user['login']), $_SESSION['user']['id']);
 					$failed = true;
+				}
 				elseif ($check_user !== false)
 					$ok = false;
 			}
@@ -295,8 +321,10 @@
 				$ok = array_key_exists('poolgroup', $user) && (is_int($user['poolgroup']) || is_null($user['poolgroup']));
 			if ($ok && is_int($user['poolgroup'])) {
 				$check_poolgroup = $dbDriver->getPoolgroup($user['poolgroup']);
-				if ($check_poolgroup === null)
+				if ($check_poolgroup === null) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolgroup(%s)', $user['poolgroup']), $_SESSION['user']['id']);
 					$failed = true;
+				}
 				elseif ($check_poolgroup === false)
 					$ok = false;
 			}
@@ -306,8 +334,10 @@
 				$ok = isset($user['disabled']) && is_bool($user['disabled']);
 
 			// gestion des erreurs
-			if ($failed)
+			if ($failed) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/user => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
+			}
 
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
@@ -316,12 +346,16 @@
 
 			if ($result) {
 				httpAddLocation('/user/?id=' . $result);
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('User %s created', $result), $_SESSION['user']['id']);
 				httpResponse(201, array(
 					'message' => 'User created successfully',
 					'user_id' => $result
 				));
-			} else
+			} else {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/user => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createUser(%s)', $user), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
+			}
 
 			break;
 
@@ -333,8 +367,10 @@
 			if (!isset($user) && $user !== null)
 				httpResponse(400, array('message' => 'User information is required'));
 
-			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $user['id']))
+			if (!$_SESSION['user']['isadmin'] && ($_SESSION['user']['id'] != $user['id'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/user => A non-admin user tried to update user informations', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
+			}
 
 			$ok = (bool) $user;
 			$failed = false;
@@ -344,8 +380,10 @@
 				$ok = isset($user['id']) && is_int($user['id']);
 			if ($ok) {
 				$check_user = $dbDriver->getUser($user['id'], null);
-				if ($check_user === null)
+				if ($check_user === null) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $user['id'], 'null'), $_SESSION['user']['id']);
 					$failed = true;
+				}
 				elseif ($check_user === false)
 					$ok = false;
 			}
@@ -355,8 +393,10 @@
 				$ok = isset($user['login']) && is_string($user['login']);
 			if ($ok) {
 				$check_user = $dbDriver->getUser(null, $user['login']);
-				if ($check_user === null)
+				if ($check_user === null) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', 'null', $user['login']), $_SESSION['user']['id']);
 					$failed = true;
+				}
 				elseif ($check_user !== false && $check_user['id'] != $user['id'])
 					$ok = false;
 			}
@@ -366,8 +406,10 @@
 				$ok = isset($user['password']) && is_string($user['password']);
 			if ($ok) {
 				$check_user = $dbDriver->getUser($user['id'], null);
-				if ($check_user === null)
+				if ($check_user === null) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $user['login'], 'null'), $_SESSION['user']['id']);
 					$failed = true;
+				}
 				elseif ($check_user === false)
 					$ok = false;
 
@@ -430,8 +472,10 @@
 				$ok = array_key_exists('poolgroup', $user) && (is_int($user['poolgroup']) || is_null($user['poolgroup']));
 			if ($ok && is_int($user['poolgroup'])) {
 				$check_poolgroup = $dbDriver->getPoolgroup($user['poolgroup']);
-				if ($check_poolgroup === null)
+				if ($check_poolgroup === null) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolgroup(%s)', $user['poolgroup']), $_SESSION['user']['id']);
 					$failed = true;
+				}
 				elseif ($check_poolgroup === false)
 					$ok = false;
 			}
@@ -441,18 +485,24 @@
 				$ok = isset($user['disabled']) && is_bool($user['disabled']);
 
 			// gestion des erreurs
-			if ($failed)
+			if ($failed) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
+			}
 
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$result = $dbDriver->updateUser($user);
 
-			if ($result)
+			if ($result) {
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('User %s updated', $user['id']), $_SESSION['user']['id']);
 				httpResponse(200, array('message' => 'User updated successfully'));
-			else
+			} else {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/user => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updateUser(%s)', $user), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
+			}
 
 			break;
 

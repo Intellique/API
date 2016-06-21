@@ -70,10 +70,109 @@
 			if ($result === false)
 				return null;
 
+			if (pg_num_rows($result) == 0)
+				return false;
+
 			$meta = array();
 
 			while ($row = pg_fetch_assoc($result))
 				$meta[$row['key']] = json_decode($row['value'], true);
+
+			return $meta;
+		}
+
+		public function getPoolMetadatas($id, $key) {
+			if (!isset($id) || !is_numeric($id))
+				return false;
+
+			if (!$this->prepareQuery('select_pool_metadatas_by_id', "SELECT metadata FROM pool WHERE id = $1"))
+				return null;
+
+			$result = pg_execute('select_pool_metadatas_by_id', array($id));
+
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$meta = array();
+
+			while ($row = pg_fetch_array($result))
+				$meta[] = json_decode($row[0], true);
+
+			if (isset($key)) {
+				foreach($meta as $list) {
+					if (array_key_exists($key, $list))
+						return $list[$key];
+					else
+						return false;
+				}
+			}
+
+			return $meta;
+		}
+
+		public function getUserMetadatas($id, $key) {
+			if (!isset($id) || !is_numeric($id))
+				return false;
+
+			if (!$this->prepareQuery('select_user_metadatas_by_id', "SELECT meta FROM users WHERE id = $1"))
+				return null;
+
+			$result = pg_execute('select_user_metadatas_by_id', array($id));
+
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$meta = array();
+
+			while ($row = pg_fetch_array($result))
+				$meta[] = json_decode($row['meta'], true);
+
+			if (isset($key)) {
+				foreach($meta as $list) {
+					if (array_key_exists($key, $list))
+						return $list[$key];
+					else
+						return false;
+				}
+			}
+
+			return $meta;
+		}
+
+		public function getJobMetadatas($id, $key) {
+			if (!isset($id) || !is_numeric($id))
+				return false;
+
+			if (!$this->prepareQuery('select_job_metadatas_by_id', "SELECT metadata FROM job WHERE id = $1"))
+				return null;
+
+			$result = pg_execute('select_job_metadatas_by_id', array($id));
+
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$meta = array();
+
+			while ($row = pg_fetch_array($result))
+				$meta[] = json_decode($row[0], true);
+
+			if (isset($key)) {
+				foreach($meta as $list) {
+					if (array_key_exists($key, $list))
+						return $list[$key];
+					else
+						return false;
+				}
+			}
 
 			return $meta;
 		}

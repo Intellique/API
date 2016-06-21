@@ -36,23 +36,33 @@
 		case 'POST':
 			checkConnected();
 
-			if (!$_SESSION['user']['canarchive'])
+			if (!$_SESSION['user']['canarchive']) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/import => A user that cannot archive tried to', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
+			}
 
 			$formatInfo = httpParseInput();
 			// media id
-			if (!isset($formatInfo['media']))
+			if (!isset($formatInfo['media'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/import => Trying to import an archive without specifying media id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id is required'));
+			}
 
-			if (!is_int($formatInfo['media']))
+			if (!is_int($formatInfo['media'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import => Media id must be an integer and not %s', $formatInfo['media']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id must be an integer'));
+			}
 
 			// pool id
-			if (!isset($formatInfo['pool']))
+			if (!isset($formatInfo['pool'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/import => Trying to import an archive without specifying pool id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id is required'));
+			}
 
-			if (!is_int($formatInfo['pool']))
+			if (!is_int($formatInfo['pool'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import => Pool id must be an integer and not %s', $formatInfo['pool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
+			}
 
 			$dbDriver->startTransaction();
 
@@ -75,9 +85,11 @@
 			if (!$pool)
 				$dbDriver->cancelTransaction();
 
-			if ($pool === null)
+			if ($pool === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/import => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPool(%s)', $formatInfo['pool']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($pool === false)
+			} elseif ($pool === false)
 
 				httpResponse(400, array('message' => 'Pool not found'));
 
@@ -142,9 +154,10 @@
 			// type
 			if ($ok) {
 				$jobType = $dbDriver->getJobTypeId("format-media");
-				if ($jobType === null || $jobType === false)
+				if ($jobType === null || $jobType === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypeId(%s)', "format-media"), $_SESSION['user']['id']);
 					$failed = true;
-				else
+				} else
 					$job['type'] = $jobType;
 			}
 
@@ -164,9 +177,10 @@
 			// host
 			if ($ok) {
 				$host = $dbDriver->getHost(posix_uname()['nodename']);
-				if ($host === null || $host === false)
+				if ($host === null || $host === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', posix_uname()['nodename']), $_SESSION['user']['id']);
 					$failed = true;
-				else
+				} else
 					$job['host'] = $host;
 			}
 
@@ -174,21 +188,24 @@
 			if ($failed || !$ok)
 				$dbDriver->cancelTransaction();
 
-			if ($failed)
+			if ($failed) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/import => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-
+			}
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$jobId = $dbDriver->createJob($job);
 
 			if ($jobId === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/copy => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createJob(%s)', $job), $_SESSION['user']['id']);
 				$dbDriver->cancelTransaction();
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
 			$dbDriver->finishTransaction();
-
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/archive/import => Job %s created', $jobId), $_SESSION['user']['id']);
 			httpAddLocation('/job/?id=' . $jobId);
 			httpResponse(201, array(
 				'message' => 'Job created successfully',

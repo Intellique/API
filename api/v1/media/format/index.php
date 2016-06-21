@@ -37,24 +37,34 @@
 		case 'POST':
 			checkConnected();
 
-			if (!$_SESSION['user']['isadmin'])
+			if (!$_SESSION['user']['isadmin']) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/format => A non admin user tried to format a media', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
+			}
 
 			$formatInfo = httpParseInput();
 			// media id
-			if (!isset($formatInfo['media']))
+			if (!isset($formatInfo['media'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/format => Trying to format a media without specifying media id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id is required'));
+			}
 
-			if (!is_int($formatInfo['media']))
+			if (!is_int($formatInfo['media'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/format => Media id must be an integer and not %s', $formatInfo['media']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id must be an integer'));
+			}
 
 
 			// pool id
-			if (!isset($formatInfo['pool']))
+			if (!isset($formatInfo['pool'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/format => Trying to format a media without specifying pool id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id is required'));
+			}
 
-			if (!is_int($formatInfo['pool']))
+			if (!is_int($formatInfo['pool'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/format => Pool id must be an integer and not %s', $formatInfo['pool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
+			}
 
 			$dbDriver->startTransaction();
 
@@ -67,9 +77,11 @@
 			if (!$media)
 				$dbDriver->cancelTransaction();
 
-			if ($media === null)
+			if ($media === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/format => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMedia(%s)', $formatInfo['media']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($media === false)
+			} elseif ($media === false)
 				httpResponse(400, array('message' => 'Media not found'));
 
 			$pool = $dbDriver->getPool($formatInfo['pool']);
@@ -77,9 +89,11 @@
 			if (!$pool)
 				$dbDriver->cancelTransaction();
 
-			if ($pool === null)
+			if ($pool === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/format => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPool(%s)', $formatInfo['pool']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($pool === false)
+			} elseif ($pool === false)
 				httpResponse(400, array('message' => 'Pool not found'));
 
 			if ($media['mediaformat']['id'] != $pool['mediaformat']['id']) {
@@ -133,9 +147,10 @@
 			// type
 			if ($ok) {
 				$jobType = $dbDriver->getJobTypeId("format-media");
-				if ($jobType === null || $jobType === false)
+				if ($jobType === null || $jobType === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypeId(%s)', "format-media"), $_SESSION['user']['id']);
 					$failed = true;
-				else
+				} else
 					$job['type'] = $jobType;
 			}
 
@@ -165,9 +180,10 @@
 			// host
 			if ($ok) {
 				$host = $dbDriver->getHost(posix_uname()['nodename']);
-				if ($host === null || $host === false)
+				if ($host === null || $host === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', posix_uname()['nodename']), $_SESSION['user']['id']);
 					$failed = true;
-				else
+				} else
 					$job['host'] = $host;
 			}
 
@@ -175,8 +191,10 @@
 			if ($failed || !$ok)
 				$dbDriver->cancelTransaction();
 
-			if ($failed)
+			if ($failed) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/format => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
+			}
 
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
@@ -185,12 +203,15 @@
 
 			if ($jobId === null) {
 				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/format => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createJob(%s)', $job), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
 			$dbDriver->finishTransaction();
 
 			httpAddLocation('/job/?id=' . $jobId);
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/media/format => Job %s created', $jobId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Job created successfully',
 				'job_id' => $jobId,
