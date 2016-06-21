@@ -1,3 +1,9 @@
+storiqone-backend (0.1.0b2-1+jessie) polisher; urgency=low
+
+  * Add some stuff
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Tue, 21 Jun 2016 18:49:30 +0200
+
 storiqone-backend (0.1.0b1-3+jessie) polisher; urgency=low
 
   * Add documentation (pdf)
