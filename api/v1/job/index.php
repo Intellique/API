@@ -7,7 +7,7 @@
  * \verbatim path : /storiqone-backend/api/v1/job/ \endverbatim
  * \param id : job id
  * \return HTTP status codes :
- *   - \b 200 Deletion successfull
+ *   - \b 200 Deletion successful
  *   - \b 400 Job id is required
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
@@ -20,7 +20,7 @@
  * \verbatim path : /storiqone-backend/api/v1/job/ \endverbatim
  * \param id : job id
  * \return HTTP status codes :
- *   - \b 200 Query successfull
+ *   - \b 200 Query successful
  *     \verbatim Job information is returned \endverbatim
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
@@ -41,7 +41,7 @@
  *
  * \warning <b>To get multiple jobs ids list do not pass an id or ids as parameter</b>
  * \return HTTP status codes :
- *   - \b 200 Query successfull
+ *   - \b 200 Query successful
  *     \verbatim Jobs ids list is returned \endverbatim
  *   - \b 400 Incorrect input
  *   - \b 401 Not logged in
@@ -165,7 +165,7 @@
 				httpResponse(404, array('message' => 'Job not found'));
 			else {
 				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('DELETE api/v1/job => Job %s deleted', $_GET['id']), $_SESSION['user']['id']);
-				httpResponse(200, array('message' => 'Deletion successfull'));
+				httpResponse(200, array('message' => 'Deletion successful'));
 			}
 
 			break;
@@ -202,7 +202,7 @@
 					$job['nextstart'] = $job['nextstart']->format(DateTime::ISO8601);
 					$job['update'] = $job['update']->format(DateTime::ISO8601);
 					httpResponse(200, array(
-						'message' => 'Query successfull',
+						'message' => 'Query successful',
 						'job' => $job
 					));
 				}
@@ -288,7 +288,7 @@
 				$dbDriver->cancelTransaction();
 
 				httpResponse(200, array(
-					'message' => 'Query successfull',
+					'message' => 'Query successful',
 					'jobs_id' => $jobsId,
 					'total_rows' => $iRow
 				));

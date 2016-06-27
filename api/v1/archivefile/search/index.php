@@ -25,7 +25,7 @@
  *     \verbatim Archive files ids list is returned
 {
    {
-   "message":"Query successfull","archivefiles":[2]
+   "message":"Query successful","archivefiles":[2]
    }
 }\endverbatim
  *   - \b 400 Incorrect input
