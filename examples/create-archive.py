@@ -14,9 +14,9 @@ group.add_option("-A", "--archive-id", dest="archiveId", type="int", help="Speci
 group.add_option("-c", "--quick-check", action="store_true", dest="quickCheck", default=False, help="Optionnal archive quick check mode")
 group.add_option("-C", "--thorough-check", action="store_true", dest="thoroughCheck", default=False, help="Optionnal archive thorough check mode")
 group.add_option("-d", "--next-start", dest="nextStart", help="Optionnal next start date")
-group.add_option("-f", "--file", action="append_const", dest="files", default=[], help="Specify file to archive")
+group.add_option("-f", "--file", action="append", dest="files", default=[], type="string", help="Specify file to archive")
 group.add_option("-j", "--job-name", dest="jobName", default=None, help="Optionnal job name")
-group.add_option("-m", action="append_const", dest="meta", default=[], help="Optionnal metadata")
+group.add_option("-m", action="append", dest="meta", default=[], help="Optionnal metadata")
 group.add_option("-p", "--pool-id", dest="poolId", type="int", help="Specify pool id (to create an archive)")
 parser.add_option_group(group)
 
@@ -122,7 +122,7 @@ conn.close()
 # create archive
 cookie = {'Cookie': res.getheader('Set-Cookie').split(';')[0]}
 headers.update(cookie)
-conn = http.client.HTTPConnection(options.host)
+conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 if options.archiveName and options.poolId:
     conn.request('POST', '/storiqone-backend/api/v1/archive/', json.dumps(params), headers)
 else:
