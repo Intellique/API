@@ -1,4 +1,4 @@
-/** \mainpage
+/** \mainpage Introduction
 *
 * Objects
 * ========
@@ -24,10 +24,10 @@
 *
 * All objects implement REST Verbs (see [the REST API tutorial](http://www.restapitutorial.com/index.html))
 *
-	 * GET : obtain object information according to provided parameters
-	 * PUT (set) : modify the object according to provided parameters
-	 * POST (new) : create a new object from provided parameters
-	 * DELETE : delete the object (or mark it as deleted, thus unavailable)
+* * GET : obtain object information according to provided parameters
+* * PUT (set) : modify the object according to provided parameters
+* * POST (new) : create a new object from provided parameters
+* * DELETE : delete the object (or mark it as deleted, thus unavailable)
 *
 * The URL to call is in this form:
 *
@@ -103,24 +103,32 @@
 *
 * Creating a new session (logging in):
 *
-*     curl -v -k -X POST --data '{"login":"admin","password":"<password>","apikey":"<uuid>"'}' -H 'content-type: application/json' https://thekk/storiqone-backend/api/v1/auth/
+*     curl -v -k -X POST --data '{"login":"admin","password":"<password>","apikey":"<uuid>"'}' \
+*     -H 'content-type: application/json' \
+*     https://server/storiqone-backend/api/v1/auth/
 *
-* Use the value of PHPSESSIONID in the returned data in the following commmands.
+* Use the value of PHPSESSIONID as returned in the header data as an authentication token in the next commmands.
 *
 * List all archives:
 *
-*     curl -v -k -X GET -H 'content-type: application/json' -b 'PHPSESSID=<string>' https://thekk/storiqone-backend/api/v1/archive/?id=2
+*     curl -v -k -X GET -H 'content-type: application/json' -b 'PHPSESSID=<string>' \
+*     https://server/storiqone-backend/api/v1/archive/?id=2
 *
 * Detailed information about an archive:
 *
-*     curl -v -k -X GET -H 'content-type: application/json' -b 'PHPSESSID=<string>' https://thekk/storiqone-backend/api/v1/archive/?id=2
+*     curl -v -k -X GET -H 'content-type: application/json' -b 'PHPSESSID=<string>' \
+*     https://server/storiqone-backend/api/v1/archive/?id=2
 *
 * Update a User:
 *
-*     curl -v -k -X UPDATE -H 'content-type: application/json' -b 'PHPSESSID=<string>' --data '{"fullname":"Pierre Vincens"}' https://thekk/storiqone-backend/api/v1/user/?id=2
+*     curl -v -k -X UPDATE -H 'content-type: application/json' -b 'PHPSESSID=<string>' \
+*     --data '{"fullname":"Pierre Dupond"}' \
+*     https://server/storiqone-backend/api/v1/user/?id=2
 *
 * Create a new archival Job:
 *
-*     curl -v -k -X POST -H 'content-type: application/json' -b 'PHPSESSID=<string>' --data '{"pool":3,"name":"API archive","files":[ "/some/path"]}' https://thekk/storiqone-backend/api/v1/archive/
+*     curl -v -k -X POST -H 'content-type: application/json' -b 'PHPSESSID=<string>' \
+*     --data '{"pool":3,"name":"API archive","files":[ "/some/path"]}' \
+*     https://server/storiqone-backend/api/v1/archive/
 *
 */
