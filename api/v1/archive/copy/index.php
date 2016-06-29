@@ -1,6 +1,6 @@
 <?php
 /**
- * \addtogroup copy Copy archive
+ * \addtogroup Archive
  * \section Create_copy_archive_task Copy archive task creation
  * To create a copy archive task,
  * use \b POST method
