@@ -1,3 +1,9 @@
+storiqone-backend (0.1.0b3-1+jessie) polisher; urgency=low
+
+  * Fix config.php
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Wed, 29 Jun 2016 13:35:59 +0200
+
 storiqone-backend (0.1.0b2-1+jessie) polisher; urgency=low
 
   * Add some stuff
