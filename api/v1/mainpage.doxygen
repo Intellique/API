@@ -112,7 +112,7 @@
 * List all archives:
 *
 *     curl -v -k -X GET -H 'content-type: application/json' -b 'PHPSESSID=<string>' \
-*     https://server/storiqone-backend/api/v1/archive/?id=2
+*     https://server/storiqone-backend/api/v1/archive/
 *
 * Detailed information about an archive:
 *
