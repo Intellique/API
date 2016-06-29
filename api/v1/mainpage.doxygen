@@ -1,0 +1,126 @@
+/** \mainpage
+*
+* Objects
+* ========
+*
+*  * ArchiveFile
+*  * Archive
+*  * Pool
+*  * PoolTemplate
+*  * PoolGroup
+*  * PoolMirror
+*  * User
+*  * Job
+*  * Media
+*  * Vtl
+*  * Library
+*
+*  * Session (for authentication)
+*
+*  * Metadata
+*
+* Verbs
+* ======
+*
+* All objects implement REST Verbs (see [the REST API tutorial](http://www.restapitutorial.com/index.html))
+*
+	 * GET : obtain object information according to provided parameters
+	 * PUT (set) : modify the object according to provided parameters
+	 * POST (new) : create a new object from provided parameters
+	 * DELETE : delete the object (or mark it as deleted, thus unavailable)
+*
+* The URL to call is in this form:
+*
+*     https://server/storiqone-backend/api/v1/OBJECT?id=&KEY=VALUE
+*
+* Parameters are standardized as follows:
+*
+*  * For a given object all properties have exactly the same name (for instance id, name, uuid) as the corresponding field in the Storiq One database.
+*  * In case of a relative object, the properties are named OBJECT_PROPERTY as in the database, for instance: *pool_name*
+*
+* Asking for an archive object information from its id will be:
+*
+*     https://server/storiqone-backend/api/v1/archive/?id=124
+*
+* To search an object by some other property, like its name, is done through the *search* sub-object.
+* The *search* sub-object only implements the GET method.
+*
+*     https://server/storiqone-backend/api/v1/archive/search/?name=20131222_MCEI_PARSIFAL_MET
+*
+*     https://server/storiqone-backend/api/v1/pool/search/?name=ARCHIVES_DIFFUSION_LOT_2013
+*
+* To search all objects relative to some other object, for instance all archives belonging to a pool:
+*
+*     https://server/storiqone-backend/api/v1/archive/search/?pool=42
+*
+* Additional parameters can be used to sort search results and display only a subset: *limit, offset, filter, order_by, order_by_asc*.
+* For example to list the first 100 archives:
+*
+*     https://server/storiqone-backend/api/v1/archive/&limit=100
+*
+* Listing the next 100 archives:
+*
+*      https://server/storiqone-backend/api/v1/archive/?offset=100&limit=100
+*
+* Returned data
+* ==============
+*
+* All objects return data the same way. By default data is returned as JSON. Other formats such as XML will become available in next releases.
+*
+* Objects return standard HTTP codes:
+*
+* Code    | Meaning
+* ------- | -------
+* 200     | Success
+* 401     | Authentication required
+* 403     | Access denied
+* 404     | Object not found
+* 500     | Internal server error
+* 503     | Malformed request
+*
+*
+* Metadata
+* =========
+*
+* The API allows metadata to be associated with any object, pools, media, users, etc. However the standard Storiq One Web Interface will only display Archive and Files metadata.
+*
+* API Key
+* ========
+*
+* The API uses an API Key mechanism. You need to create an API key for each application you're creating, so that it's correctly identified in the logs.
+* In the near future the API key will be created using the *storiqonectl* command. In the meantime, you can create it using *psql* on the *storiqone* database:
+*
+*      INSERT INTO application VALUES (default, 'unique app name', uuid_generate_v4()) RETURNING uuid;
+*
+* Use the UUID returned as the API key field in the following examples.
+*
+*
+* Examples
+* =========
+*
+* Here are some examples using the API with the *curl* command from a standard shell.
+*
+*
+* Creating a new session (logging in):
+*
+*     curl -v -k -X POST --data '{"login":"admin","password":"<password>","apikey":"<uuid>"'}' -H 'content-type: application/json' https://thekk/storiqone-backend/api/v1/auth/
+*
+* Use the value of PHPSESSIONID in the returned data in the following commmands.
+*
+* List all archives:
+*
+*     curl -v -k -X GET -H 'content-type: application/json' -b 'PHPSESSID=<string>' https://thekk/storiqone-backend/api/v1/archive/?id=2
+*
+* Detailed information about an archive:
+*
+*     curl -v -k -X GET -H 'content-type: application/json' -b 'PHPSESSID=<string>' https://thekk/storiqone-backend/api/v1/archive/?id=2
+*
+* Update a User:
+*
+*     curl -v -k -X UPDATE -H 'content-type: application/json' -b 'PHPSESSID=<string>' --data '{"fullname":"Pierre Vincens"}' https://thekk/storiqone-backend/api/v1/user/?id=2
+*
+* Create a new archival Job:
+*
+*     curl -v -k -X POST -H 'content-type: application/json' -b 'PHPSESSID=<string>' --data '{"pool":3,"name":"API archive","files":[ "/some/path"]}' https://thekk/storiqone-backend/api/v1/archive/
+*
+*/
