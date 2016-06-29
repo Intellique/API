@@ -25,7 +25,7 @@
  *     \verbatim devices ids list is returned
 {
    {
-   "message":"Query successfull","devices":[2],"total_rows":1
+   "message":"Query successful","devices":[2],"total_rows":1
    }
 }\endverbatim
  *   - \b 400 Incorrect input

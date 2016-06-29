@@ -32,6 +32,7 @@
 	require_once("../lib/env.php");
 
 	require_once("http.php");
+	require_once("uuid.php");
 	require_once("session.php");
 	require_once("dbSession.php");
 
@@ -59,6 +60,8 @@
 
 			if (!$credential || !isset($credential['login']) || !isset($credential['password']) || !isset($credential['apikey']))
 				httpResponse(400, array('message' => '"login", "password" and "apikey" are required'));
+			if (!uuid_is_valid($credential['apikey']))
+				httpResponse(400, array('message' => 'apikey is not valid'));
 
 			$apikey = $dbDriver->getApiKeyByKey($credential['apikey']);
 

@@ -6,7 +6,7 @@
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/jobtype/ \endverbatim
  * \return HTTP status codes :
- *   - \b 200 Query successfull
+ *   - \b 200 Query successful
  *     \verbatim Jobtypes names list is returned \endverbatim
  *   - \b 500 Query failure
  */
