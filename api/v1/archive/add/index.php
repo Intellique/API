@@ -1,6 +1,6 @@
 <?php
 /**
- * \addtogroup add Add to archive
+ * \addtogroup Archive
  * \section Create_add_task Add task creation
  * To create an add task,
  * use \b POST method

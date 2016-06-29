@@ -1,6 +1,6 @@
 <?php
 /**
- * \addtogroup MediaErase Erase a media
+ * \addtogroup media
  * \section Erase_media_task Erase media task creation
  * To create an Erase media task,
  * use \b POST method

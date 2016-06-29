@@ -1,6 +1,6 @@
 <?php
 /**
- * \addtogroup archive
+ * \addtogroup Archive
  * \section Delete_Archive Archive deletion
  * To mark archive as deleted,
  * use \b DELETE method
