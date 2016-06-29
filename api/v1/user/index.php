@@ -7,7 +7,7 @@
  * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
  * \param id : user id
  * \return HTTP status codes :
- *   - \b 200 Deletion successfull
+ *   - \b 200 Deletion successful
  *   - \b 400 User id is required
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
@@ -20,7 +20,7 @@
  * \verbatim path : /storiqone-backend/api/v1/user/ \endverbatim
  * \param id : user id
  * \return HTTP status codes :
- *   - \b 200 Query successfull
+ *   - \b 200 Query successful
  *     \verbatim User information is returned \endverbatim
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
@@ -41,7 +41,7 @@
  *
  * \warning <b>To get users ids list do not pass an id or ids as parameter</b>
  * \return HTTP status codes :
- *   - \b 200 Query successfull
+ *   - \b 200 Query successful
  *     \verbatim Users ids list is returned \endverbatim
  *   - \b 400 Incorrect input
  *   - \b 401 Not logged in
@@ -136,7 +136,7 @@
 				httpResponse(404, array('message' => 'User not found'));
 			else {
 				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('User %s deleted', $_GET['id']), $_SESSION['user']['id']);
-				httpResponse(200, array('message' => 'Deletion successfull'));
+				httpResponse(200, array('message' => 'Deletion successful'));
 			}
 
 			break;
@@ -163,7 +163,7 @@
 
 					$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Getting informations from user %s', $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(200, array(
-						'message' => 'Query successfull',
+						'message' => 'Query successful',
 						'user' => $user
 					));
 				} else {
@@ -218,7 +218,7 @@
 				}
 				$dbDriver->writeLog(DB::DB_LOG_INFO, 'Getting list of users', $_SESSION['user']['id']);
 				httpResponse(200, array(
-					'message' => 'Query successfull',
+					'message' => 'Query successful',
 					'users_id' => $users['rows'],
 					'total_rows' => $users['total_rows']
 				));

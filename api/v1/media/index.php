@@ -153,7 +153,7 @@
 					));
 				} else
 					httpResponse(200, array(
-						'message' => 'Query successfull',
+						'message' => 'Query successful',
 						'medias' => $result['rows'],
 						'total_rows' => $result['total_rows']
 					));
@@ -193,7 +193,7 @@
 					));
 				} else
 					httpResponse(200, array(
-						'message' => 'Query successfull',
+						'message' => 'Query successful',
 						'medias' => $result['rows'],
 						'total_rows' => $result['total_rows']
 					));
@@ -233,7 +233,7 @@
 					));
 				} else
 					httpResponse(200, array(
-						'message' => 'Query successfull',
+						'message' => 'Query successful',
 						'medias' => $result['rows'],
 						'total_rows' => $result['total_rows']
 					));
