@@ -46,24 +46,31 @@ EOL
     exit;
 }
 
-foreach my $param ( qw(username apikey hostname) ) {
-	die "required option: $param\n" if not $option->{$param};
+foreach my $param (qw(username apikey hostname)) {
+    die "required option: $param\n" if not $option->{$param};
 }
 
-if (not $option->{password}) {
-	ReadMode ('noecho');
-	print "Enter Password: ";
-	chomp($option->{password} = <STDIN>);
-	ReadMode ('restore');
-	say '';
+if ( not $option->{password} ) {
+    ReadMode('noecho');
+    print "Enter Password: ";
+    chomp( $option->{password} = <STDIN> );
+    ReadMode('restore');
+    say '';
 }
 
-my $ua = LWP::UserAgent->new;
+my $ua     = LWP::UserAgent->new;
+
 $ua->ssl_opts( verify_hostname => 0 );
 
-my $credentials = encode_json( { 'login' => $option->{username}, 'password' => $option->{password}, 'apikey' => $option->{apikey} } );
+my $credentials = encode_json(
+    {
+        'login'    => $option->{username},
+        'password' => $option->{password},
+        'apikey'   => $option->{apikey}
+    }
+);
 
-say $credentials if $option->{verbose} ;
+say $credentials if $option->{verbose};
 
 # Authentication
 my $request =
@@ -72,11 +79,13 @@ my $request =
 $request->content_type('application/json');
 $request->content($credentials);
 
-my $result=$ua->request($request);
-if ($result->is_success) {
-	say $result->decoded_content;
+my $result = $ua->request($request);
+if ( $result->is_success ) {
+    say $result->decoded_content;
 } else {
-	die "Error: " . $result->decoded_content . "\n" .$result->status_line . "\n";
+    die "Error: "
+      . $result->decoded_content . "\n"
+      . $result->status_line . "\n";
 }
 
 # Save cookie
@@ -84,10 +93,17 @@ my ( $cookie ) = ($result->header('Set-Cookie') =~ m((PHPSESSID=\w+);));
 say $cookie if $option->{verbose} ;
 
 # list archives
-
-
-$request = 
+$request =
   HTTP::Request->new(
     GET => "https://$option->{hostname}/storiqone-backend/api/v1/archive/" );
 $request->content_type('application/json');
+$request->header('Cookie' => $cookie);
 
+$result = $ua->request($request);
+if ( $result->is_success ) {
+    say $result->decoded_content;
+} else {
+    die "Error: "
+      . $result->decoded_content . "\n"
+      . $result->status_line . "\n";
+}
