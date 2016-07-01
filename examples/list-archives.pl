@@ -8,6 +8,7 @@ use JSON::XS;
 use LWP::UserAgent;
 use Term::ReadKey;
 use Data::Dumper;
+use URI::Escape;
 
 my $option;
 
@@ -20,6 +21,12 @@ unless (
         'password|W=s' => \$option->{password},
         'api-key|k=s'  => \$option->{apikey},
         'hostname|H=s' => \$option->{hostname},
+
+        'archivename|a=s' => \$option->{archname},
+        'archiveid|A=i'   => \$option->{archid},
+        'pool|p=i'        => \$option->{pool},
+        'owner|o=s'       => \$option->{owner},
+
     )
   )
 {
@@ -37,9 +44,11 @@ $0 options:
 		--username | -U 	username (required)
 		--password | -W 	password
 
-		 --archive | -a		archive name to search
-		 --arch-id | -A 	archive ID to display
-	    --metadata | -m		metadata to search for
+search options:
+	    --archive-name | -a		archive name to search for
+	      --archive-id | -A 	archive ID to display
+		    --pool | -p 	list archives from this pool
+		--owner | -o		list archives by owner
 		
 EOL
       ;
@@ -58,7 +67,7 @@ if ( not $option->{password} ) {
     say '';
 }
 
-my $ua     = LWP::UserAgent->new;
+my $ua = LWP::UserAgent->new;
 
 $ua->ssl_opts( verify_hostname => 0 );
 
@@ -81,7 +90,7 @@ $request->content($credentials);
 
 my $result = $ua->request($request);
 if ( $result->is_success ) {
-    say $result->decoded_content;
+    say $result->decoded_content if $option->{verbose};
 } else {
     die "Error: "
       . $result->decoded_content . "\n"
@@ -89,15 +98,32 @@ if ( $result->is_success ) {
 }
 
 # Save cookie
-my ( $cookie ) = ($result->header('Set-Cookie') =~ m((PHPSESSID=\w+);));
-say $cookie if $option->{verbose} ;
+my ($cookie) = ( $result->header('Set-Cookie') =~ m((PHPSESSID=\w+);) );
+say $cookie if $option->{verbose};
 
 # list archives
+my $searchurl = '';
+
+if ( $option->{archid} ) {
+    $searchurl = '?id=' . $option->{archid};
+} else {
+    $searchurl = 'search/?';
+    if ( $option->{archname} ) {
+        $searchurl .= 'name=' . uri_escape( $option->{archname} ) . '&';
+    }
+    if ( $option->{pool} ) {
+        $searchurl .= 'pool=' . uri_escape( $option->{pool} ) . '&';
+    }
+    if ( $option->{owner} ) {
+        $searchurl .= 'owner=' . uri_escape( $option->{owner} );
+    }
+}
+
 $request =
-  HTTP::Request->new(
-    GET => "https://$option->{hostname}/storiqone-backend/api/v1/archive/" );
-$request->content_type('application/json');
-$request->header('Cookie' => $cookie);
+  HTTP::Request->new( GET =>
+      "https://$option->{hostname}/storiqone-backend/api/v1/archive/$searchurl"
+  );
+$request->header( 'Cookie' => $cookie );
 
 $result = $ua->request($request);
 if ( $result->is_success ) {
@@ -107,3 +133,4 @@ if ( $result->is_success ) {
       . $result->decoded_content . "\n"
       . $result->status_line . "\n";
 }
+## Please see file list-archives.pl.ERR
