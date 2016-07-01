@@ -114,7 +114,7 @@
 			if (!is_numeric($id))
 				return false;
 
-			if (!$this->prepareQuery("select_archive_by_id", "SELECT id, uuid, name, creator, owner, canappend, deleted FROM archive WHERE id = $1 AND NOT deleted"))
+			if (!$this->prepareQuery("select_archive_by_id", "SELECT id, uuid, name, creator, owner, canappend, deleted FROM archive WHERE id = $1"))
 				return null;
 
 			$result = pg_execute("select_archive_by_id", array($id));

@@ -174,6 +174,12 @@
 						'archive' => array()
 					));
 
+				if ($archive['deleted'] && !$_SESSION['user']['isadmin'])
+					httpResponse(404, array(
+						'message' => 'Archive not found',
+						'archive' => array()
+					));
+
 				$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
 				if ($permission_granted === null) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive => Query failure', $_SESSION['user']['id']);
