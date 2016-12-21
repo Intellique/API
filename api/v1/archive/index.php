@@ -1,6 +1,6 @@
 <?php
 /**
- * \addtogroup archive
+ * \addtogroup Archive
  * \section Delete_Archive Archive deletion
  * To mark archive as deleted,
  * use \b DELETE method
@@ -55,7 +55,7 @@
  *     \verbatim Archives ids list is returned
 {
    {
-   "message":"Query successfull","archives":[2],"total_rows":1
+   "message":"Query successful","archives":[2],"total_rows":1
    }
 }\endverbatim
  *   - \b 400 Incorrect input

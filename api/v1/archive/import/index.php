@@ -1,6 +1,6 @@
 <?php
 /**
- * \addtogroup ArchiveImport Import an archive
+ * \addtogroup Archive
  * \section Import_archive_task Import archive task creation
  * To create an Import archive task,
  * use \b POST method

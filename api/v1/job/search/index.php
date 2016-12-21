@@ -22,12 +22,12 @@
  *
  * \warning <b>Make sure to pass at least one of the first six parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
- *   - \b 200 Query successfull
+ *   - \b 200 Query successful
 
  *     \verbatim Jobs ids list is returned
 {
    {
-   "message":"Query successfull","jobs_id" => [2], "total_rows" => 1
+   "message":"Query successful","jobs_id" => [2], "total_rows" => 1
    }
 }\endverbatim
  *   - \b 400 Incorrect input
@@ -217,7 +217,7 @@
 			$dbDriver->cancelTransaction();
 
 			httpResponse(200, array(
-				'message' => 'Query successfull',
+				'message' => 'Query successful',
 				'jobs_id' => $jobsId,
 				'total_rows' => $iRow
 			));

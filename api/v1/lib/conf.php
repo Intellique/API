@@ -16,6 +16,4 @@
 	$db_config['password'] = $config['database'][0]['password'] ;
 	$db_config['port']     = isset($config['database'][0]['port']) ? $config['database'][0]['port'] : null;
 
-	$db_config["db"]       = 'storiqone-backend-vincent';
-
 	unset($file);

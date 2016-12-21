@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup search
+ * 
  * \section Search_archive Searching archives
  * To search archives and then to get archives ids list,
  * use \b GET method :
@@ -25,7 +26,7 @@
  *     \verbatim Archives ids list is returned
 {
    {
-   "message":"Query successfull","archives":[2],"total_rows":1
+   "message":"Query successful","archives":[2],"total_rows":1
    }
 }\endverbatim
  *   - \b 400 Incorrect input
