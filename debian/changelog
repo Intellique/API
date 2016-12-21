@@ -1,3 +1,11 @@
+storiqone-backend (0.1.0b4-1+jessie) polisher; urgency=low
+
+  * New bug fix release
+  * Add new build dependancy: texlive and texlive-latex-extra
+  * Add missing files: archivefile, device, poolgroup, poolmirror, pooltemplate and vtl
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Wed, 21 Dec 2016 17:59:08 +0100
+
 storiqone-backend (0.1.0b3-1+jessie) polisher; urgency=low
 
   * Fix config.php
