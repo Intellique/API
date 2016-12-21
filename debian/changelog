@@ -1,3 +1,9 @@
+storiqone-backend (0.1.0b4-1+wheezy) polisher; urgency=low
+
+  * New release
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Wed, 21 Dec 2016 16:04:02 +0100
+
 storiqone-backend (0.1.0b2-2+wheezy) polisher; urgency=low
 
   * Fix debian/storiqone-backend.conf and debian/storiqone-backend.install
