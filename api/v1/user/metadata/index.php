@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup metadata
+ * \page metadata
+ * \subpage user
  * \section Metadatas_user Metadatas of users
  * To get metadatas from a user,
  * use \b GET method : <i>with a reference to a user id</i>

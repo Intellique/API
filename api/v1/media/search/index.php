@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage searchmedia Search Media
  * \section Search_medias Searching medias
  * To search medias and then to get medias ids list,
  * use \b GET method :

@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup authentication
+ * \page auth Authentication
  * \section Authentication
  * To authenticate a user,
  * use \b POST method

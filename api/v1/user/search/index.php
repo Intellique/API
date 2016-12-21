@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage user 
  * \section Search_user Searching users
  * To search users and then to get users ids list,
  * use \b GET method :

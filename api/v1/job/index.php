@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup job
+ * \page job
  * \section Delete_job Job deletion
  * To delete a job,
  * use \b DELETE method

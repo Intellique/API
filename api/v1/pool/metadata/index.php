@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup metadata
+ * \page metadata
+ * \subpage poolmetadata
  * \section Metadatas_pool Metadatas of pools
  * To get metadatas from a pool,
  * use \b GET method : <i>with a reference to a pool id</i>

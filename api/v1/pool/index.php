@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup pool
+ * \page pool
  * \section Pool_ID Pool information
  * To get pool by its id
  * use \b GET method

@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup archiveFile
+ * \page archivefile
+ * \page archivefile ArchiveFile
  * \section Archive_File_ID Archive File information
  * To get archive file by its id,
  * use \b GET method

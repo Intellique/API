@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup Archive
+ * \page archive
+ * \subpage import
  * \section Import_archive_task Import archive task creation
  * To create an Import archive task,
  * use \b POST method

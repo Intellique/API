@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup metadata
+ * \page metadata
+ * \subpage mediametadata Media Metadata
  * \section Metadatas_media Metadatas of medias
  * To get metadatas from a media,
  * use \b GET method : <i>with a reference to a media id</i>

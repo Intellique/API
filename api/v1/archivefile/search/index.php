@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage searcharchivefile Search Archive File
  * \section Search_archivefile Searching archive files
  * To search archive files and then to get archive files ids list,
  * use \b GET method :

@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage searchpoolmirror
  * \section Search_poolmirror Searching pool mirrors
  * To search pool mirrorss and then to get pool mirrors ids list,
  * use \b GET method :

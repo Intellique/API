@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup media
+ * \page media
+ * \subpage format Media Format
  * \section Format_media_task Format media task creation
  * To create a Format media task,
  * use \b POST method

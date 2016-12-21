@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup user
+ * \page user
  * \section Delete_user User deletion
  * To delete a user,
  * use \b DELETE method

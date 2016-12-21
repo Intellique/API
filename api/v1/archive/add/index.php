@@ -1,7 +1,9 @@
 <?php
 /**
  * \addtogroup Archive
- * \section Create_add_task Add task creation
+ * \page archive
+ * \subpage add Add Files to Archive
+ * \section Create_add_task Add Files to Archive task creation
  * To create an add task,
  * use \b POST method
  * \verbatim path : /storiqone-backend/api/v1/archive/add/ \endverbatim

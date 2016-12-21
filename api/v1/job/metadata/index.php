@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup metadata
+ * \page metadata
+ * \subpage jobmetadata
  * \section Metadatas_job Metadatas of jobs
  * To get metadatas from a job,
  * use \b GET method : <i>with a reference to a job id</i>
