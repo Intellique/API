@@ -2,7 +2,7 @@ Source: storiqone-backend
 Section: utils
 Priority: extra
 Maintainer: Guillaume Clercin <gclercin@intellique.com>
-Build-Depends: debhelper (>= 8.0.0), doxygen, graphviz
+Build-Depends: debhelper (>= 8.0.0), doxygen, graphviz, latex-xcolor, texlive, texlive-latex-extra
 Standards-Version: 3.9.2
 Homepage: http://www.intellique.com
 
