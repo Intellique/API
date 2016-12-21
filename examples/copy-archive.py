@@ -4,6 +4,7 @@
 import getpass, http.client, json, sys
 from optparse import OptionParser, OptionGroup
 from datetime import datetime
+import ssl
 
 parser = OptionParser()
 
@@ -21,6 +22,7 @@ group.add_option("-H", "--host", dest="host", default="localhost", help="Specify
 group.add_option("-P", "--pwprompt", action="store_true", dest="promptPassword", default=False, help="If given, restore-archive will issue a prompt for the password")
 group.add_option("-U", "--username", dest="userName", default=None, help="Connect to api as the user username")
 group.add_option("-W", "--password", dest="password", help="Specify user password")
+group.add_option("-k", "--api-key", dest="api_key", default=None, help="Specify API key")
 parser.add_option_group(group)
 
 group = OptionGroup(parser, "verbose mode");
@@ -52,6 +54,10 @@ if options.nextStart is not None:
         print("Failed to parse next start date parameter")
         ok = False
 
+if options.api_key is None:
+    print("You should specify an API key")
+    ok = False
+
 if not ok:
     sys.exit(1)
 
@@ -77,9 +83,9 @@ if options.promptPassword or options.password is None:
     options.password = getpass.getpass()
 
 # authentication
-conn = http.client.HTTPConnection(options.host)
+conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 
-credentials = json.dumps({'login': options.userName, 'password': options.password})
+credentials = json.dumps({'login': options.userName, 'password': options.password, 'apikey': options.api_key})
 headers = {"Content-type": "application/json"}
 conn.request('POST', '/storiqone-backend/api/v1/auth/', credentials, headers)
 res = conn.getresponse()
@@ -95,7 +101,7 @@ conn.close()
 # copy archive
 cookie = {'Cookie': res.getheader('Set-Cookie').split(';')[0]}
 headers.update(cookie)
-conn = http.client.HTTPConnection(options.host)
+conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 conn.request('POST', '/storiqone-backend/api/v1/archive/copy/', json.dumps(params), headers)
 res = conn.getresponse()
 contentType = res.getheader('Content-type').split(';', 1)[0]
