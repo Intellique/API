@@ -129,7 +129,7 @@
 				httpResponse(404, array(
 					'message' => 'Archives not found',
 					'archives' => array(),
-					'total_rows' => 0,
+					'total_rows' => 0
 				));
 
 			httpResponse(200, array(

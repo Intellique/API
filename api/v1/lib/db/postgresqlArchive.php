@@ -171,6 +171,24 @@
 			$query_common = " FROM archive WHERE (creator = $1 OR owner = $1 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)))";
 			$query_params = array($user_id);
 
+			if (isset($params['name'])) {
+				$query_params[] = $params['name'];
+				$query_common .= ' AND name ~* $' . count($query_params);
+			}
+
+			if (isset($params['creator'])) {
+				$query_params[] = $params['creator'];
+				$query_common .= ' AND creator = $' . count($query_params);
+			}
+
+			if (isset($params['owner'])) {
+				$query_params[] = $params['owner'];
+				if (is_numeric($params['owner']))
+					$query_common .= ' AND owner = $' . count($query_params);
+				else
+					$query_common .= ' AND owner IN (SELECT id FROM users WHERE login = $' . count($query_params) .')';
+			}
+
 			$total_rows = 0;
 			if (isset($params['limit']) or isset($params['offset'])) {
 				$query = "SELECT COUNT(*)" . $query_common;
@@ -203,24 +221,6 @@
 
 			$query = "SELECT id" . $query_common;
 
-			if (isset($params['name'])) {
-				$query_params[] = $params['name'];
-				$query .= ' AND name = $' . count($query_params);
-			}
-
-			if (isset($params['creator'])) {
-				$query_params[] = $params['creator'];
-				$query .= ' AND creator = $' . count($query_params);
-			}
-
-			if (isset($params['owner'])) {
-				$query_params[] = $params['owner'];
-				if (is_numeric($params['owner']))
-					$query .= ' AND owner = $' . count($query_params);
-				else
-					$query .= ' AND owner IN (SELECT id FROM users WHERE login = $' . count($query_params) .')';
-			}
-
 			if (isset($params['order_by'])) {
 				$query .= ' ORDER BY ' . $params['order_by'];
 
@@ -248,6 +248,10 @@
 				);
 
 			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($total_rows == 0) {
+				$total_rows = pg_num_rows($result);
+			}
+			
 			if ($result === false)
 				return array(
 					'query' => $query,
@@ -268,7 +272,7 @@
 				'query_prepared' => true,
 				'query_executed' => true,
 				'rows' => $rows,
-				'total_rows' => count($rows)
+				'total_rows' => $total_rows
 			);
 		}
 
