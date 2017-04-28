@@ -298,7 +298,7 @@
 			if (!is_numeric($id))
 				return false;
 
-			if (!$this->prepareQuery("select_archivefile_by_id", "SELECT id, name, mimetype, ownerid, owner, size FROM archivefile WHERE id = $1"))
+			if (!$this->prepareQuery("select_archivefile_by_id", "SELECT id, name, mimetype, ownerid, owner, groupid, groups, ctime, mtime, size FROM archivefile WHERE id = $1"))
 				return null;
 
 			$result = pg_execute("select_archivefile_by_id", array($id));
