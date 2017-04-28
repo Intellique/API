@@ -2,6 +2,7 @@
 
 /**
  * \addtogroup ArchiveFormat Archive Format
+ * \page archiveformat
  * \section ArchiveFormat Archive Format
  * \subsection ArchiveFormatBrief How does it work?
  * If the user inputs an \e id, the function returns information concerning the corresponding archive format, regardless of the other parameters.

@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup device
+ * \page device
  * \section Device Device information
  * To get a device by its id
  * use \b GET method

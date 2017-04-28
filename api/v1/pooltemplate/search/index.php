@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage searchpooltemplate
  * \section Search_pooltemplate Searching pool templates
  * To search pool templates and then to get pool templates ids list,
  * use \b GET method :

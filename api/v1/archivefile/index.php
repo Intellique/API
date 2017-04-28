@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup archiveFile
+ * \page archivefile
+ * \page archivefile ArchiveFile
  * \section Archive_File_ID Archive File information
  * To get archive file by its id,
  * use \b GET method
@@ -136,13 +138,12 @@
 
 					$iter = $result['iterator'];
 					$filesFound = array();
-					$total_rows = 0;
+					$total_rows = $result['total_rows'];
 
 					while ($iter->hasNext()) {
 						$row = $iter->next();
 						$fileId = $row->getValue('id');
 						array_push($filesFound, $fileId);
-						$total_rows ++;
 					}
 
 					httpResponse(200, array(

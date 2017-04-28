@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup metadata
+ * \page metadata
+ * \subpage archivemeta Archive Metadata
  * \section Metadatas_archive Metadatas of archives
  * To get metadatas from an archive,
  * use \b GET method : <i>with a reference to an archive id</i>

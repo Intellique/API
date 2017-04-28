@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup Archive
+ * \page archive
+ * \subpage restore
  * \section Create_restoration_task Restoration task creation
  * To create a restoration task,
  * use \b POST method

@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage devicesearch
  * \section Search_device Searching devices
  * To search devices and then to get devices ids list,
  * use \b GET method :

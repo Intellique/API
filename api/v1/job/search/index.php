@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage jobsearch
  * \section Search_job Searching jobs
  * To search jobs and then to get jobs ids list,
  * use \b GET method :

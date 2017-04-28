@@ -2,6 +2,7 @@
 
 /**
  * \addtogroup MediaFormat Media Format
+ * \page mediaformat
  * \section MediaFormat Media Format
  * \subsection MediaFormatBrief How does it work?
  * If the user inputs an \e id, the function returns information concerning the corresponding media format, regardless of the other parameters.

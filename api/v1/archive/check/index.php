@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup Archive
+ * \page archive
+ * \subpage check
  * \section Create_check_archive_task Check archive task creation
  * To create a check archive task,
  * use \b POST method

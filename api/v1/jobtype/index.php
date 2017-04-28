@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup jobtype
+ * \page jobtype
  * \section Jobtype_Info Jobtypes names list
  * To get jobtypes names list,
  * use \b GET method

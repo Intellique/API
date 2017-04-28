@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup poolgroup
+ * \page poolgroup
  * \section Poolgroup_ID Poolgroup information
  * To list users and pools that are linked to a poolgroup
  * use \b GET method

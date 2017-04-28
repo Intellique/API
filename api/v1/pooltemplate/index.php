@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup pooltemplate
+ * \page pooltemplate
  * \section PoolTemplate_ID Pool template information
  * To get a pool template by its id
  * use \b GET method

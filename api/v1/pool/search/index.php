@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage poolsearch
  * \section Search_pool Searching pools
  * To search pools and then to get pools ids list,
  * use \b GET method :

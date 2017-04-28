@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup poolmirror
+ * \page poolmirror
  * \section PoolMirror_ID Pool mirror information
  * To get a pool mirror by its id
  * use \b GET method

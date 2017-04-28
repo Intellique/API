@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup media
+ * \page media Media
  * \section Media_ID Media information
  * To get media by its id
  * use \b GET method
