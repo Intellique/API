@@ -780,8 +780,10 @@
 		}
 
 		public function getFilesFromArchive($id, &$params) {
+			// SELECT count(*) FROM archivefile WHERE id IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE archivevolume IN (SELECT id from archivevolume WHERE archive = 1));
 			$query = "SELECT id, name, type, mimetype, ownerid, owner, groupid, groups, perm, ctime, mtime, size FROM archivefile WHERE id IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE archivevolume IN (SELECT id from archivevolume WHERE archive = $1))";
 			$query_params = array($id);
+			$total_rows = 0;
 
 			if (isset($params['order_by'])) {
 				$query .= ' ORDER BY ' . $params['order_by'];
@@ -791,6 +793,34 @@
 			}
 
 			if (isset($params['limit'])) {
+				$count_query = "SELECT count(*) FROM archivefile WHERE id IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE archivevolume IN (SELECT id from archivevolume WHERE archive = $1))";
+				$query_name = "select_filecount_from_archive";
+				if (!$this->prepareQuery($query_name, $count_query)) {
+					return array(
+						'query' => $count_query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'total_rows' => 0,
+						'iterator' => null
+					);
+				}
+				
+				$result = pg_execute($this->connect, $query_name, array($id));
+				if ($result === false) {
+					return array(
+						'query' => $count_query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'total_rows' => 0,
+						'iterator' => null
+					);
+				}
+				
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			
 				$query_params[] = $params['limit'];
 				$query .= ' LIMIT $' . count($query_params);
 			}
@@ -809,6 +839,7 @@
 					'query_name' => $query_name,
 					'query_prepared' => false,
 					'query_executed' => false,
+					'total_rows' => 0,
 					'iterator' => null
 				);
 
@@ -819,6 +850,7 @@
 					'query_name' => $query_name,
 					'query_prepared' => true,
 					'query_executed' => false,
+					'total_rows' => 0,
 					'iterator' => null
 				);
 
@@ -827,6 +859,7 @@
 				'query_name' => $query_name,
 				'query_prepared' => true,
 				'query_executed' => true,
+				'total_rows' => $total_rows,
 				'iterator' => new PostgresqlDBResultIterator($result, array(
 					'id' => 'getInteger',
 					'name' => 'get',
