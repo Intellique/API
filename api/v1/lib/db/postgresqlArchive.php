@@ -316,7 +316,7 @@
 		public function getArchiveFilesByParams(&$params) {
 			// ajouter le comptage de la requete
 			
-			$query = 'SELECT archivefile FROM archivefile';
+			$query = 'SELECT archivefile FROM milestones_files';
 			$query_params = array();
 			$clause_where = false;
 
