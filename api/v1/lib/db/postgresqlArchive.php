@@ -314,43 +314,44 @@
 		}
 
 		public function getArchiveFilesByParams(&$params) {
-
-			$query = 'SELECT id FROM archivefile';
+			// ajouter le comptage de la requete
+			
+			$query = 'SELECT archivefile FROM archivefile';
 			$query_params = array();
 			$clause_where = false;
 
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
-				$query .= ' WHERE name = $' . count($query_params);
+				$query .= ' WHERE name ~* $' . count($query_params);
 				$clause_where = true;
 			}
 
-			if (isset($params['owner'])) {
-				$query_params[] = $params['owner'];
+			if (isset($params['archive'])) {
+				$query_params[] = $params['archive'];
 				if ($clause_where)
-					$query .= ' AND owner = $' . count($query_params);
+					$query .= ' AND archive = $' . count($query_params);
 				else {
-					$query .= ' WHERE owner = $' . count($query_params);
+					$query .= ' WHERE archive = $' . count($query_params);
 					$clause_where = true;
 				}
 			}
 
-			if (isset($params['type'])) {
-				$query_params[] = $params['type'];
+			if (isset($params['mimetype'])) {
+				$query_params[] = $params['mimetype'];
 				if ($clause_where)
-					$query .= ' AND type = $' . count($query_params);
+					$query .= ' AND mimetype = $' . count($query_params);
 				else {
-					$query .= ' WHERE type = $' . count($query_params);
+					$query .= ' WHERE mimetype = $' . count($query_params);
 					$clause_where = true;
 				}
 			}
 
-			if (isset($params['groups'])) {
-				$query_params[] = $params['groups'];
+			if (isset($params['archive_name'])) {
+				$query_params[] = $params['archive_name'];
 				if ($clause_where)
-					$query .= ' AND groups = $' . count($query_params);
+					$query .= ' AND archive_name = $' . count($query_params);
 				else {
-					$query .= ' WHERE groups = $' . count($query_params);
+					$query .= ' WHERE archive_name = $' . count($query_params);
 					$clause_where = true;
 				}
 			}

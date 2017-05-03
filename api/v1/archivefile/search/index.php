@@ -12,9 +12,9 @@
  * |   Name    |  Type   |                                  Description                                        |           Constraint            |
  * | :-------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------: |
  * | name      | string  | search an archive file specifying its name                                          |                                 |
- * | owner     | string  | search an archive file specifying its owner                                         |                                 |
- * | type      | string  | search an archive file specifying its type                                          |                                 |
- * | groups    | string  | search an archive file specifying its group                                         |                                 |
+ * | archive   | integer | search an archive file given the archive id                                         |                                 |
+ * |archive_name| string | search an archive file given the archive name                                       |                                 |
+ * | mimetype  | string  | search an archive file specifying its mime type                                          |                                 |
  * | order_by  | enum    | order by column                                                                     | value in : 'id', 'size', 'name', 'type', 'owner', 'groups' |
  * | order_asc | boolean | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
  * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
@@ -57,23 +57,23 @@
 					$ok = false;
 			}
 
-			if (isset($_GET['owner'])) {
-				if (is_string($_GET['owner']))
-					$params['owner'] = $_GET['owner'];
+			if (isset($_GET['archive'])) {
+				if (is_string($_GET['archive']))
+					$params['archive'] = $_GET['archive'];
 				else
 					$ok = false;
 			}
 
-			if (isset($_GET['type'])) {
-				if (is_string($_GET['type']))
-					$params['type'] = $_GET['type'];
+			if (isset($_GET['mimetype'])) {
+				if (is_string($_GET['mimetype']))
+					$params['mimetype'] = $_GET['mimetype'];
 				else
 					$ok = false;
 			}
 
-			if (isset($_GET['groups'])) {
-				if (is_string($_GET['groups']))
-					$params['groups'] = $_GET['groups'];
+			if (isset($_GET['archive_name'])) {
+				if (is_string($_GET['archive_name']))
+					$params['archive_name'] = $_GET['archive_name'];
 				else
 					$ok = false;
 			}
