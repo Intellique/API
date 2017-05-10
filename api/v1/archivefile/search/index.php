@@ -109,43 +109,49 @@
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
-				$archivefile = $dbDriver->getArchiveFilesByParams($params);
-				if ($archivefile === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archivefile/search => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchiveFilesByParams(%s)', var_export($params, true)), $_SESSION['user']['id']);
+			$archivefile = $dbDriver->getArchiveFilesByParams($params);
+			if (!$archivefile['query_executed']) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archivefile/search => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchiveFilesByParams(%s)', var_export($params, true)), $_SESSION['user']['id']);
+				httpResponse(500, array(
+					'message' => 'Query failure',
+					'archivefiles' => array(),
+					'total_rows' => 0,
+					'debug' => $archivefile
+				));
+			} elseif ($archivefile['total_rows'] === 0)
+				httpResponse(404, array(
+					'message' => 'Archivefiles not found',
+					'archivefiles' => array(),
+					'total_rows' => 0
+				));
+
+			$result = array();
+
+			foreach ($archivefile['rows'] as $id) {
+				$permission_granted = $dbDriver->checkArchiveFilePermission($id, $_SESSION['user']['id']);
+				if ($permission_granted === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archivefile/serach => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkArchiveFilePermission(%s, %s)', $id, $_SESSION['user']['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
-						'archivefiles' => array()
+						'archivefiles' => array(),
+						'total_rows' => 0,
+						'debug' => $archivefile
 					));
-				} elseif ($archivefile === false)
-					httpResponse(404, array(
-						'message' => 'Archivefiles not found',
-						'archivefiles' => array()
-					));
+				} elseif ($permission_granted === true)
+					$result[] = $id;
+			}
 
-				$result = array();
-
-				foreach ($archivefile as $id) {
-					$permission_granted = $dbDriver->checkArchiveFilePermission($id, $_SESSION['user']['id']);
-					if ($permission_granted === null) {
-						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archivefile/serach => Query failure', $_SESSION['user']['id']);
-						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkArchiveFilePermission(%s, %s)', $id, $_SESSION['user']['id']), $_SESSION['user']['id']);
-						httpResponse(500, array(
-							'message' => 'Query failure',
-							'archivefiles' => array()
-						));
-					} elseif ($permission_granted === true)
-						$result[] = $id;
-				}
-
-				if (count($result) == 0) {
-					$dbDriver->writeLog(DB::DB_LOG_WARNING, 'GET api/v1/archivefile/search => A user that cannot get archivefile informations tried to', $_SESSION['user']['id']);
-					httpResponse(403, array('message' => 'Permission denied'));
-				}
-				httpResponse(200, array(
-						'message' => 'Query succeeded',
-						'archivefiles' => $result
-				));
+			if (count($result) == 0) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'GET api/v1/archivefile/search => A user that cannot get archivefile informations tried to', $_SESSION['user']['id']);
+				httpResponse(403, array('message' => 'Permission denied'));
+			}
+			httpResponse(200, array(
+					'message' => 'Query succeeded',
+					'archivefiles' => $result,
+					'total_rows' => $archivefile['total_rows']
+			));
 			break;
 
 		case 'OPTIONS':

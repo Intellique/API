@@ -192,7 +192,7 @@
 			$total_rows = 0;
 			if (isset($params['limit']) or isset($params['offset'])) {
 				$query = "SELECT COUNT(*)" . $query_common;
-				$query_name = "select_total_archives_by_user";
+				$query_name = "select_total_archives_by_user_" + md5($query);
 
 				if (!$this->prepareQuery($query_name, $query))
 					return array(
@@ -314,24 +314,22 @@
 		}
 
 		public function getArchiveFilesByParams(&$params) {
-			// ajouter le comptage de la requete
-			
-			$query = 'SELECT archivefile FROM milestones_files';
+			$query_common = ' FROM milestones_files';
 			$query_params = array();
 			$clause_where = false;
 
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
-				$query .= ' WHERE name ~* $' . count($query_params);
+				$query_common .= ' WHERE name ~* $' . count($query_params);
 				$clause_where = true;
 			}
 
 			if (isset($params['archive'])) {
 				$query_params[] = $params['archive'];
 				if ($clause_where)
-					$query .= ' AND archive = $' . count($query_params);
+					$query_common .= ' AND archive = $' . count($query_params);
 				else {
-					$query .= ' WHERE archive = $' . count($query_params);
+					$query_common .= ' WHERE archive = $' . count($query_params);
 					$clause_where = true;
 				}
 			}
@@ -339,9 +337,9 @@
 			if (isset($params['mimetype'])) {
 				$query_params[] = $params['mimetype'];
 				if ($clause_where)
-					$query .= ' AND mimetype = $' . count($query_params);
+					$query_common .= ' AND mimetype = $' . count($query_params);
 				else {
-					$query .= ' WHERE mimetype = $' . count($query_params);
+					$query_common .= ' WHERE mimetype = $' . count($query_params);
 					$clause_where = true;
 				}
 			}
@@ -349,46 +347,113 @@
 			if (isset($params['archive_name'])) {
 				$query_params[] = $params['archive_name'];
 				if ($clause_where)
-					$query .= ' AND archive_name = $' . count($query_params);
+					$query_common .= ' AND archive_name = $' . count($query_params);
 				else {
-					$query .= ' WHERE archive_name = $' . count($query_params);
+					$query_common .= ' WHERE archive_name = $' . count($query_params);
 					$clause_where = true;
 				}
 			}
 
 			if (isset($params['order_by'])) {
-				$query .= ' ORDER BY ' . $params['order_by'];
+				$query_common .= ' ORDER BY ' . $params['order_by'];
 
 				if (isset($params['order_asc']) && $params['order_asc'] === false)
-					$query .= ' DESC';
+					$query_common .= ' DESC';
 			}
 
 			if (isset($params['limit'])) {
 				$query_params[] = $params['limit'];
-				$query .= ' LIMIT $' . count($query_params);
+				$query_common .= ' LIMIT $' . count($query_params);
 			}
+
 			if (isset($params['offset'])) {
 				$query_params[] = $params['offset'];
-				$query .= ' OFFSET $' . count($query_params);
+				$query_common .= ' OFFSET $' . count($query_params);
 			}
 
+			$total_rows = 0;
+			if (isset($params['limit']) || isset($params['offset'])) {
+				$query = 'SELECT COUNT(*)' . $query_common;
+				$query_name = 'select_count_from_milestones_files_' . md5($query);
+				if (!$this->prepareQuery($query_name, $query)) {
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+				}
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false) {
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+				}
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$query = 'SELECT archivefile' . $query_common;
 			$query_name = "select_archive_files_by_params_" . md5($query);
 
-			if (!$this->prepareQuery($query_name, $query))
-				return null;
+			if (!$this->prepareQuery($query_name, $query)) {
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => 0
+				);
+			}
 
 			$result = pg_execute($query_name, $query_params);
-			if ($result === false)
-				return null;
+			if ($result === false) {
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => 0
+				);
+			}
 
-			if (pg_num_rows($result) == 0)
-				return false;
+			if ($total_rows == 0)
+				$total_rows = pg_num_rows($result);
+
+			if (pg_num_rows($result) == 0) {
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => true,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+			}
 
 			$archivefiles = array();
 			while ($row = pg_fetch_array($result))
 				$archivefiles[] = intval($row[0]);
 
-			return $archivefiles;
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $archivefiles,
+				'total_rows' => $total_rows
+			);
 		}
 
 		public function getArchiveFormat($id) {
