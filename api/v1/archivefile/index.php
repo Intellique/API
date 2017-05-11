@@ -131,7 +131,7 @@
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getFilesFromArchive(%s, %s)', $_GET['id'], $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
-						'archivesfiles' => array(),
+						'archivefiles' => array(),
 						'total_rows' => 0
 					));
 				} else {
@@ -148,7 +148,7 @@
 
 					httpResponse(200, array(
 						'message' => 'Query successful',
-						'archivesfiles_ids' => $filesFound,
+						'archivefiles' => $filesFound,
 						'total_rows' => $total_rows
 					));
 				}
