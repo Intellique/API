@@ -63,7 +63,7 @@ class FragmentationTest(CommonTest):
         conn.request('GET', self.path + 'media/fragmentation/', headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 404)
+        self.assertEqual(res.status, 400)
 
 
 
