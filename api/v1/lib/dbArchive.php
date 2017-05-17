@@ -72,7 +72,7 @@
 		/**
 		 *\brief Get an archive format id by its name
 		 *\param $name : archive format name
-		 *\return archive format id or false if not found.
+		 *\return archive format id or false if not found
 		 */
 		public function getArchiveFormatByName($name);
 
