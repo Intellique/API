@@ -1,4 +1,11 @@
 -- Types
+CREATE TYPE ArchiveStatus AS ENUM (
+    'incomplete',
+    'data-complete',
+    'complete',
+    'error'
+);
+
 CREATE TYPE AutoCheckMode AS ENUM (
     'quick mode',
     'thorough mode',
@@ -435,6 +442,7 @@ CREATE TABLE Archive (
     owner INTEGER NOT NULL REFERENCES Users(id) ON UPDATE CASCADE ON DELETE RESTRICT,
 
     canAppend BOOLEAN NOT NULL DEFAULT TRUE,
+    status ArchiveStatus NOT NULL,
     deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
@@ -531,7 +539,7 @@ CREATE TABLE ArchiveVolume (
     size BIGINT NOT NULL DEFAULT 0 CHECK (size >= 0),
 
     starttime TIMESTAMP(3) WITH TIME ZONE NOT NULL,
-    endtime TIMESTAMP(3) WITH TIME ZONE NOT NULL,
+    endtime TIMESTAMP(3) WITH TIME ZONE,
 
     checktime TIMESTAMP(3) WITH TIME ZONE,
     checksumok BOOLEAN NOT NULL DEFAULT FALSE,
@@ -569,6 +577,8 @@ CREATE TABLE ArchiveFileToArchiveVolume (
 
     checktime TIMESTAMP(3) WITH TIME ZONE,
     checksumok BOOLEAN NOT NULL DEFAULT FALSE,
+
+    alternatePath TEXT,
 
     PRIMARY KEY (archiveVolume, archiveFile)
 );
@@ -749,16 +759,17 @@ CREATE TABLE Vtl (
 
 -- Functions
 CREATE OR REPLACE FUNCTION "json_object_set_key"("json" json, "key_to_set" TEXT, "value_to_set" anyelement)
-  RETURNS json
-  LANGUAGE sql
-  IMMUTABLE
-  STRICT
+    RETURNS json
+    LANGUAGE sql
+    IMMUTABLE
+    STRICT
 AS $function$
 SELECT CONCAT('{', STRING_AGG(TO_JSON("key") || ':' || "value", ','), '}')::JSON
-  FROM (SELECT *
-          FROM JSON_EACH("json")
-         WHERE "key" <> "key_to_set"
-         UNION ALL
+    FROM (
+        SELECT *
+        FROM JSON_EACH("json")
+        WHERE "key" <> "key_to_set"
+        UNION ALL
         SELECT "key_to_set", TO_JSON("value_to_set")) AS "fields"
 $function$;
 
@@ -778,11 +789,17 @@ CREATE OR REPLACE FUNCTION log_metadata() RETURNS TRIGGER AS $body$
     BEGIN
         IF TG_OP = 'UPDATE' AND OLD.type != NEW.type THEN
             RAISE EXCEPTION 'type of metadata should not be modified' USING ERRCODE = '09000';
-        ELSIF TG_OP = 'DELETE' OR OLD != NEW THEN
+        ELSIF TG_OP = 'DELETE' THEN
             INSERT INTO MetadataLog(id, type, key, value, login, updated)
-                VALUES (OLD.id, OLD.type, OLD.key, OLD.value, OLD.login, TG_OP != 'UPDATE');
+                VALUES (OLD.id, OLD.type, OLD.key, OLD.value, OLD.login, FALSE);
+            RETURN OLD;
+        ELSIF OLD != NEW THEN
+            INSERT INTO MetadataLog(id, type, key, value, login, updated)
+                VALUES (OLD.id, OLD.type, OLD.key, OLD.value, OLD.login, TRUE);
+            RETURN NEW;
+        ELSE
+            RETURN NEW;
         END IF;
-        RETURN NEW;
     END;
 $body$ LANGUAGE plpgsql;
 
@@ -825,6 +842,32 @@ FOR EACH ROW EXECUTE PROCEDURE check_metadata();
 CREATE TRIGGER log_metadata
 BEFORE UPDATE OR DELETE ON Metadata
 FOR EACH ROW EXECUTE PROCEDURE log_metadata();
+
+CREATE MATERIALIZED VIEW milestones_files AS
+SELECT sa.id AS archive, sa.archive_name, sa.archive_size, sa.starttime AS archive_starttime, sa.endtime AS archive_endtime,
+    af.id AS archivefile, af.name, "substring"(af.name, char_length("substring"(af.name, '(.+/)[^/]+'::text)) + 1) AS file_name,
+    af.type, af.mimetype, af.ctime AS file_ctime, af.mtime AS file_mtime, af.size AS file_size, af.owner AS file_owner,
+    af.name = sf.path AS file_isroot, ('['::text || array_to_string(saf.medias, ','::text)) || ']'::text AS medias,
+    saf.medias_length, sp.id AS pool, sp.name AS pool_name
+FROM archivefile af
+    JOIN (
+        SELECT afv.archivefile, av.archive, array_agg(('"'::text || COALESCE(m.name, m.label, m.mediumserialnumber)::text) || '"'::text) AS medias,
+                max(char_length(COALESCE(m.name, m.label, m.mediumserialnumber)::text)) AS medias_length, m.pool
+        FROM archivefiletoarchivevolume afv
+            JOIN archivevolume av ON afv.archivevolume = av.id
+            JOIN media m ON av.media = m.id
+        GROUP BY afv.archivefile, av.archive, m.pool
+    ) saf ON af.id = saf.archivefile
+    JOIN (
+        SELECT a.id, a.name AS archive_name, sum(av.size) AS archive_size, min(av.starttime) AS starttime, max(av.endtime) AS endtime
+        FROM archive a
+            JOIN archivevolume av ON a.id = av.archive
+        GROUP BY a.id, a.name
+    ) sa ON saf.archive = sa.id
+    JOIN pool sp ON saf.pool = sp.id
+    JOIN selectedfile sf ON af.parent = sf.id;
+
+CREATE UNIQUE INDEX ON milestones_files(archive, archivefile);
 
 -- Comments
 COMMENT ON COLUMN ArchiveVolume.starttime IS 'Start time of archive volume creation';

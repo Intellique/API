@@ -32,9 +32,29 @@ INSERT INTO DriveFormatSupport(driveFormat, mediaFormat, read, write) VALUES
 	(5, 6, TRUE, TRUE),
 	(6, 6, TRUE, TRUE);
 
+INSERT INTO Application(name) VALUES
+    ('StoriqOne Changer'),
+    ('StoriqOne Daemon'),
+    ('StoriqOne Drive'),
+    ('StoriqOne Job'),
+    ('StoriqOne Logger');
+
+COPY archiveformat (id, name, readable, writable) FROM stdin;
+1	Storiq One (TAR)	t	t
+2	LTFS	t	f
+\.
+ALTER SEQUENCE archiveformat_id_seq RESTART 2;
+
+INSERT INTO Pool(uuid, name, archiveFormat, mediaFormat, backupPool) VALUES
+	('b9650cc3-12ec-4a0f-88db-d70f0b269a6b', 'storiq', 1, 1, FALSE),
+	('d9f976d4-e087-4d0a-ab79-96267f6613f0', 'Stone_Db_Backup', 1, 1, TRUE);
+
 INSERT INTO PoolGroup(uuid, name) VALUES
 	('7a9102a2-6f4d-c85f-1553-e8d769569558', 'basic'),
 	('755d095a-7f59-40be-a11b-c4fdf4be5839', 'archive');
+
+INSERT INTO PoolToPoolGroup VALUES
+    (1, 1);
 
 INSERT INTO Users(login, password, salt, fullname, email, homedirectory, isAdmin, canArchive, canRestore, poolgroup, meta) VALUES
 	('admin', '8a6eb1d3b4fecbf8a1d6528a6aecb064e801b1e0', 'cd8c63688e0c2cff', 'admin', 'admin@storiqone-backend.net', '/mnt/raid', TRUE, TRUE, TRUE, 1, '{"step":5,"showHelp":true}'),
@@ -45,14 +65,6 @@ INSERT INTO UserEvent(event) VALUES
 	('connection'),
 	('disconnection');
 
-INSERT INTO Application(name) VALUES
-    ('StoriqOne Changer'),
-    ('StoriqOne Daemon'),
-    ('StoriqOne Drive'),
-    ('StoriqOne Job'),
-    ('StoriqOne Logger'),
-    ('StoriqOne API');
-
 INSERT INTO Application(name, apikey) VALUES
     ('UnitTest','d017552c-e005-4bc7-86bc-5e3e8b3ade2b');
 
@@ -60,12 +72,6 @@ COPY host (id, uuid, name, domaine, description, daemonVersion, updated) FROM st
 6	9f89164e-9dd3-480d-8afd-a4d66807b6bc	taiko	\N	\N	1.3	2014-11-12 12:31:16.802855
 \.
 ALTER SEQUENCE host_id_seq RESTART 7;
-
-COPY archiveformat (id, name, readable, writable) FROM stdin;
-1	Storiq One (TAR)	t	t
-2	LTFS	t	f
-\.
-ALTER SEQUENCE archiveformat_id_seq RESTART 2;
 
 COPY selectedfile (id, path) FROM stdin;
 2	/mnt/raid/rcarchives/Archives_Audiovisuels/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN
@@ -136,8 +142,8 @@ COPY jobtype (id, name) FROM stdin;
 \.
 ALTER SEQUENCE jobtype_id_seq RESTART 8;
 
-COPY archive (id, uuid, name, creator, owner, canappend, deleted) FROM stdin;
-2	20c07322-607c-4e67-9ae4-2db8ad9d707f	OESC_AMON_LE_VICTORIEUX_C_BARBOTIN	1	1	t	f
+COPY archive (id, uuid, name, creator, owner, canappend, status, deleted) FROM stdin;
+2	20c07322-607c-4e67-9ae4-2db8ad9d707f	OESC_AMON_LE_VICTORIEUX_C_BARBOTIN	1	1	t	complete	f
 \.
 ALTER SEQUENCE archive_id_seq RESTART 3;
 
