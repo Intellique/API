@@ -80,19 +80,19 @@ ALTER SEQUENCE selectedfile_id_seq RESTART 3;
 
 COPY pool (id, uuid, name, archiveformat, mediaformat, autocheck, growable, unbreakablelevel, rewritable, metadata, pooloriginal, deleted, lockcheck, poolmirror) FROM stdin;
 3	60885acc-aa6f-47e2-8164-f80f039420a5	ARCHIVES_CAPTATIONS	1	2	none	f	file	t	[]	\N	f	f	\N
-5	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	1	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	\N	f	f	\N
+6	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	1	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	\N	f	f	\N
 7	cf3d97b5-d5fe-4384-945e-927ab6fa7608	ARCHIVES_TESTS	1	2	none	f	file	t	[]	\N	f	f	\N
 \.
 ALTER SEQUENCE pool_id_seq RESTART 8;
 
 COPY pooltopoolgroup (pool, poolgroup) FROM stdin;
 3	1
-5	1
+6	1
 7	1
 \.
 
 COPY media (id, uuid, label, mediumserialnumber, name, status, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, type, mediaformat, pool, archiveformat) FROM stdin;
-1	8a391d01-6139-4ad9-8463-2ba6e8852040	EXP006	HA1PFAp084	EXPORTS_RUSHS_06	in use	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	2	5	1
+1	8a391d01-6139-4ad9-8463-2ba6e8852040	EXP006	HA1PFAp084	EXPORTS_RUSHS_06	in use	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	2	6	1
 2	4fb920af-afbd-4365-91b8-2019fa7297fb	EXP007	HA2PFAp093	EXPORTS_RUSHS_07	foreign	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	1	\N	1
 3	4fb920af-afbd-4365-91b8-2019fa7297fc	EXP008	HA2PFAp094	EXPORTS_RUSHS_08	foreign	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	2	\N	1
 \.
@@ -200,6 +200,15 @@ COPY archivefile (id, name, type, mimetype, ownerid, owner, groupid, groups, per
 \.
 ALTER SEQUENCE archivefile_id_seq RESTART 36;
 
+INSERT INTO metadata(id, type, key, value, login) VALUES
+	(2, 'archive', 'foo', '"foo"', 1);
+
+INSERT INTO metadata(id, type, key, value, login) VALUES
+	(6, 'archive', 'foo', '"bar"', 1);
+
+INSERT INTO metadata(id, type, key, value, login) VALUES
+	(6, 'archivefile', 'foo', '"bar"', 1);
+
 COPY archivefiletoarchivevolume (archivevolume, archivefile, blocknumber, archivetime, checktime, checksumok) FROM stdin;
 2	6	0	2012-09-27 16:59:47	\N	f
 2	7	0	2012-09-27 16:59:47	\N	f
@@ -241,3 +250,5 @@ INSERT INTO poolmirror(uuid, name, synchronized) VALUES
 ('609abc8a-3f92-4450-89df-5e6012baee70', 'test', 't'),
 ('322980de-0af7-4e48-beaa-f58c6ab4a302', 'test2', 'f'),
 ('44dc3636-fa69-4e5c-991a-0ebb6b20cdb2', 'test3', 't');
+
+REFRESH MATERIALIZED VIEW milestones_files;

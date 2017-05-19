@@ -87,7 +87,7 @@ conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_
 
 credentials = json.dumps({'login': options.userName, 'password': options.password, 'apikey': options.api_key})
 headers = {"Content-type": "application/json"}
-conn.request('POST', '/storiqone-backend/api/v1/auth/', credentials, headers)
+conn.request('POST', '/storiqone-backend-zakary/api/v1/auth/', credentials, headers)
 res = conn.getresponse()
 contentType = res.getheader('Content-type').split(';', 1)[0]
 if contentType is None or contentType != "application/json" or res.status != 201:
@@ -102,7 +102,7 @@ conn.close()
 cookie = {'Cookie': res.getheader('Set-Cookie').split(';')[0]}
 headers.update(cookie)
 conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
-conn.request('POST', '/storiqone-backend/api/v1/archive/copy/', json.dumps(params), headers)
+conn.request('POST', '/storiqone-backend-zakary/api/v1/archive/copy/', json.dumps(params), headers)
 res = conn.getresponse()
 contentType = res.getheader('Content-type').split(';', 1)[0]
 if contentType is None or contentType != "application/json" or res.status != 201:

@@ -49,7 +49,7 @@ class PoolgroupTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'poolgroup':1,
-            'pools':'8,3,7,5'
+            'pools':'8,3,7,6'
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)

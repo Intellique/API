@@ -334,6 +334,16 @@
 				}
 			}
 
+			if (isset($params['type'])) {
+				$query_params[] = $params['type'];
+				if ($clause_where)
+					$query_common .= ' AND type = $' . count($query_params);
+				else {
+					$query_common .= ' WHERE type = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
 			if (isset($params['mimetype'])) {
 				$query_params[] = $params['mimetype'];
 				if ($clause_where)

@@ -15,7 +15,7 @@
  *   - \b 404 Device not found
  *   - \b 500 Query failure
  *
- * \section Pools Devices ids (multiple list)
+ * \section Device Devices ids (multiple list)
  * To get devices ids list,
  * use \b GET method : <i>without reference to specific id or ids</i>
  * \verbatim path : /storiqone-backend/api/v1/device/ \endverbatim

@@ -1,7 +1,7 @@
 <?php
 	require_once("http.php");
 
-	session_set_cookie_params(0, '/api/v1/');
+	// session_set_cookie_params(0, '/api/v1/');
 	if (session_id() == NULL)
 		session_start();
 

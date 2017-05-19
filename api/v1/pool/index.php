@@ -108,7 +108,7 @@
 			} else
 				httpResponse(400, array('message' => 'Pool ID required'));
 
-		break;
+			break;
 
 		case 'GET':
 			checkConnected();
@@ -119,7 +119,7 @@
 					httpResponse(400, array('message' => 'Pool ID must be an integer'));
 				}
 
-			$pool = $dbDriver->getPool($_GET['id']);
+				$pool = $dbDriver->getPool($_GET['id']);
 				if ($pool === null) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool => Query failure', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPool(%s)', $_GET['id']), $_SESSION['user']['id']);
@@ -133,20 +133,22 @@
 						'pool' => array()
 					));
 
-				$permission_granted = $dbDriver->checkPoolPermission($_GET['id'], $_SESSION['user']['id']);
-				if ($permission_granted === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $_GET['id'], $_SESSION['user']['id']), $_SESSION['user']['id']);
-					httpResponse(500, array(
-						'message' => 'Query failure',
-						'pool' => array()
-					));
-				} elseif ($permission_granted === false)
-					httpResponse(403, array('message' => 'Permission denied'));
+				if (!$_SESSION['user']['isadmin']) {
+					$permission_granted = $dbDriver->checkPoolPermission($_GET['id'], $_SESSION['user']['id']);
+					if ($permission_granted === null) {
+						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool => Query failure', $_SESSION['user']['id']);
+						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $_GET['id'], $_SESSION['user']['id']), $_SESSION['user']['id']);
+						httpResponse(500, array(
+							'message' => 'Query failure',
+							'pool' => array()
+						));
+					} elseif ($permission_granted === false)
+						httpResponse(403, array('message' => 'Permission denied'));
+				}
 
 				httpResponse(200, array(
-						'message' => 'Query succeeded',
-						'pool' => $pool
+					'message' => 'Query succeeded',
+					'pool' => $pool
 				));
 			} else {
 				$params = array();
@@ -225,7 +227,7 @@
 				}
 				if ($archiveformat === False)
 					httpResponse(400, array('message' => 'archiveformat id does not exist'));
-			} elseif (is_array ($pool['archiveformat']) and (array_key_exists('id', $pool['archiveformat']) or array_key_exists('name', $pool['archiveformat']))) {
+			} elseif (is_array($pool['archiveformat']) and (array_key_exists('id', $pool['archiveformat']) or array_key_exists('name', $pool['archiveformat']))) {
 				if (array_key_exists('id', $pool['archiveformat'])) {
 					$archiveformat = $dbDriver->getArchiveFormat($pool['archiveformat']['id']);
 					if ($archiveformat === NULL) {
@@ -264,7 +266,7 @@
 				}
 				if ($mediaformat === False)
 					httpResponse(400, array('message' => 'mediaformat id does not exist'));
-			} elseif (is_array ($pool['mediaformat']) and (array_key_exists('id', $pool['mediaformat']) or array_key_exists('name', $pool['mediaformat']))) {
+			} elseif (is_array($pool['mediaformat']) and (array_key_exists('id', $pool['mediaformat']) or array_key_exists('name', $pool['mediaformat']))) {
 				if (array_key_exists('id', $pool['mediaformat'])) {
 					$mediaformat = $dbDriver->getMediaFormat($pool['mediaformat']['id']);
 					if ($mediaformat === NULL) {
@@ -311,13 +313,14 @@
 				$autocheckmode = array('quick mode', 'thorough mode', 'none');
 				if (!isset($pool['autocheck']))
 					$pool['autocheck'] = 'none';
-				elseif (!is_string ($pool['autocheck'])) {
+				elseif (!is_string($pool['autocheck'])) {
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => autocheckmode must be a string and not "%s"', $pool['autocheck']), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'autocheckmode must be a string'));
-				}
-				elseif (array_search($pool['autocheck'], $autocheckmode) === false) {
-					$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $autocheckmode));
-					httpResponse(400, array('message' => 'autocheckmode value is invalid. It should be in ' . $string_mode));
+				} elseif (array_search($pool['autocheck'], $autocheckmode) === false) {
+					$string_mode = join(', ', array_map(function($value) {
+						return '"' . $value . '"';
+					}, $autocheckmode));
+					httpResponse(400, array('message' => 'autocheckmode value is invalid. It should be in '.$string_mode));
 				}
 
 				if (!isset($pool['lockcheck']))
@@ -336,13 +339,14 @@
 				$unbreakablelevel = array('archive', 'file', 'none');
 				if (!isset($pool['unbreakablelevel']))
 					$pool['unbreakablelevel'] = 'none';
-				elseif (!is_string ($pool['unbreakablelevel'])) {
+				elseif (!is_string($pool['unbreakablelevel'])) {
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool => unbreakablelevel must be a string and not "%s"', $pool['unbreakablelevel']), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'unbreakablelevel must be a string'));
-				}
-				elseif (array_search($pool['unbreakablelevel'], $unbreakablelevel) === false) {
-					$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $unbreakablelevel));
-					httpResponse(400, array('message' => 'unbreakablelevel value is invalid. It should be in ' . $string_mode));
+				} elseif (array_search($pool['unbreakablelevel'], $unbreakablelevel) === false) {
+					$string_mode = join(', ', array_map(function($value) {
+						return '"' . $value . '"';
+					}, $unbreakablelevel));
+					httpResponse(400, array('message' => 'unbreakablelevel value is invalid. It should be in '.$string_mode));
 				}
 
 				if (!isset($pool['rewritable']))
@@ -377,7 +381,7 @@
 				httpResponse(500, array('message' => 'Query Failure'));
 			}
 
-			httpAddLocation('/pool/?id=' . $poolId);
+			httpAddLocation('/pool/?id='.$poolId);
 			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Pool %s created', $poolId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Pool created successfully',
@@ -444,7 +448,7 @@
 					}
 					if ($mediaformat === False)
 						httpResponse(400, array('message' => 'mediaformat id does not exist'));
-				} elseif (is_array ($pool['mediaformat']) and (array_key_exists('id', $pool['mediaformat']) or array_key_exists('name', $pool['mediaformat']))) {
+				} elseif (is_array($pool['mediaformat']) and (array_key_exists('id', $pool['mediaformat']) or array_key_exists('name', $pool['mediaformat']))) {
 					if (array_key_exists('id', $pool['mediaformat'])) {
 						$mediaformat = $dbDriver->getMediaFormat($pool['mediaformat']['id']);
 						if ($mediaformat === NULL) {
@@ -469,7 +473,7 @@
 				} else
 					httpResponse(400, array('message' => 'Specified mediaformat is invalid'));
 
-				if ($pool['mediaformat'] !== $pool_base['mediaformat']) {
+				if ($pool['mediaformat'] !== $pool_base['mediaformat']['id']) {
 					$params = array();
 					$nbMedias = $dbDriver->getMediasByPool($pool['id'], $params);
 					if ($nbMedias === null) {
@@ -478,7 +482,7 @@
 						httpResponse(500, array('message' => 'Query Failure'));
 					}
 					if ($nbMedias['total_rows'] !== 0)
-						httpResponse(400, array('message' => 'mediaformat cannot be modified if specified pool contains medias'));
+						httpResponse(400, array('message' => 'mediaformat cannot be modified if specified pool contains medias', 'pool user' => $pool, 'pool db' => $pool_base));
 				}
 			} else
 				$pool['mediaformat'] = $pool_base['mediaformat']['id'];
@@ -513,7 +517,7 @@
 				if ($archiveformat === False)
 					httpResponse(400, array('message' => 'archiveformat id does not exist'));
 
-				if ($pool['archiveformat'] != $pool_base['archiveformat']) {
+				if ($pool['archiveformat'] !== $pool_base['archiveformat']['id']) {
 					if ($archiveformat['name'] === 'LTFS') {
 						$mediaformat = $dbDriver->getMediaFormat($pool['mediaformat']);
 						if ($mediaformat === NULL) {
@@ -542,13 +546,14 @@
 			$autocheckmode = array('quick mode', 'thorough mode', 'none');
 			if (!isset($pool['autocheck']))
 				$pool['autocheck'] = $pool_base['autocheck'];
-			elseif (!is_string ($pool['autocheck'])) {
+			elseif (!is_string($pool['autocheck'])) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pool => autocheck must be a string and not "%s"', $pool['autocheck']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'autocheckmode must be a string'));
-			}
-			elseif (array_search($pool['autocheck'], $autocheckmode) === false) {
-				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $autocheckmode));
-				httpResponse(400, array('message' => 'autocheckmode value is invalid. It should be in ' . $string_mode));
+			} elseif (array_search($pool['autocheck'], $autocheckmode) === false) {
+				$string_mode = join(', ', array_map(function($value) {
+					return '"' . $value . '"';
+				}, $autocheckmode));
+				httpResponse(400, array('message' => 'autocheckmode value is invalid. It should be in '.$string_mode));
 			}
 
 			if (!isset($pool['lockcheck']))
@@ -568,13 +573,14 @@
 			$unbreakablelevel = array('archive', 'file', 'none');
 			if (!isset($pool['unbreakablelevel']))
 				$pool['unbreakablelevel'] = $pool_base['unbreakablelevel'];
-			elseif (!is_string ($pool['unbreakablelevel'])) {
+			elseif (!is_string($pool['unbreakablelevel'])) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pool => unbreakablelevel must be a string and not "%s"', $pool['unbreakablelevel']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'unbreakablelevel must be a string'));
-			}
-			elseif (array_search($pool['unbreakablelevel'], $unbreakablelevel) === false) {
-				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $unbreakablelevel));
-				httpResponse(400, array('message' => 'unbreakablelevel value is invalid. It should be in ' . $string_mode));
+			} elseif (array_search($pool['unbreakablelevel'], $unbreakablelevel) === false) {
+				$string_mode = join(', ', array_map(function($value) {
+					return '"' . $value . '"';
+				}, $unbreakablelevel));
+				httpResponse(400, array('message' => 'unbreakablelevel value is invalid. It should be in '.$string_mode));
 			}
 
 			if (!isset($pool['rewritable']))
@@ -608,8 +614,7 @@
 			if ($result) {
 				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Pool %s updated', $pool['id']), $_SESSION['user']['id']);
 				httpResponse(200, array('message' => 'Pool updated successfully'));
-			}
-			else {
+			} else {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/pool => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updatePool(%s)', $pool), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
@@ -624,5 +629,5 @@
 		default:
 			httpUnsupportedMethod();
 			break;
-	}
+}
 ?>

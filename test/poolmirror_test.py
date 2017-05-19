@@ -30,7 +30,6 @@ class PoolMirrorTest(CommonTest):
         res = conn.getresponse()
         message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        print(message)
         self.assertEqual(res.status, 200)
 
     def test_05_delete_poolmirror_basic(self):
@@ -60,7 +59,6 @@ class PoolMirrorTest(CommonTest):
         res = conn.getresponse()
         message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        print(message)
         self.assertEqual(res.status, 201)
 
     def test_08_post_poolmirror_basic_user(self):

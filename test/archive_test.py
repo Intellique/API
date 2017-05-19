@@ -246,7 +246,7 @@ class ArchiveTest(CommonTest):
             'id': 2,
             'name': 'ArchiveModifTest',
             'owner': 3,
-            'metadata': {},
+            'metadata': {"foo": "bar"},
             'canappend': False,
             'deleted': False
         }, io);

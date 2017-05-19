@@ -9,16 +9,16 @@
  * \verbatim path : /storiqone-backend/api/v1/archivefile/search \endverbatim
 
  * <b>Optional parameters</b>
- * |   Name    |  Type   |                                  Description                                        |           Constraint            |
- * | :-------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------: |
- * | name      | string  | search an archive file specifying its name                                          |                                 |
- * | archive   | integer | search an archive file given the archive id                                         |                                 |
- * |archive_name| string | search an archive file given the archive name                                       |                                 |
- * | mimetype  | string  | search an archive file specifying its mime type                                          |                                 |
- * | order_by  | enum    | order by column                                                                     | value in : 'id', 'size', 'name', 'type', 'owner', 'groups' |
- * | order_asc | boolean | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
- * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
- * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
+ * |     Name     |  Type   |                                  Description                                        |           Constraint            |
+ * | :----------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------: |
+ * | name         | string  | search an archive file specifying its name                                          |                                 |
+ * | archive      | integer | search an archive file given the archive id                                         |                                 |
+ * | archive_name | string  | search an archive file given the archive name                                       |                                 |
+ * | mimetype     | string  | search an archive file specifying its mime type                                     |                                 |
+ * | order_by     | enum    | order by column                                                                     | value in : 'id', 'size', 'name', 'type', 'owner', 'groups' |
+ * | order_asc    | boolean | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
+ * | limit        | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
+ * | offset       | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
  *
  * \warning <b>Make sure to pass at least one of the first four parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
@@ -60,6 +60,13 @@
 			if (isset($_GET['archive'])) {
 				if (is_string($_GET['archive']))
 					$params['archive'] = $_GET['archive'];
+				else
+					$ok = false;
+			}
+
+			if (isset($_GET['type'])) {
+				if (is_string($_GET['type']))
+					$params['type'] = $_GET['type'];
 				else
 					$ok = false;
 			}
