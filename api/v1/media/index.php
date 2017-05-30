@@ -94,10 +94,10 @@
 
 				$media = $dbDriver->getMedia($_GET['id']);
 				if ($media === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure 1', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMedia(%s)', $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
-						'message' => 'Query failure',
+						'message' => 'Query failure 1',
 						'media' => null
 					));
 				} elseif ($media === false)
@@ -115,10 +115,10 @@
 			elseif (isset($_GET['pool']) && is_numeric($_GET['pool'])) {
 				$permission_granted = $dbDriver->checkPoolPermission($_GET['pool'], $_SESSION['user']['id']);
 				if ($permission_granted === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure 2', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $_GET['pool'], $_SESSION['user']['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
-						'message' => 'Query failure',
+						'message' => 'Query failure 2',
 						'pool' => array()
 					));
 				} elseif ($permission_granted === false)
@@ -141,14 +141,14 @@
 				}
 
 				if (!$ok)
-					httpResponse(400, array('message' => 'Incorrect input'));
+					httpResponse(400, array('message' => 'Incorrect input 1'));
 
 				$result = $dbDriver->getMediasByPool($_GET['pool'], $params);
 				if ($result['query_executed'] == false) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure 3', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediasByPool(%s, %s)', $_GET['pool'], $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
-						'message' => 'Query failure',
+						'message' => 'Query failure 3',
 						'medias' => array(),
 						'total_rows' => 0
 					));
@@ -178,17 +178,17 @@
 				}
 
 				if (!$ok)
-					httpResponse(400, array('message' => 'Incorrect input'));
+					httpResponse(400, array('message' => 'Incorrect input 2'));
 
 				$mediaformat = null;
 				if (isset($_GET['mediaformat']))
 					$mediaformat = $_GET['mediaformat'];
 				$result = $dbDriver->getMediasWithoutPool($mediaformat, $params);
 				if ($result['query_executed'] == false) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure 4', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediasWithoutPool(%s, %s)', $mediaformat, $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
-						'message' => 'Query failure',
+						'message' => 'Query failure 4',
 						'medias' => array(),
 						'total_rows' => 0
 					));
@@ -221,14 +221,14 @@
 				}
 
 				if (!$ok)
-					httpResponse(400, array('message' => 'Incorrect input'));
+					httpResponse(400, array('message' => 'Incorrect input 3'));
 
 				$result = $dbDriver->getMediasByPoolgroup($_SESSION['user']['poolgroup'], $params);
 				if ($result['query_executed'] == false) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media => Query failure 5', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediasByPoolgroup(%s, %s)', $_SESSION['user']['poolgroup'], $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
-						'message' => 'Query failure',
+						'message' => 'Query failure 5' . $result['query'],
 						'medias' => array(),
 						'total_rows' => 0
 					));

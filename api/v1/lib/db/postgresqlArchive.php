@@ -167,9 +167,11 @@
 			return $archive;
 		}
 
-		public function getArchives($user_id, &$params) {
+		public function getArchives(&$user, &$params) {
+
 			$query_common = " FROM archive WHERE (creator = $1 OR owner = $1 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)))";
-			$query_params = array($user_id);
+			$query_params = array($user['id']);
+
 
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
@@ -187,6 +189,21 @@
 					$query_common .= ' AND owner = $' . count($query_params);
 				else
 					$query_common .= ' AND owner IN (SELECT id FROM users WHERE login = $' . count($query_params) .')';
+			}
+
+			if (isset($params['deleted'])) {
+				if($params['deleted']==='yes'){
+//					$query_params[] = $params['deleted']; 
+//					$query_common .= ' AND name ~* $' . count($query_params);
+				}
+				if($params['deleted']==='no'){
+//					$query_params[] = $params['deleted'];
+					$query_common .= ' AND deleted=false';
+				}
+				if($params['deleted']==='only'){
+//					$query_params[] = $params['deleted'];
+					$query_common .= ' AND deleted=true';
+				}
 			}
 
 			$total_rows = 0;
@@ -1351,7 +1368,7 @@
 		}
 
 		public function getMediasByPoolgroup($user_poolgroup, &$params) {
-			$query_common = " FROM media m INNER JOIN pooltopoolgroup ptpg ON m.pool = ptpg.pool AND ptpg.poolgroup = $1 ORDER BY id";
+			$query_common = " FROM media m INNER JOIN pooltopoolgroup ptpg ON m.pool = ptpg.pool AND ptpg.poolgroup = $1";
 			$query_params = array($user_poolgroup);
 
 			$total_rows = 0;
@@ -1384,7 +1401,7 @@
 				$total_rows = intval($row[0]);
 			}
 
-			$query = "SELECT id" . $query_common;
+			$query = "SELECT id" . $query_common. ' ORDER BY id';
 
 			if (isset($params['limit'])) {
 				$query_params[] = $params['limit'];
@@ -1640,6 +1657,17 @@
 		public function getPoolsByPoolgroup($user_poolgroup, &$params) {
 			$query_common = " FROM pooltopoolgroup WHERE poolgroup = $1 ORDER BY pool";
 			$query_params = array($user_poolgroup);
+
+			if (isset($params['deleted'])) {
+				if($params['deleted']==='yes'){
+				}
+				if($params['deleted']==='no'){
+					$query_common .= ' AND deleted=false';
+				}
+				if($params['deleted']==='only'){
+					$query_common .= ' AND deleted=true';
+				}
+			}
 
 			$total_rows = 0;
 			if (isset($params['limit']) or isset($params['offset'])) {
