@@ -1275,11 +1275,17 @@
 			if (pg_num_rows($result) == 0)
 				return false;
 
-			$medias = array();
-			while ($row = pg_fetch_array($result))
-				$medias[] = $row;
+				$row = pg_fetch_array($result);
+				$total_rows=count($row);
 
-			return $medias;
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $row,
+				'total_rows' => $total_rows
+			);
 		}
 
 		public function getMediasByPool($pool, &$params) {
