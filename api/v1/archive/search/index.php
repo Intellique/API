@@ -107,7 +107,7 @@
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
-			$result = $dbDriver->getArchives($_SESSION['user']['id'], $params);
+			$result = $dbDriver->getArchives($_SESSION['user'], $params);
 			if ($result['query_prepared'] === false) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive/search => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchives(%s, %s)', $_SESSION['user']['id'], var_export($params, true)), $_SESSION['user']['id']);

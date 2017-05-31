@@ -172,7 +172,6 @@
 			$query_common = " FROM archive WHERE (creator = $1 OR owner = $1 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)))";
 			$query_params = array($user['id']);
 
-
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
 				$query_common .= ' AND name ~* $' . count($query_params);

@@ -25,11 +25,11 @@
 
 		/**
 		 * \brief Get archives ids list for user \em $user_id
-		 * \param $user_id : a user
+		 * \param $user : a user information
 		 * \param $params : optional parameters
 		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
 		 */
-		public function getArchives($user_id, &$params);
+		public function getArchives(&$user, &$params);
 
 		/**
 		 * \brief Get a list of archive ids by media id

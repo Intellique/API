@@ -71,6 +71,7 @@
  * \li \c pool id (integer) : pool id
  * \li \c files (string array) : files to be archived
  * \li \c name (string) : archive name
+ * \li \c deleted (string) : indicator to show either no deleted archives, all deleted archives, or only deleted archives
  * \li \c metadata [optional] (object) : archive metadata, <em>default value : empty object</em>
  * \li \c nextstart [optional] (string) : archival task nextstart date, <em>default value : now</em>
  * \li \c options [optional] (hash table) : check archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
@@ -202,6 +203,17 @@
 				$params = array();
 				$ok = true;
 
+				if (isset($_GET['deleted'])) {
+					if ($_SESSION['user']['isadmin']) {
+						if (false !== array_search($_GET['deleted'], array('yes', 'no', 'only')))
+							$params['deleted'] = $_GET['deleted'];
+						else
+							$ok = false;
+					} else
+						httpResponse(403, array('message' => 'Permission denied'));
+				} else
+					$params['deleted'] = 'no';
+
 				if (isset($_GET['order_by'])) {
 					if (array_search($_GET['order_by'], array('id', 'uuid', 'name')))
 						$params['order_by'] = $_GET['order_by'];
@@ -232,7 +244,7 @@
 				if (!$ok)
 					httpResponse(400, array('message' => 'Incorrect input'));
 
-				$result = $dbDriver->getArchives($_SESSION['user']['id'], $params);
+				$result = $dbDriver->getArchives($_SESSION['user'], $params);
 				if ($result['query_executed'] == false) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive => Query failure', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchives(%s, %s)', $_SESSION['user']['id'], $params), $_SESSION['user']['id']);

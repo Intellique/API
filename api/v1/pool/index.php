@@ -7,6 +7,7 @@
  * use \b GET method
  * \verbatim path : /storiqone-backend/api/v1/pool/ \endverbatim
  * \param id : pool id
+ * \li \c deleted (string) : indicator to show either no deleted archives, all deleted archives, or only deleted archives
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
  *     \verbatim Pool information is returned \endverbatim
@@ -153,6 +154,18 @@
 			} else {
 				$params = array();
 				$ok = true;
+
+
+				if (isset($_GET['deleted'])) {
+					if ($_SESSION['user']['isadmin']) {
+						if (false !== array_search($_GET['deleted'], array('yes', 'no', 'only')))
+							$params['deleted'] = $_GET['deleted'];
+						else
+							$ok = false;
+					} else
+						httpResponse(403, array('message' => 'Permission denied'));
+				} else
+					$params['deleted'] = 'no';
 
 				if (isset($_GET['limit'])) {
 					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
