@@ -164,6 +164,7 @@
 			httpResponse(200, array(
 					'message' => 'Query succeeded',
 					'medias' => $result
+					'total_rows' => $result['total_rows']
 			));
 
 			break;
