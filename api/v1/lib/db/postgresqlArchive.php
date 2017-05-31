@@ -1275,15 +1275,22 @@
 			if (pg_num_rows($result) == 0)
 				return false;
 
-				$row = pg_fetch_array($result);
-				$total_rows=count($row);
+			$rows = array();
+			while ($row = pg_fetch_assoc($result)) {
+				$row['id'] = intval($row['id']);
+				if ($row['pool'])
+					$row['pool'] = intval($row['pool']);
+				$rows[] = $row;
+			}
+			if ($total_rows === 0)
+				$total_rows = count($rows);
 
 			return array(
 				'query' => $query,
 				'query_name' => $query_name,
 				'query_prepared' => true,
 				'query_executed' => true,
-				'rows' => $row,
+				'rows' => &$rows,
 				'total_rows' => $total_rows
 			);
 		}

@@ -138,12 +138,12 @@
 
 			$result = array();
 			$permission = $_SESSION['user']['isadmin'] || $_SESSION['user']['canarchive'];
-			foreach ($medias as $list) {
-				if ($list['pool'] ==! null) {
-					$permission_pool = $dbDriver->checkPoolPermission($list['pool'], $_SESSION['user']['id']);
+			foreach ($medias['rows'] as $media) {
+				if ($media['pool'] ==! null) {
+					$permission_pool = $dbDriver->checkPoolPermission($media['pool'], $_SESSION['user']['id']);
 					if ($permission_pool === null) {
 						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media/serach => Query failure', $_SESSION['user']['id']);
-						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $list['pool'], $_SESSION['user']['id']), $_SESSION['user']['id']);
+						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $media['pool'], $_SESSION['user']['id']), $_SESSION['user']['id']);
 						httpResponse(500, array(
 							'message' => 'Query failure',
 							'medias' => array()
@@ -151,10 +151,9 @@
 					}
 					$permission_granted = ($permission_pool || $permission);
 					if ($permission_granted === true)
-						$result[] = $list['id'];
-				} else
-					if ($permission)
-						$result[] = $list['id'];
+						$result[] = $media['id'];
+				} else if ($permission)
+					$result[] = $media['id'];
 			}
 
 			if (count($result) == 0) {
@@ -163,8 +162,8 @@
 			}
 			httpResponse(200, array(
 					'message' => 'Query succeeded',
-					'medias' => $result
-					'total_rows' => $result['total_rows']
+					'medias' => &$result,
+					'total_rows' => $medias['total_rows']
 			));
 
 			break;
