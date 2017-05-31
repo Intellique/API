@@ -1654,18 +1654,18 @@
 		}
 
 		public function getPoolsByPoolgroup($user_poolgroup, &$params) {
-			$query_common = " FROM pooltopoolgroup WHERE poolgroup = $1 ORDER BY pool";
+			$query_common = " FROM pooltopoolgroup WHERE poolgroup = $1";
 			$query_params = array($user_poolgroup);
 
+			$deleted = false;
 			if (isset($params['deleted'])) {
-				if($params['deleted']==='yes'){
-				}
-				if($params['deleted']==='no'){
-					$query_common .= ' AND deleted=false';
-				}
-				if($params['deleted']==='only'){
-					$query_common .= ' AND deleted=true';
-				}
+				$deleted = true;
+				$query_common = " FROM pool WHERE id IN (SELECT pool" . $query_common . ")";
+
+				if ($params['deleted'] === 'no')
+					$query_common .= ' AND NOT deleted';
+				else if ($params['deleted'] === 'only')
+					$query_common .= ' AND deleted';
 			}
 
 			$total_rows = 0;
@@ -1698,7 +1698,10 @@
 				$total_rows = intval($row[0]);
 			}
 
-			$query = "SELECT pool" . $query_common;
+			if ($deleted)
+				$query = "SELECT id" . $query_common . " ORDER BY id";
+			else
+				$query = "SELECT pool" . $query_common . " ORDER BY pool";
 
 			if (isset($params['limit'])) {
 				$query_params[] = $params['limit'];

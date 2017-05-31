@@ -155,7 +155,6 @@
 				$params = array();
 				$ok = true;
 
-
 				if (isset($_GET['deleted'])) {
 					if ($_SESSION['user']['isadmin']) {
 						if (false !== array_search($_GET['deleted'], array('yes', 'no', 'only')))
