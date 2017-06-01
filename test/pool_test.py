@@ -452,3 +452,32 @@ class PoolTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
+
+    def test_39_basic_user_tries_to_get_deleted_pool(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('GET', self.path + 'pool/?deleted=yes', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_40_basic_user_tries_to_get_only_deleted_pool(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('GET', self.path + 'pool/?deleted=only', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_41_admin_user_tries_to_get_deleted_pool(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'pool/?deleted=yes', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_42_admin_user_tries_to_get_only_deleted_pool(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'pool/?deleted=only', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+

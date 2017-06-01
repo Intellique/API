@@ -298,3 +298,32 @@ class ArchiveTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 404)
+
+    def test_31_basic_user_tries_to_get_deleted_archives(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('GET', self.path + 'archive/?deleted=yes', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_32_basic_user_tries_to_get_only_deleted_archives(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('GET', self.path + 'archive/?deleted=only', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_33_admin_user_tries_to_get_deleted_archives(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'archive/?deleted=yes', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_34_admin_user_tries_to_get_only_deleted_archives(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'archive/?deleted=only', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
