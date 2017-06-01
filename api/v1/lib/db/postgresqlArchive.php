@@ -1193,7 +1193,7 @@
 
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
-				$query .= ' WHERE name = $' . count($query_params);
+				$query .= ' WHERE name ~* $' . count($query_params);
 				$clause_where = true;
 			}
 
