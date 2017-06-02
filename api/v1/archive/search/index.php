@@ -77,6 +77,17 @@
 				$params['pool'] = $_GET['pool'];
 			}*/
 
+			if (isset($_GET['deleted'])) {
+				if ($_SESSION['user']['isadmin']) {
+					if (false !== array_search($_GET['deleted'], array('yes', 'no', 'only')))
+						$params['deleted'] = $_GET['deleted'];
+					else
+						$ok = false;
+				} else
+					httpResponse(403, array('message' => 'Permission denied'));
+			} else
+				$params['deleted'] = 'no';
+
 			if (isset($_GET['order_by'])) {
 				if (array_search($_GET['order_by'], array('id', 'uuid', 'name', 'creator', 'owner')) !== false)
 					$params['order_by'] = $_GET['order_by'];

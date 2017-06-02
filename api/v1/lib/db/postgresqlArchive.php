@@ -191,18 +191,10 @@
 			}
 
 			if (isset($params['deleted'])) {
-				if($params['deleted']==='yes'){
-//					$query_params[] = $params['deleted']; 
-//					$query_common .= ' AND name ~* $' . count($query_params);
-				}
-				if($params['deleted']==='no'){
-//					$query_params[] = $params['deleted'];
-					$query_common .= ' AND deleted=false';
-				}
-				if($params['deleted']==='only'){
-//					$query_params[] = $params['deleted'];
-					$query_common .= ' AND deleted=true';
-				}
+				if ($params['deleted'] === 'no')
+					$query_common .= ' AND NOT deleted';
+				else if ($params['deleted'] === 'only')
+					$query_common .= ' AND deleted';
 			}
 
 			$total_rows = 0;
