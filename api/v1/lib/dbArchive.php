@@ -93,6 +93,18 @@
 		public function getMedia($id);
 
 		/**
+		 * \brief Get a media by its name, its pool, its format, its type, its nbfiles, or the format of the archive which it's in.
+		 * \param $name : media name
+		 * \param $pool : media pool id
+		 * \param $mediaformat : media format
+		 * \param $type : media type
+		 * \param $nbfiles : media nbfiles
+		 * \param $archiveformat : format of the archive the media is in 
+		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
+		 */
+		public function getMediasByParams(&$params);
+
+		/**
 		 * \brief Get a medias ids list by its pool
 		 * \param $pool : medias pool id
 		 * \param $params : optional parameters
