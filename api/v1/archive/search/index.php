@@ -77,6 +77,13 @@
 				$params['pool'] = $_GET['pool'];
 			}*/
 
+			if (isset($_GET['archivefile'])) {
+				if (!is_numeric($_GET['archivefile']))
+					$ok = false;
+				else
+					$params['archivefile'] = $_GET['archivefile'];
+			}
+
 			if (isset($_GET['deleted'])) {
 				if ($_SESSION['user']['isadmin']) {
 					if (false !== array_search($_GET['deleted'], array('yes', 'no', 'only')))
@@ -102,12 +109,14 @@
 						$ok = false;
 				}
 			}
+
 			if (isset($_GET['limit'])) {
 				if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
 					$params['limit'] = intval($_GET['limit']);
 				else
 					$ok = false;
 			}
+
 			if (isset($_GET['offset'])) {
 				if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
 					$params['offset'] = intval($_GET['offset']);

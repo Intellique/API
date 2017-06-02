@@ -190,6 +190,11 @@
 					$query_common .= ' AND owner IN (SELECT id FROM users WHERE login = $' . count($query_params) .')';
 			}
 
+			if (isset($params['archivefile'])) {
+				$query_params[] = $params['archivefile'];
+				$query_common .= ' AND id IN (SELECT archive FROM milestones_files WHERE archivefile = $' . count($query_params) .')';
+			}
+
 			if (isset($params['deleted'])) {
 				if ($params['deleted'] === 'no')
 					$query_common .= ' AND NOT deleted';
