@@ -284,7 +284,8 @@
 				'query_name' => $query_name,
 				'query_prepared' => true,
 				'query_executed' => true,
-				'rows' => $rows,
+				'params' => &$query_params,
+				'rows' => &$rows,
 				'total_rows' => $total_rows
 			);
 		}

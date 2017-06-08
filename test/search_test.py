@@ -12,7 +12,7 @@ class SearchTest(CommonTest):
 
     def test_02_search_archive_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sarchive/search/?owner=3" % (self.path), headers=headers)
+        conn.request('GET', "%sarchive/search/?owner=%d&deleted=yes" % (self.path, 3), headers=headers)
         res = conn.getresponse()
         message = json.loads(res.read().decode("utf-8"))
         conn.close()
@@ -134,7 +134,7 @@ class SearchTest(CommonTest):
 
     def test_19_search_archive_success_owner_string(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sarchive/search/?owner=archiver" % (self.path), headers=headers)
+        conn.request('GET', "%sarchive/search/?owner=archiver&&deleted=yes" % (self.path), headers=headers)
         res = conn.getresponse()
         message = json.loads(res.read().decode("utf-8"))
         conn.close()
@@ -149,7 +149,7 @@ class SearchTest(CommonTest):
 
     def test_21_search_archive_success_multiple_args(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sarchive/search/?owner=3&name=ArchiveModifTest" % (self.path), headers=headers)
+        conn.request('GET', "%sarchive/search/?owner=3&name=ArchiveModifTest&deleted=yes" % (self.path), headers=headers)
         res = conn.getresponse()
         message = json.loads(res.read().decode("utf-8"))
         conn.close()
@@ -266,3 +266,17 @@ class SearchTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
+
+    def test_38_search_archivefile_in_archive_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%sarchive/search/?deleted=yes&archivefile=10" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_39_search_archivefile_in_archive_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%sarchive/search/?archivefile=457" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)
