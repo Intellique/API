@@ -74,7 +74,7 @@
 			if ($apikey === false)
 				httpResponse(401, array('message' => 'Invalid API key'));
 
-			$user = $dbDriver->getUser(null, $credential['login']);
+			$user = $dbDriver->getUser(null, $credential['login'], true);
 
 			if ($user === false || $user['disabled'])
 				httpResponse(401, array('message' => 'Log in failed'));

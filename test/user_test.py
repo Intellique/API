@@ -35,13 +35,13 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
-    def test_05_get_basic_user_not_allowed(self):
+    def test_05_get_basic_user_partially_allowed(self):
         conn, headers, message = self.newLoggedConnection('basic')
         userId = self.users['admin']['id']
         conn.request('GET', "%suser/?id=%d" % (self.path, userId), headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 403)
+        self.assertEqual(res.status, 200)
 
     def test_06_get_list_of_users_not_logged(self):
         conn = self.newConnection()

@@ -261,7 +261,7 @@
 			return $rows;
 		}
 
-		public function getUser($id, $login) {
+		public function getUser($id, $login, $completeInfo) {
 			if ((isset($id) && !is_numeric($id)) || (isset($login) && !is_string($login)))
 				return false;
 
@@ -287,15 +287,26 @@
 
 			$row = pg_fetch_assoc($result);
 
-			$row['id'] = intval($row['id']);
-			$row['isadmin'] = $row['isadmin'] == 't' ? true : false;
-			$row['canarchive'] = $row['canarchive'] == 't' ? true : false;
-			$row['canrestore'] = $row['canrestore'] == 't' ? true : false;
-			$row['poolgroup'] = PostgresqlDB::getInteger($row['poolgroup']);
-			$row['disabled'] = $row['disabled'] == 't' ? true : false;
-			$row['meta'] = json_decode($row['meta']);
+			$user = array(
+				'id' => intval($row['id']),
+				'login' => $row['login'],
+				'fullname' => $row['fullname'],
+				'email' => $row['email']
+			);
 
-			return $row;
+			if ($completeInfo) {
+				$user['password'] = $row['password'];
+				$user['salt'] = $row['salt'];
+				$user['homedirectory'] = $row['homedirectory'];
+				$user['isadmin'] = $row['isadmin'] == 't' ? true : false;
+				$user['canarchive'] = $row['canarchive'] == 't' ? true : false;
+				$user['canrestore'] = $row['canrestore'] == 't' ? true : false;
+				$user['meta'] = json_decode($row['meta']);
+				$user['poolgroup'] = PostgresqlDB::getInteger($row['poolgroup']);
+				$user['disabled'] = $row['disabled'] == 't' ? true : false;
+			}
+
+			return $user;
 		}
 
 		public function getUsers(&$params) {

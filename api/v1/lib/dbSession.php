@@ -89,9 +89,10 @@
 		 * \brief Get user by id or login
 		 * \param $id : User id or null
 		 * \param $login : User login or null
+		 * \param $completeInfo : if \b TRUE, get all user's informations. Else, get only login, full name and email.
 		 * \return <b>User informations</b>, \b FALSE if not found, \b NULL on query execution failure
 		 */
-		public function getUser($id, $login);
+		public function getUser($id, $login, $completeInfo);
 
 		/**
 		 * \brief Get users id list

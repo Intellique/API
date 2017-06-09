@@ -118,13 +118,12 @@
 			if ($_GET['id'] == $_SESSION['user']['id'])
 				httpResponse(400, array('message' => 'Suicide forbidden'));
 
-			$check_user = $dbDriver->getUser($_GET['id'], null);
+			$check_user = $dbDriver->getUser($_GET['id'], null, true);
 			if ($check_user === null) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/user => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $_GET['id'], 'null'), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			}
-			elseif ($check_user === false)
+			} elseif ($check_user === false)
 				httpResponse(404, array('message' => 'User not found'));
 
 			$delete_status = $dbDriver->deleteUser($_GET['id']);
@@ -132,8 +131,7 @@
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/user => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('deleteUser(%s)', $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			}
-			elseif ($delete_status === false)
+			} elseif ($delete_status === false)
 				httpResponse(404, array('message' => 'User not found'));
 			else {
 				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('User %s deleted', $_GET['id']), $_SESSION['user']['id']);
@@ -146,31 +144,25 @@
 			checkConnected();
 
 			if (isset($_GET['id'])) {
-				if ($_GET['id'] == $_SESSION['user']['id'] || $_SESSION['user']['isadmin']) {
-					$user = $dbDriver->getUser($_GET['id'], null);
-					if ($user === null) {
-						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/user => Query failure', $_SESSION['user']['id']);
-						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $_GET['id'], 'null'), $_SESSION['user']['id']);
-						httpResponse(500, array(
-							'message' => 'Query failure',
-							'user' => array()
-						));
-					}
-					elseif ($user === false)
-						httpResponse(404, array(
-							'message' => 'User not found',
-							'user' => array()
-						));
-
-					$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Getting informations from user %s', $_GET['id']), $_SESSION['user']['id']);
-					httpResponse(200, array(
-						'message' => 'Query successful',
-						'user' => $user
+				$user = $dbDriver->getUser($_GET['id'], null, $_GET['id'] == $_SESSION['user']['id'] || $_SESSION['user']['isadmin']);
+				if ($user === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/user => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $_GET['id'], 'null'), $_SESSION['user']['id']);
+					httpResponse(500, array(
+						'message' => 'Query failure',
+						'user' => array()
 					));
-				} else {
-					$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried get user informations', $_SESSION['user']['id']);
-					httpResponse(403, array('message' => 'Permission denied'));
-				}
+				} elseif ($user === false)
+					httpResponse(404, array(
+						'message' => 'User not found',
+						'user' => array()
+					));
+
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Getting informations from user %s', $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(200, array(
+					'message' => 'Query successful',
+					'user' => $user
+				));
 			} elseif ($_SESSION['user']['isadmin']) {
 				$params = array();
 				$ok = true;
@@ -248,12 +240,11 @@
 			if ($ok)
 				$ok = isset($user['login']) && is_string($user['login']);
 			if ($ok) {
-				$check_user = $dbDriver->getUser(null, $user['login']);
+				$check_user = $dbDriver->getUser(null, $user['login'], true);
 				if ($check_user === null) {
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', 'null', $user['login']), $_SESSION['user']['id']);
 					$failed = true;
-				}
-				elseif ($check_user !== false)
+				} elseif ($check_user !== false)
 					$ok = false;
 			}
 
@@ -380,12 +371,11 @@
 			if ($ok)
 				$ok = isset($user['id']) && is_int($user['id']);
 			if ($ok) {
-				$check_user = $dbDriver->getUser($user['id'], null);
+				$check_user = $dbDriver->getUser($user['id'], null, true);
 				if ($check_user === null) {
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $user['id'], 'null'), $_SESSION['user']['id']);
 					$failed = true;
-				}
-				elseif ($check_user === false)
+				} elseif ($check_user === false)
 					$ok = false;
 			}
 
@@ -393,7 +383,7 @@
 			if ($ok)
 				$ok = isset($user['login']) && is_string($user['login']);
 			if ($ok) {
-				$check_user = $dbDriver->getUser(null, $user['login']);
+				$check_user = $dbDriver->getUser(null, $user['login'], true);
 				if ($check_user === null) {
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', 'null', $user['login']), $_SESSION['user']['id']);
 					$failed = true;
@@ -406,12 +396,11 @@
 			if ($ok)
 				$ok = isset($user['password']) && is_string($user['password']);
 			if ($ok) {
-				$check_user = $dbDriver->getUser($user['id'], null);
+				$check_user = $dbDriver->getUser($user['id'], null, true);
 				if ($check_user === null) {
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $user['login'], 'null'), $_SESSION['user']['id']);
 					$failed = true;
-				}
-				elseif ($check_user === false)
+				} elseif ($check_user === false)
 					$ok = false;
 
 				if ($ok && !$failed && $user['password'] != $check_user['password']) {
