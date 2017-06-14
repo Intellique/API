@@ -8,6 +8,44 @@
 	class PostgresqlDBArchive extends PostgresqlDB implements DB_Archive {
 		use PostgresqlDBJob, PostgresqlDBMetadata, PostgresqlDBPermission;
 
+		public function checkArchiveMirrorInCommon($archiveA, $archiveB) {
+			$query = 'SELECT COUNT(*) > 0 FROM archivetoarchivemirror a1 INNER JOIN archivetoarchivemirror a2 ON a1.archivemirror = a2.archivemirror WHERE a1.archive = $1 AND a2.archive = $2';
+			$query_params = array($archiveA, $archiveB);
+			$query_name = 'check_archive_mirror_in_common';
+
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'result' => null,
+					'query_params' => &$query_params
+				);
+
+			$result = pg_execute($query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'result' => null,
+					'query_params' => &$query_params
+				);
+
+			$row = pg_fetch_array($result);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'result' => $row[0] == 't' ? true : false,
+				'query_params' => &$query_params
+			);
+		}
+
 		public function createPool(&$pool) {
 			if (!$this->prepareQuery("create_pool", "INSERT INTO pool(uuid, name, archiveformat, mediaformat, autocheck, lockcheck, growable, unbreakablelevel, metadata, backuppool, poolmirror) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id"))
 			return NULL;
@@ -307,6 +345,53 @@
 
 			return $archives;
 		}
+
+		public function getArchivesByPool($id) {
+
+			$query = 'SELECT id FROM archive WHERE id IN (SELECT archive FROM archivevolume WHERE media IN (SELECT id FROM media WHERE pool = $1)) AND NOT deleted';
+			$query_name = "select_archives_by_pool";
+			$query_params = array();
+			if(isset($id)){
+				$query_params[] = $id;
+			}
+
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => 0,
+					'query_params' => &$query_params
+				);
+
+			$result = pg_execute($query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => 0,
+					'query_params' => &$query_params
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => &$rows,
+				'total_rows' => count($rows),
+				'query_params' => &$query_params
+			);
+}
 
 		public function getArchiveFile($id) {
 			if (!is_numeric($id))
@@ -1662,6 +1747,57 @@
 				$pools[] = intval($row[0]);
 
 			return $pools;
+		}
+
+		public function getPoolsByPoolMirror($id, $uuid) {
+			$query = "SELECT id FROM pool WHERE poolmirror ";
+			$query_params = array();
+			if(isset($id)){
+				$query .= " = $1";
+				$query_params[] = $id;
+			} else {
+				$query .= " = (SELECT id FROM poolmirror WHERE uuid = $1 LIMIT 1)";
+				$query_params[] = $uuid;
+			}
+
+			$query_name = "select_pool_in_poolmirror_" . md5($query);
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => 0,
+					'query_params' => &$query_params
+				);
+
+
+			$result = pg_execute($query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => 0,
+					'query_params' => &$query_params
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => &$rows,
+				'total_rows' => count($rows),
+				'query_params' => &$query_params
+			);
 		}
 
 		public function getPoolsByPoolgroup($user_poolgroup, &$params) {
