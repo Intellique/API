@@ -130,7 +130,8 @@
 			}
 			httpResponse(200, array(
 					'message' => 'Query succeeded',
-					'pools' => $result
+					'pools' => $result,
+					'total_rows' => count($result)
 			));
 
 			break;
