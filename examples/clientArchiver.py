@@ -17,7 +17,7 @@ def calcul(directory):
 			size = size + sum( os.path.getsize( os.path.join(current, file) ) for file in files )
 		except:
 			pass
-	return (size/(1024*1024))
+	return size
 
 parser = OptionParser()
 
@@ -32,6 +32,7 @@ group.add_option("-f", "--file", action="append", dest="files", default=[], type
 group.add_option("-j", "--job-name", dest="jobName", default=None, help="Optionnal job name")
 group.add_option("-m", action="append", dest="meta", default=[], help="Optionnal metadata")
 group.add_option("-p", "--pool-id", dest="poolId", type="int", help="Specify pool id (to create an archive)")
+group.add_option("-S", "--size", dest="size", default="300MB", type="string", help="Specify the size to archive")
 parser.add_option_group(group)
 
 group = OptionGroup(parser, "options for authenticate");
@@ -85,14 +86,51 @@ if options.api_key is None:
 	print("You should specify an API key")
 	ok = False
 
+if options.directory is None:
+	print("You should specify a directory")
+	ok = False
+
 if not ok:
 	sys.exit(1)
 
+def convertSize(size):
+	length = len(size)-2
+	lastChar = size[-2:]
+	realSize = float(size[:length])
+	if lastChar == "KB":
+		realSize = realSize/1024
+		print(str(realSize)+" KB")
+	elif lastChar == "MB":
+		realSize = realSize/(1024*1024)
+		print(str(realSize)+" MB")
+	elif lastChar == "GB":
+		realSize = realSize/(1024*1024/1024)
+		print(str(realSize)+" GB")
+	elif lastChar == "TB":
+		realSize = realSize/(1024*1024/1024*1024)
+		print(str(realSize)+" TB")
+	else:
+		length = len(size)-1
+		lastChar = size[length]
+		if lastChar == "B":
+			realSize = float(size[:length])
+			print(str(realSize)+" B")
+	return realSize
+
 path = options.directory
 directory_size = calcul(path)
-print(str(directory_size)+"mo")
 
-if(directory_size > 0):
+if options.size == "300MB":
+	directory_size = directory_size/(1024*1024)
+	size = options.size
+	length = len(size)-2
+	realSize = float(size[:length])
+	print(str(realSize)+" MB")
+else:
+	size = options.size
+	realSize = convertSize(size)
+
+if directory_size >= realSize:
 	params = {
 		'archive': options.archiveId,
 		'name': options.archiveName,
@@ -239,3 +277,5 @@ if(directory_size > 0):
 			e = sys.exc_info()[0]
 			print('Error: %s' % e)
 			time.sleep(60)
+else:
+	print("The folder size is less than the minimum size required to archive.")
