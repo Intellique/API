@@ -75,6 +75,7 @@
 		}
 
 		public function getSelectedFile($path) {
+			$path = rtrim($path,'/');
 			if (!$this->prepareQuery('select_selectedfile_by_path', "SELECT id FROM selectedfile WHERE path = $1 LIMIT 1"))
 				return null;
 
