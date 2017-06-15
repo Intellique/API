@@ -31,60 +31,63 @@ group.add_option("-v", "--verbose", action="store_true", dest="verbose", default
 
 ok = True
 if options.archiveId is None:
-    print("You should specify an archive id")
-    ok = False
+	print("You should specify an archive id")
+	ok = False
 
 if options.nextStart is not None:
-    formats = ['%Y-%m-%dT%H:%M:%S%z', '%Y-%m-%d %H:%M:%S%z', '%Y-%m-%dT%H:%M:%S%Z', '%Y-%m-%d %H:%M:%S%Z', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S', '%x %X']
-    for format in formats:
-        try:
-            date = None
-            date = datetime.strptime(options.nextStart, format)
-        except ValueError:
-            pass
-        if date is not None:
-            options.nextStart = date.isoformat()
-            break
-    if date is None:
-        print("Failed to parse next start date parameter")
-        ok = False
+	formats = ['%Y-%m-%dT%H:%M:%S%z', '%Y-%m-%d %H:%M:%S%z', '%Y-%m-%dT%H:%M:%S%Z', '%Y-%m-%d %H:%M:%S%Z', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S', '%x %X']
+	for format in formats:
+		try:
+			date = None
+			date = datetime.strptime(options.nextStart, format)
+		except ValueError:
+			pass
+		if date is not None:
+			options.nextStart = date.isoformat()
+			break
+	if date is None:
+		print("Failed to parse next start date parameter")
+		ok = False
 
 if options.api_key is None:
-    print("You should specify an API key")
-    ok = False
+	print("You should specify an API key")
+	ok = False
 
 options.files.extend(args)
 
 if not ok:
-    sys.exit(1)
+	sys.exit(1)
 
 params = {
-    'archive': options.archiveId,
-    'name': options.jobName,
-    'files': options.files,
-    'nextstart': options.nextStart,
-    'destination': options.destination
+	'archive': options.archiveId,
+	'name': options.jobName,
+	'files': options.files,
+	'nextstart': options.nextStart,
+	'destination': options.destination
 }
 
 if options.userName is None:
-    print("User name: ", end="", flush=True)
-    options.userName = sys.stdin.readline().splitlines()[0]
+	print("User name: ", end="", flush=True)
+	options.userName = sys.stdin.readline().splitlines()[0]
 
 if options.promptPassword or options.password is None:
-    options.password = getpass.getpass()
+	options.password = getpass.getpass()
 
 # authentication
-conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
+if hasattr(ssl, '_create_unverified_context'):
+	conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
+else:
+	conn = http.client.HTTPSConnection(options.host)
 
 credentials = json.dumps({'login': options.userName, 'password': options.password, 'apikey': options.api_key})
 headers = {"Content-type": "application/json"}
-conn.request('POST', '/storiqone-backend/api/v1/auth/', credentials, headers)
+conn.request('POST', '/storiqone-backend-paul/api/v1/auth/', credentials, headers)
 res = conn.getresponse()
 contentType = res.getheader('Content-type').split(';', 1)[0]
 if contentType is None or contentType != "application/json" or res.status != 201:
-    conn.close()
-    print ("Access denied")
-    sys.exit(2)
+	conn.close()
+	print ("Access denied")
+	sys.exit(2)
 
 print ("Access granted")
 conn.close()
@@ -92,18 +95,21 @@ conn.close()
 # restore archive
 cookie = {'Cookie': res.getheader('Set-Cookie').split(';')[0]}
 headers.update(cookie)
-conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
-conn.request('POST', '/storiqone-backend/api/v1/archive/restore/', json.dumps(params), headers)
+if hasattr(ssl, '_create_unverified_context'):
+	conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
+else:
+	conn = http.client.HTTPSConnection(options.host)
+conn.request('POST', '/storiqone-backend-paul/api/v1/archive/restore/', json.dumps(params), headers)
 res = conn.getresponse()
 contentType = res.getheader('Content-type').split(';', 1)[0]
 if contentType is None or contentType != "application/json" or res.status != 201:
-    message = res.read().decode("utf-8")
-    conn.close()
-    if options.verbose:
-        print ("Restoration task creation has failed, response code : %d, params : %s, message: %s" % (res.status, params, message))
-    else:
-        print ("Restoration task creation has failed")
-    sys.exit(3)
+	message = res.read().decode("utf-8")
+	conn.close()
+	if options.verbose:
+		print ("Restoration task creation has failed, response code : %d, params : %s, message: %s" % (res.status, params, message))
+	else:
+		print ("Restoration task creation has failed")
+	sys.exit(3)
 
 message = json.loads(res.read().decode("utf-8"))
 conn.close()
