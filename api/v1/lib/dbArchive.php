@@ -9,6 +9,14 @@
 	 */
 	interface DB_Archive extends DB, DB_Job, DB_Metadata, DB_Permission {
 		/**
+		 * \brief Check if \i archiveA and \i archiveB have a common archive mirror
+		 * \param $archiveA : id of the first archive
+		 * \param $archiveB : id of the second archive
+		 * \return true if there is a common archive mirror, false otherwise, or null if error
+		 */
+		public function checkArchiveMirrorInCommon($archiveA, $archiveB);
+
+		/**
 		 * \brief Create a pool
 		 * \param $pool : a pool
 		 * \return pool id or NULL on failure
@@ -53,6 +61,13 @@
 		 * \note No permission check will be performed
 		 */
 		public function getArchiveFilesByParams(&$params);
+
+		/**
+		 * \brief Get a list of archive ids by pool id
+		 * \param $id : pool id
+		 * \return an array of archive ids or NULL on query failure
+		 */
+		public function getArchivesByPool($id);
 
 		/**
 		 * \brief Get an archive format by its id
@@ -172,6 +187,12 @@
 		 * \return an array of pool ids or false if not found
 		 */
 		public function getPoolsByParams(&$params);
+
+		/**
+		 * \brief Get pool(s) assigned to the poolmirror id
+		 * \return <b>Pool id list</b>, \b FALSE if not found, \b NULL on query execution failure
+		 */
+		public function getPoolsByPoolMirror($id, $uuid);
 
 		/**
 		 * \brief Get a pools ids list by its user poolgroup
