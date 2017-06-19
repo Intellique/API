@@ -1241,39 +1241,6 @@
 			$query_common = " FROM media";
 			$query_params = array();
 
-			$total_rows = 0;
-			if (isset($params['limit']) or isset($params['offset'])) {
-				$query = "SELECT COUNT(*)" . $query_common;
-				$query_name = "select_total_medias";
-
-				if (!$this->prepareQuery($query_name, $query))
-					return array(
-						'query' => $query,
-						'query_name' => $query_name,
-						'query_prepared' => false,
-						'query_executed' => false,
-						'rows' => array(),
-						'total_rows' => 0
-					);
-
-				$result = pg_execute($this->connect, $query_name, $query_params);
-				if ($result === false)
-					return array(
-						'query' => $query,
-						'query_name' => $query_name,
-						'query_prepared' => true,
-						'query_executed' => false,
-						'rows' => array(),
-						'total_rows' => 0
-					);
-
-				$row = pg_fetch_array($result);
-				$total_rows = intval($row[0]);
-			}
-
-			$clause_where = false;
-			$query = 'SELECT id, pool FROM media';
-
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
 				$query .= ' WHERE name ~* $' . count($query_params);
@@ -1346,6 +1313,40 @@
 				$query .= ' OFFSET $' . count($query_params);
 			}
 
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_medias";
+
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$clause_where = false;
+			$query = 'SELECT id, pool FROM media';
+
 			$query_name = "select_medias_by_params_" . md5($query);
 
 			if (!$this->prepareQuery($query_name, $query))
@@ -1373,8 +1374,10 @@
 				'query_name' => $query_name,
 				'query_prepared' => true,
 				'query_executed' => true,
+				'query_params' => &$query_params,
 				'rows' => &$rows,
-				'total_rows' => $total_rows
+				'total_rows' => $total_rows,
+				'params' => &$params
 			);
 		}
 
@@ -2275,6 +2278,45 @@
 				'query_executed' => true,
 				'rows' => $rows,
 				'total_rows' => count($rows)
+			);
+		}
+
+		public function isArchiveSynchronized($id) {
+
+			$query = "SELECT * FROM (SELECT archive, lastupdate = MAX(lastupdate) OVER (PARTITION BY archivemirror) AS synchronized FROM archivetoarchivemirror) AS am WHERE archive = $1";
+			$query_name = "is_archive_synchronized";
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+			$synchronized = true;
+			if ($row = pg_fetch_array($result))
+				$synchronized = $row[1] == 't' ? true : false;
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'synchronized' => $synchronized
 			);
 		}
 

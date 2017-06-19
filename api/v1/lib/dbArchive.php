@@ -203,6 +203,13 @@
 		public function getPoolsByPoolgroup($user_poolgroup, &$params);
 
 		/**
+		 * \brief check if an archive is synchronized in its archive mirror
+		 * \param $id : the archive's id
+		 * \return an object which contains a boolean status : true if synchronized, else false
+		 */
+		public function isArchiveSynchronized($id);
+
+		/**
 		 * \brief Update an archive
 		 * \param $archive : an archive
 		 * \return \b NULL on failure, \b FALSE if no archive was updated or \b TRUE on success
