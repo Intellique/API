@@ -251,4 +251,6 @@ INSERT INTO poolmirror(uuid, name, synchronized) VALUES
 ('322980de-0af7-4e48-beaa-f58c6ab4a302', 'test2', 'f'),
 ('44dc3636-fa69-4e5c-991a-0ebb6b20cdb2', 'test3', 't');
 
+UPDATE pool SET poolmirror = 1 WHERE id IN (1, 7);
+
 REFRESH MATERIALIZED VIEW milestones_files;

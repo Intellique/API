@@ -481,3 +481,41 @@ class PoolTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
+    def test_43_basic_user_tries_to_get_a_poolmirror_status_he_owns_no_pool_in(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('GET', self.path + 'poolmirror/synchronize/?id=3', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_44_admin_user_gets_poolmirror_status(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'poolmirror/synchronize/?id=1', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_45_basic_user_tries_to_synchronize_a_poolmirror(self):
+        conn, cookie, message = self.newLoggedConnection('basic')
+        data = json.dumps({
+            'id': 1
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'poolmirror/synchronize/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_46_admin_user_synchronizes_a_poolmirror(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data = json.dumps({
+            'id': 1
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'poolmirror/synchronize/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 201)
+

@@ -93,12 +93,13 @@
 			}
 
 			$archiveSynchronized = $dbDriver->isArchiveSynchronized($infoJob['archive']);
-			if (!$archiveSynchronized['query_executed'])
+			if (!$archiveSynchronized['query_executed']) {
 				$dbDriver->cancelTransaction();
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/add => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('isArchiveSynchronized(%s)', $infoJob['archive']), $_SESSION['user']['id']);
-				httpResponse(500, array('message' => 'Query failure'));
-			if (!$archiveSynchronized['synchronized']){
+				httpResponse(500, array('message' => 'Query failure','debug'=> &$archiveSynchronized));
+			}
+			if (!$archiveSynchronized['synchronized']) {
 				$dbDriver->cancelTransaction();
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/add => cannot add files to archive not synchronized with archive mirror', $_SESSION['user']['id']);
 				httpResponse(409, array('message' => 'Request conflict'));

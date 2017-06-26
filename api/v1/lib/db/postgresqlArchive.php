@@ -1241,6 +1241,11 @@
 			$query_common = " FROM media";
 			$query_params = array();
 
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_medias";
+
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
 				$query .= ' WHERE name ~* $' . count($query_params);
@@ -1263,16 +1268,6 @@
 					$query .= ' AND type = $' . count($query_params);
 				else {
 					$query .= ' WHERE type = $' . count($query_params);
-					$clause_where = true;
-				}
-			}
-
-			if (isset($params['nbfiles'])) {
-				$query_params[] = $params['nbfiles'];
-				if ($clause_where)
-					$query .= ' AND nbfiles = $' . count($query_params);
-				else {
-					$query .= ' WHERE nbfiles = $' . count($query_params);
 					$clause_where = true;
 				}
 			}
@@ -1312,12 +1307,6 @@
 				$query_params[] = $params['offset'];
 				$query .= ' OFFSET $' . count($query_params);
 			}
-
-			$total_rows = 0;
-			if (isset($params['limit']) or isset($params['offset'])) {
-				$query = "SELECT COUNT(*)" . $query_common;
-				$query_name = "select_total_medias";
-
 
 				if (!$this->prepareQuery($query_name, $query))
 					return array(
@@ -2286,26 +2275,26 @@
 			$query = "SELECT * FROM (SELECT archive, lastupdate = MAX(lastupdate) OVER (PARTITION BY archivemirror) AS synchronized FROM archivetoarchivemirror) AS am WHERE archive = $1";
 			$query_name = "is_archive_synchronized";
 
-				if (!$this->prepareQuery($query_name, $query))
-					return array(
-						'query' => $query,
-						'query_name' => $query_name,
-						'query_prepared' => false,
-						'query_executed' => false,
-						'rows' => array(),
-						'total_rows' => 0
-					);
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => 0
+				);
 
-				$result = pg_execute($this->connect, $query_name, $query);
-				if ($result === false)
-					return array(
-						'query' => $query,
-						'query_name' => $query_name,
-						'query_prepared' => true,
-						'query_executed' => false,
-						'rows' => array(),
-						'total_rows' => 0
-					);
+			$result = pg_execute($this->connect, $query_name, array($id));
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => 0
+				);
 
 			$synchronized = true;
 			if ($row = pg_fetch_array($result))
