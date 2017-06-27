@@ -17,8 +17,7 @@
  *   - \b 401 Not logged in
  *   - \b 404 Archive not found / Metadata not found
  *   - \b 500 Query failure
- * \subpage archivemeta Archive Metadata
- * \section Metadata_archive Update metadatas of archives
+ * \section Metadatas_archives Update metadatas of archives
  * To update metadatas of an archive,
  * use \b PUT method : <i>with a reference to an archive id and a reference to a key and a reference to a value</i>
  * \verbatim path : /storiqone-backend/api/v1/archive/metadata/ \endverbatim
@@ -28,8 +27,7 @@
  *   - \b 401 Not logged in
  *   - \b 404 Archive not found / Metadata not found
  *   - \b 500 Query failure
- * \subpage archivemeta Archive Metadata
- * \section Metadata_archive Create metadatas of archives
+ * \section Metadatas_archives Create metadatas of archives
  * To create metadatas of an archive,
  * use \b POST method : <i>with a reference to an archive id and a reference to a key and a reference to a value</i>
  * \verbatim path : /storiqone-backend/api/v1/archive/metadata/ \endverbatim
@@ -201,7 +199,7 @@
 
 				$dbDriver->finishTransaction();
 
-				httpResponse(200, array('message' => 'Metadata updated successfully'));
+				httpResponse(200, array('message' => 'Metadata created successfully'));
 			}
 			break;
 
