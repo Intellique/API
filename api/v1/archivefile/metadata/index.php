@@ -209,15 +209,10 @@
 						'metadata' => array()
 					));
 				}
-				if ($metadata === false)
+				if ($metadata !== false)
 					httpResponse(404, array(
-							'message' => 'No metadata found for this object',
+							'message' => 'There are metadatas founded for this object',
 							'metadata' => array()
-						));
-				if (count($metadata) === 0)
-					httpResponse(404, array(
-							'message' => 'No metadata found for this object',
-							'metadata' => $metadata
 						));
 
 				// create metadata
@@ -228,7 +223,7 @@
 						$resultMetadata = $dbDriver->createMetadata($archive['id'], $key, $value, 'archivefile', $_SESSION['user']['id']);
 						if (!$resultMetadata) {
 							$dbDriver->cancelTransaction();
-							$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/archivefile/metadata => Query failure', $_SESSION['user']['id']);
+							$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archivefile/metadata => Query failure', $_SESSION['user']['id']);
 							$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createMetadata(%s, %s, %s, "archive", %s)', $inputData['id'], $key, $value, $_SESSION['user']['id']), $_SESSION['user']['id']);
 							httpResponse(500, array('message' => 'Query failure'));
 						}
