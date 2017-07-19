@@ -25,6 +25,7 @@
  *   - \b 400 Bad request - Either ; archive id is required or archive id must be an integer or archive not found or incorrect input
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
+ *   - \b 409 Request conflict
  *   - \b 500 Query failure
  */
 	require_once("../../lib/env.php");
@@ -89,6 +90,19 @@
 				$dbDriver->cancelTransaction();
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/add => A user that cannot archive tried to archive', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
+			}
+
+			$archiveSynchronized = $dbDriver->isArchiveSynchronized($infoJob['archive']);
+			if (!$archiveSynchronized['query_executed']) {
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/add => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('isArchiveSynchronized(%s)', $infoJob['archive']), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query failure','debug'=> &$archiveSynchronized));
+			}
+			if (!$archiveSynchronized['synchronized']) {
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/add => cannot add files to archive not synchronized with archive mirror', $_SESSION['user']['id']);
+				httpResponse(409, array('message' => 'Request conflict'));
 			}
 
 			// name [optional]

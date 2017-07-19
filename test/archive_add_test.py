@@ -114,3 +114,29 @@ class ArchiveAddTest(CommonTest):
         self.assertEqual(job['job']['name'], 'ArchiveAddTest2')
         self.assertEqual(job['job']['archive'], 2)
         self.assertEqual(job['job']['nextstart'], '2020-02-20T20:22:22+0000')
+
+    def test_08_post_member_tries_to_add_files_to__synchronized_archive(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        add = json.dumps({
+            'files': ["/mnt/raid/shared/partage/Anime/Sintel.2010.1080p.mkv"],
+            'archive': 2
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'archive/add/', body=add, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 201)
+
+    def test_09_post_member_tries_to_add_files_to_not_synchronized_archive(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        add = json.dumps({
+            'files': ["/mnt/raid/shared/partage/Anime/Sintel.2010.1080p.mkv"],
+            'archive': 5
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'archive/add/', body=add, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 409)

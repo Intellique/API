@@ -480,4 +480,3 @@ class PoolTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
-

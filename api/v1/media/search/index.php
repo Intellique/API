@@ -65,13 +65,6 @@
 					$ok = false;
 			}
 
-			if (isset($_GET['nbfiles'])) {
-				if (is_numeric($_GET['nbfiles']))
-					$params['nbfiles'] = $_GET['nbfiles'];
-				else
-					$ok = false;
-			}
-
 			if (isset($_GET['archiveformat'])) {
 				if (is_numeric($_GET['archiveformat']))
 					$params['archiveformat'] = $_GET['archiveformat'];

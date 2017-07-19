@@ -183,13 +183,6 @@ class SearchTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
-    def test_26_search_media_not_found(self):
-        conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%smedia/search/?nbfiles=95" % (self.path), headers=headers)
-        res = conn.getresponse()
-        conn.close()
-        self.assertEqual(res.status, 404)
-
     def test_27_search_media_wrong_order_by(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', "%smedia/search/?nbfiles=9&order_by=fooo" % (self.path), headers=headers)

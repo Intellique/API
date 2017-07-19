@@ -309,15 +309,16 @@
 			// files (checking file access)
 			$files = $infoJob['files'];
 			$ok = isset($files) && is_array($files) && count($files) > 0;
-			
-			if ($ok){
-				for ($i = 1, $n = count($files); $ok && $i < $n; $i++){
+
+			if ($ok) {
+				for ($i = 0, $n = count($files); $ok && $i < $n; $i++) {
 					$ok = is_string($files[$i]) && posix_access($files[$i], POSIX_F_OK);
 					//problem access files or file's name is not a string
 					if (!$ok)
 						httpResponse(400, array('message' => 'could not access files or files names are not string'));
 				}
 			}
+
 			// name
 			if ($ok)
 				$ok = isset($infoJob['name']) && is_string($infoJob['name']);
