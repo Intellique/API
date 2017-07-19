@@ -11,7 +11,7 @@
 
 	$db_config["driver"]   = $config['database'][0]['type'] ;
 	$db_config["host"]     = $config['database'][0]['host'] ;
-	$db_config["db"]       = 'storiqone-backend-zakary'; //$config['database'][0]['db'] ;
+	$db_config["db"]       = $config['database'][0]['db'] ;
 	$db_config['user']     = $config['database'][0]['user'] ;
 	$db_config['password'] = $config['database'][0]['password'] ;
 	$db_config['port']     = isset($config['database'][0]['port']) ? $config['database'][0]['port'] : null;
