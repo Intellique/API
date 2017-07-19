@@ -1,5 +1,4 @@
 <?php
-
 	require_once("../../lib/env.php");
 
 	require_once("dateTime.php");
@@ -51,7 +50,8 @@
 			$archivesByPool = array();
 			foreach ($result['rows'] as $pool) {
 				$temp = $dbDriver->getArchivesByPool($pool);
-				if (!$temp['query_executed']){
+
+				if (!$temp['query_executed']) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool/synchronize => Query failure', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchivesByPool(%s)', $pool));
 					httpResponse(500, array(
@@ -59,7 +59,10 @@
 						'pool' => array(),
 					));
 				}
-				$archivesByPool[$pool] = $temp['rows'];
+
+				$archivesByPool[$pool] = array();
+				foreach ($temp['rows'] as $archive)
+					$archivesByPool[$pool][$archive] = array();
 			}
 
 			foreach ($archivesByPool as $poolA => &$archivesA) {
@@ -67,10 +70,11 @@
 					if ($poolA === $poolB)
 						continue;
 
-					foreach ($archivesA as $archiveA) {
-						$found = false;
+					foreach ($archivesA as $archiveA => &$archiveInfoA) {
+						foreach ($archivesB as $archiveB => &$archiveInfoB) {
+							if (in_array($archiveA, $archiveInfoB) || in_array($archiveB, $archiveInfoA))
+								continue;
 
-						foreach ($archivesB as $archiveB) {
 							$result = $dbDriver->checkArchiveMirrorInCommon($archiveA, $archiveB);
 							if ($result['result'] === null)
 								httpResponse(500, array(
@@ -79,24 +83,52 @@
 								));
 
 							if ($result['result']) {
-								$found = true;
+								$archiveInfoA[] = $archiveB;
+								$archiveInfoB[] = $archiveA;
 								break;
 							}
 						}
-
-						if (!$found)
-							httpResponse(200, array(
-								"message" => "Pool mirror is not synchronized",
-								"synchonized" => false
-							));
 					}
 				}
 			}
 
-			httpResponse(200, array(
-				"message" => "Pool mirror is synchronized",
-				"synchonized" => true
-			));
+			$nbPools = count($archivesByPool);
+			$sync = array();
+			$nbArchives = 0;
+			$nbSynchronized = 0;
+
+			foreach ($archivesByPool as $pool => &$archives) {
+				foreach ($archives as $archive => &$info) {
+					if (in_array($archive, $sync))
+						continue;
+
+					if (1 + count($info) == $nbPools) {
+						$sync[] = $archive;
+						$nbSynchronized++;
+					}
+
+					if (count($info) > 0)
+						$sync = array_merge($sync, $info);
+
+					$nbArchives++;
+				}
+			}
+
+			if ($nbArchives == $nbSynchronized)
+				httpResponse(200, array(
+					"message" => "Pool mirror is synchronized",
+					"nb synchronized archives" => $nbSynchronized,
+					"nb archives" => $nbArchives,
+					"synchonized" => true
+				));
+			else
+				httpResponse(200, array(
+					"message" => "Pool mirror not is synchronized",
+					"nb synchronized archives" => $nbSynchronized,
+					"nb archives" => $nbArchives,
+					"synchonized" => false
+				));
+
 			break;
 
 		case 'POST':
