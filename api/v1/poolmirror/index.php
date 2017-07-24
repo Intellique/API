@@ -179,7 +179,7 @@
 			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Pool mirror %s created', $poolmirrorId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Pool mirror created successfully',
-				'pool_id' => $poolmirrorId
+				'poolmirror id' => $poolmirrorId
 			));
 			break;
 
