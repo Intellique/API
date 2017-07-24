@@ -126,7 +126,7 @@
 			}
 			if ($medias === false)
 				httpResponse(404, array('message' => 'Medias not found',
-							'medias' => array()
+					'medias' => array()
 				));
 
 			$result = array();
@@ -154,9 +154,9 @@
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 			httpResponse(200, array(
-					'message' => 'Query succeeded',
-					'medias' => &$result,
-					'total_rows' => $medias['total_rows']
+				'message' => 'Query succeeded',
+				'medias' => &$result,
+				'total_rows' => $medias['total_rows']
 			));
 
 			break;
