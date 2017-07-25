@@ -463,23 +463,6 @@
 				}
 			}
 
-			if (isset($params['order_by'])) {
-				$query_common .= ' ORDER BY ' . $params['order_by'];
-
-				if (isset($params['order_asc']) && $params['order_asc'] === false)
-					$query_common .= ' DESC';
-			}
-
-			if (isset($params['limit'])) {
-				$query_params[] = $params['limit'];
-				$query_common .= ' LIMIT $' . count($query_params);
-			}
-
-			if (isset($params['offset'])) {
-				$query_params[] = $params['offset'];
-				$query_common .= ' OFFSET $' . count($query_params);
-			}
-
 			$total_rows = 0;
 			if (isset($params['limit']) || isset($params['offset'])) {
 				$query = 'SELECT COUNT(*)' . $query_common;
@@ -507,6 +490,22 @@
 					);
 				}
 
+			if (isset($params['order_by'])) {
+				$query_common .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query_common .= ' DESC';
+			}
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query_common .= ' LIMIT $' . count($query_params);
+			}
+
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query_common .= ' OFFSET $' . count($query_params);
+			}
 				$row = pg_fetch_array($result);
 				$total_rows = intval($row[0]);
 			}
