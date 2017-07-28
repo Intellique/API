@@ -1,28 +1,28 @@
 <?php
-    require_once("postgresql.php");
+	require_once("postgresql.php");
 	require_once("postgresqlMedia.php");
 
-    class PostgresqlDBLibrary extends PostgresqlDB implements DB_Library {
+	class PostgresqlDBLibrary extends PostgresqlDB implements DB_Library {
 		use PostgresqlDBMedia;
 
-        public function getDrivesByChanger($id) {
-            $query_name = 'get_drives_by_changer';
-            if (!$this->prepareQuery($query_name, "SELECT cs.index AS drivenumber, d.id, d.model, d.vendor, d.serialnumber, d.status FROM changerslot cs INNER JOIN drive d ON cs.drive = d.id WHERE cs.changer = $1 AND cs.drive IS NOT NULL"))
-                return false;
+		public function getDrivesByChanger($id) {
+			$query_name = 'get_drives_by_changer';
+			if (!$this->prepareQuery($query_name, "SELECT cs.index AS drivenumber, d.id, d.model, d.vendor, d.serialnumber, d.status FROM changerslot cs INNER JOIN drive d ON cs.drive = d.id WHERE cs.changer = $1 AND cs.drive IS NOT NULL"))
+				return false;
 
-            $query_result = pg_execute($this->connect, $query_name, array($id));
-            if (!$query_result)
-                return false;
+			$query_result = pg_execute($this->connect, $query_name, array($id));
+			if (!$query_result)
+				return false;
 
-            $result = array();
-            while ($row = pg_fetch_assoc($query_result)) {
+			$result = array();
+			while ($row = pg_fetch_assoc($query_result)) {
 				$row['id'] = intval($row['id']);
 				$row['drivenumber'] = intval($row['drivenumber']);
-                $result[] = $row;
+				$result[] = $row;
 			}
 
-            return $result;
-        }
+			return $result;
+		}
 
 		public function getPhysicalLibraries() {
 			$query_name = 'get_physical_librairies';
@@ -124,5 +124,5 @@
 			return pg_execute($this->connect, $query_name, array($act, $id)) !== false;
 		}
 
-    }
+	}
 ?>

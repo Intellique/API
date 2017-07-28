@@ -274,7 +274,7 @@
 				httpResponse(400, array('message' => 'Pool id is required'));
 			}
 
-			if (!is_int($infoJob['pool'])) {
+			if (!is_numeric($infoJob['pool'])) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive => id must be an integer and not "%s"', $infoJob['pool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
 			}

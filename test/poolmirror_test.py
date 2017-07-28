@@ -1,4 +1,5 @@
 from common_test import CommonTest
+from io import StringIO
 import json
 
 class PoolMirrorTest(CommonTest):
