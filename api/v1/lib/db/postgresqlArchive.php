@@ -2,11 +2,12 @@
 	require_once("dateTime.php");
 	require_once("postgresql.php");
 	require_once("postgresqlJob.php");
+	require_once("postgresqlMedia.php");
 	require_once("postgresqlMetadata.php");
 	require_once("postgresqlPermission.php");
 
 	class PostgresqlDBArchive extends PostgresqlDB implements DB_Archive {
-		use PostgresqlDBJob, PostgresqlDBMetadata, PostgresqlDBPermission;
+		use PostgresqlDBJob, PostgresqlDBMedia, PostgresqlDBMetadata, PostgresqlDBPermission;
 
 		public function checkArchiveMirrorInCommon($archiveA, $archiveB) {
 			$query = 'SELECT COUNT(*) > 0 FROM archivetoarchivemirror a1 INNER JOIN archivetoarchivemirror a2 ON a1.archivemirror = a2.archivemirror WHERE a1.archive = $1 AND a2.archive = $2';
@@ -347,7 +348,6 @@
 		}
 
 		public function getArchivesByPool($id) {
-
 			$query = 'SELECT id FROM archive WHERE id IN (SELECT archive FROM archivevolume WHERE media IN (SELECT id FROM media WHERE pool = $1)) AND NOT deleted';
 			$query_name = "select_archives_by_pool";
 			$query_params = array();
@@ -391,7 +391,7 @@
 				'total_rows' => count($rows),
 				'query_params' => &$query_params
 			);
-}
+		}
 
 		public function getArchiveFile($id) {
 			if (!is_numeric($id))
@@ -564,29 +564,6 @@
 			);
 		}
 
-		public function getArchiveFormat($id) {
-			if (!is_numeric($id))
-				return false;
-
-			if (!$this->prepareQuery("select_archive_format_by_id", "SELECT id, name, readable, writable FROM archiveformat WHERE id = $1"))
-				return null;
-
-			$result = pg_execute("select_archive_format_by_id", array($id));
-			if ($result === false)
-				return null;
-
-			if (pg_num_rows($result) == 0)
-				return false;
-
-			$archiveformat = pg_fetch_assoc($result);
-
-			$archiveformat['id'] = intval($archiveformat['id']);
-			$archiveformat['readable'] = $archiveformat['readable'] == 't' ? true : false;
-			$archiveformat['writable'] = $archiveformat['writable'] == 't' ? true : false;
-
-			return $archiveformat;
-		}
-
 		public function getArchiveFormatByName($name) {
 			if (!$this->prepareQuery("select_archive_format_by_name", "SELECT id FROM archiveformat WHERE name = $1 LIMIT 1"))
 				return null;
@@ -691,6 +668,62 @@
 			);
 		}
 
+		public function getDevice($id) {
+			if (!$this->prepareQuery("select_slots_and_media","SELECT cs.changer, cs.index, cs.drive, m.label, m.mediumserialnumber, m.status, m.freeblock, m.totalblock FROM changerslot cs LEFT JOIN media m ON cs.media = m.id WHERE changer = $1 AND cs.enable = $2 ORDER BY cs.index"))
+				return null;
+
+			if (!$this->prepareQuery("select_changer","SELECT id, model, vendor, serialnumber, status, isonline FROM changer WHERE id = $1 AND enable = $2"))
+				return null;
+
+			if (!$this->prepareQuery("select_drives","SELECT d.id, d.model, d.vendor, d.serialnumber, d.status, cs.index FROM drive d INNER JOIN changerslot cs ON id = drive WHERE d.changer = $1 AND d.enable = $2"))
+				return null;
+
+
+
+			$result = pg_execute($this->connect, 'select_changer', array($id, 't'));
+			if ($result === false)
+				return null;
+			if (pg_num_rows($result) == 0)
+				return false;
+			$row = pg_fetch_array($result);
+			$changer = array('changerid' => $row['id'], 'model' => $row['model'], 'vendor' => $row['vendor'], 'changerserialnumber' => $row['serialnumber'], 'status' => $row['status'], 'isonline' => $row['isonline'], 'drives' => array(), 'slots' => array());
+
+
+			$result = pg_execute($this->connect, 'select_drives', array($id, 't'));
+			if ($result === false)
+				return null;
+			$drives = array();
+			while ($row = pg_fetch_array($result))
+				$drives[] = array('drivenumber' => $row['index'], 'driveid' => $row['id'], 'model' => $row['model'], 'vendor' => $row['vendor'], 'driveserialnumber' => $row['serialnumber'], 'status' => $row['status'], 'slot' => array());
+
+
+			$result = pg_execute($this->connect, 'select_slots_and_media', array($id, 't'));
+			if ($result === false)
+				return null;
+			$slots = array();
+			$driveslot = array();
+			while ($row = pg_fetch_array($result)) {
+				if ($row['drive'] === null) {
+					$slots[] = array('slotnumber' => $row['index'], 'slottype' => "storage", 'chanegrid' => $row['changer'], 'chanegrslotid' => $row['changer']."_".$row['index'], 'medialabel' => $row['label'], 'mediaserialnumber' => $row['mediumserialnumber'], 'mediastatus' => $row['status'], 'freeblock' => $row['freeblock'], 'totalblock' => $row['totalblock']);
+				}
+				else {
+					$driveslot[] = array('driveid' => $row['drive'], 'slotid' => $row['drive'].'_'.$row['index'], 'slotnumber' => $row['index'], 'slottype' => "drive", 'medialabel' => $row['label'], 'mediaserialnumber' => $row['mediumserialnumber'], 'mediastatus' => $row['status'], 'freeblock' => $row['freeblock'], 'totalblock' => $row['totalblock']);
+
+					foreach ($drives as &$list) {
+					if ($list['driveid'] == $row['drive'])
+						$list['slot'] = end($driveslot);
+					}
+				}
+			}
+
+
+
+			$changer['drives'] = $drives;
+			$changer['slots'] = $slots;
+			$return = array('changer' => $changer);
+			return $return;
+		}
+
 		public function getDevices(&$params) {
 			$query_common = 'FROM changer WHERE enable = $1';
 			$query_params = array('t');
@@ -771,62 +804,6 @@
 				'rows' => $rows,
 				'total_rows' => count($rows)
 			);
-		}
-
-		public function getDevice($id) {
-			if (!$this->prepareQuery("select_slots_and_media","SELECT cs.changer, cs.index, cs.drive, m.label, m.mediumserialnumber, m.status, m.freeblock, m.totalblock FROM changerslot cs LEFT JOIN media m ON cs.media = m.id WHERE changer = $1 AND cs.enable = $2 ORDER BY cs.index"))
-				return null;
-
-			if (!$this->prepareQuery("select_changer","SELECT id, model, vendor, serialnumber, status, isonline FROM changer WHERE id = $1 AND enable = $2"))
-				return null;
-
-			if (!$this->prepareQuery("select_drives","SELECT d.id, d.model, d.vendor, d.serialnumber, d.status, cs.index FROM drive d INNER JOIN changerslot cs ON id = drive WHERE d.changer = $1 AND d.enable = $2"))
-				return null;
-
-
-
-			$result = pg_execute($this->connect, 'select_changer', array($id, 't'));
-			if ($result === false)
-				return null;
-			if (pg_num_rows($result) == 0)
-				return false;
-			$row = pg_fetch_array($result);
-			$changer = array('changerid' => $row['id'], 'model' => $row['model'], 'vendor' => $row['vendor'], 'changerserialnumber' => $row['serialnumber'], 'status' => $row['status'], 'isonline' => $row['isonline'], 'drives' => array(), 'slots' => array());
-
-
-			$result = pg_execute($this->connect, 'select_drives', array($id, 't'));
-			if ($result === false)
-				return null;
-			$drives = array();
-			while ($row = pg_fetch_array($result))
-				$drives[] = array('drivenumber' => $row['index'], 'driveid' => $row['id'], 'model' => $row['model'], 'vendor' => $row['vendor'], 'driveserialnumber' => $row['serialnumber'], 'status' => $row['status'], 'slot' => array());
-
-
-			$result = pg_execute($this->connect, 'select_slots_and_media', array($id, 't'));
-			if ($result === false)
-				return null;
-			$slots = array();
-			$driveslot = array();
-			while ($row = pg_fetch_array($result)) {
-				if ($row['drive'] === null) {
-					$slots[] = array('slotnumber' => $row['index'], 'slottype' => "storage", 'chanegrid' => $row['changer'], 'chanegrslotid' => $row['changer']."_".$row['index'], 'medialabel' => $row['label'], 'mediaserialnumber' => $row['mediumserialnumber'], 'mediastatus' => $row['status'], 'freeblock' => $row['freeblock'], 'totalblock' => $row['totalblock']);
-				}
-				else {
-					$driveslot[] = array('driveid' => $row['drive'], 'slotid' => $row['drive'].'_'.$row['index'], 'slotnumber' => $row['index'], 'slottype' => "drive", 'medialabel' => $row['label'], 'mediaserialnumber' => $row['mediumserialnumber'], 'mediastatus' => $row['status'], 'freeblock' => $row['freeblock'], 'totalblock' => $row['totalblock']);
-
-					foreach ($drives as &$list) {
-					if ($list['driveid'] == $row['drive'])
-						$list['slot'] = end($driveslot);
-					}
-				}
-			}
-
-
-
-			$changer['drives'] = $drives;
-			$changer['slots'] = $slots;
-			$return = array('changer' => $changer);
-			return $return;
 		}
 
 		public function getDevicesByParams(&$params) {
@@ -1054,82 +1031,38 @@
 			);
 		}
 
-		public function getMedia($id) {
-			if (!is_numeric($id))
+		public function getJob($id) {
+			if (!isset($id) || !is_numeric($id))
 				return false;
 
-			if (!$this->prepareQuery("select_media_by_id", "SELECT id, uuid, label, mediumserialnumber, name, status, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, append, type, writelock, archiveformat, mediaformat, pool FROM media WHERE id = $1"))
+			if (!$this->prepareQuery('select_job_by_id', "SELECT j.id, j.name, jt.name AS type, j.nextstart, EXTRACT(EPOCH FROM j.interval) AS interval, j.repetition, j.status, j.update, j.archive, j.backup, j.media, j.pool, j.host, j.login, j.metadata, j.options FROM job j INNER JOIN jobtype jt ON j.type = jt.id WHERE j.id = $1 LIMIT 1 FOR UPDATE"))
 				return null;
 
-			$result = pg_execute("select_media_by_id", array($id));
+			$result = pg_execute($this->connect, 'select_job_by_id', array($id));
+
 			if ($result === false)
 				return null;
 
 			if (pg_num_rows($result) == 0)
 				return false;
 
-			$media = pg_fetch_assoc($result);
+			$row = pg_fetch_assoc($result);
 
-			$media['id'] = intval($media['id']);
-			$media['uuid'] = $media['uuid'];
-			$media['label'] = $media['label'];
-			$media['mediumserialnumber'] = $media['mediumserialnumber'];
-			$media['name'] = $media['name'];
-			$media['type'] = $media['type'];
-			$media['firstused'] = dateTimeParse($media['firstused']);
-			$media['usebefore'] = dateTimeParse($media['usebefore']);
-			$media['lastread'] = dateTimeParse($media['lastread']);
-			$media['lastwrite'] = dateTimeParse($media['lastwrite']);
-			$media['loadcount'] = intval($media['loadcount']);
-			$media['readcount'] = intval($media['readcount']);
-			$media['writecount'] = intval($media['writecount']);
-			$media['operationcount'] = intval($media['operationcount']);
-			$media['nbtotalblockread'] = intval($media['nbtotalblockread']);
-			$media['nbtotalblockwrite'] = intval($media['nbtotalblockwrite']);
-			$media['nbreaderror'] = intval($media['nbreaderror']);
-			$media['nbwriteerror'] = intval($media['nbwriteerror']);
-			$media['nbfiles'] = intval($media['nbfiles']);
-			$media['blocksize'] = intval($media['blocksize']);
-			$media['freeblock'] = intval($media['freeblock']);
-			$media['totalblock'] = intval($media['totalblock']);
-			$media['haspartition'] = $media['haspartition'] == 't' ? true : false;
-			$media['append'] = $media['append'] == 't' ? true : false;
-			$media['writelock'] = $media['writelock'] == 't' ? true : false;
-			$media['archiveformat'] = $this->getArchiveFormat($media['archiveformat']);
-			$media['mediaformat'] = $this->getMediaFormat($media['mediaformat']);
-			$media['pool'] = $this->getPool($media['pool']);
+			$row['id'] = intval($row['id']);
+			$row['nextstart'] = dateTimeParse($row['nextstart']);
+			$row['interval'] = PostgresqlDB::getInteger($row['interval']);
+			$row['repetition'] = PostgresqlDB::getInteger($row['repetition']);
+			$row['update'] = dateTimeParse($row['update']);
+			$row['archive'] = PostgresqlDB::getInteger($row['archive']);
+			$row['backup'] = PostgresqlDB::getInteger($row['backup']);
+			$row['media'] = PostgresqlDB::getInteger($row['media']);
+			$row['pool'] = PostgresqlDB::getInteger($row['pool']);
+			$row['host'] = intval($row['host']);
+			$row['login'] = intval($row['login']);
+			$row['metadata'] = json_decode($row['metadata']);
+			$row['options'] = json_decode($row['options']);
 
-			return $media;
-		}
-
-		public function getMediaFormat($id) {
-			if (!is_numeric($id))
-				return false;
-
-			if (!$this->prepareQuery("select_media_format_by_id", "SELECT id, name, datatype, mode, maxloadcount, maxreadcount, maxwritecount, maxopcount, lifespan, capacity, blocksize, densitycode, supportpartition, supportmam FROM mediaformat WHERE id = $1"))
-				return null;
-
-			$result = pg_execute("select_media_format_by_id", array($id));
-			if ($result === false)
-				return null;
-
-			if (pg_num_rows($result) == 0)
-				return false;
-
-			$mediaformat = pg_fetch_assoc($result);
-
-			$mediaformat['id'] = intval($mediaformat['id']);
-			$mediaformat['maxloadcount'] = intval($mediaformat['maxloadcount']);
-			$mediaformat['maxreadcount'] = intval($mediaformat['maxreadcount']);
-			$mediaformat['maxwritecount'] = intval($mediaformat['maxwritecount']);
-			$mediaformat['maxopcount'] = intval($mediaformat['maxopcount']);
-			$mediaformat['capacity'] = intval($mediaformat['capacity']);
-			$mediaformat['blocksize'] = intval($mediaformat['blocksize']);
-			$mediaformat['densitycode'] = intval($mediaformat['densitycode']);
-			$mediaformat['supportpartition'] = $mediaformat['supportpartition'] == 't' ? true : false;
-			$mediaformat['supportmam'] = $mediaformat['supportmam'] == 't' ? true : false;
-
-			return $mediaformat;
+			return $row;
 		}
 
 		public function getMediaFormatByName($name) {
@@ -1614,37 +1547,6 @@
 				'rows' => $rows,
 				'total_rows' => $total_rows
 			);
-		}
-
-		public function getPool($id) {
-			if (!is_numeric($id))
-				return false;
-
-			if (!$this->prepareQuery("select_pool_by_id", "SELECT id, uuid, name, archiveformat, mediaformat, autocheck, lockcheck, growable, unbreakablelevel, rewritable, metadata, backuppool, pooloriginal,  poolmirror, deleted FROM pool WHERE id = $1 AND NOT deleted"))
-				return null;
-
-			$result = pg_execute("select_pool_by_id", array($id));
-			if ($result === false)
-				return null;
-
-			if (pg_num_rows($result) == 0)
-				return false;
-
-			$pool = pg_fetch_assoc($result);
-
-			$pool['id'] = intval($pool['id']);
-			$pool['archiveformat'] = $this->getArchiveFormat($pool['archiveformat']);
-			$pool['mediaformat'] = $this->getMediaFormat($pool['mediaformat']);
-			$pool['lockcheck'] = $pool['lockcheck'] == 't' ? true : false;
-			$pool['growable'] = $pool['growable'] == 't' ? true : false;
-			$pool['rewritable'] = $pool['rewritable'] == 't' ? true : false;
-			$pool['metadata'] = json_decode($pool['metadata']);
-			$pool['backuppool'] = $pool['backuppool'] == 't' ? true : false;
-			$pool['pooloriginal'] = isset($pool['pooloriginal']) ? intval($pool['pooloriginal']) : null;
-			$pool['poolmirror'] = isset($pool['poolmirror']) ? intval($pool['poolmirror']) : null;
-			$pool['deleted'] = $pool['deleted'] == 't' ? true : false;
-
-			return $pool;
 		}
 
 		public function getPoolByName($name) {
@@ -2156,6 +2058,43 @@
 			return intval($pooltemplate[0]);
 		}
 
+		public function getUser($id, $login) {
+			if ((isset($id) && !is_numeric($id)) || (isset($login) && !is_string($login)))
+				return false;
+
+			if (isset($id)) {
+				$isPrepared = $this->prepareQuery('select_user_by_id', "SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE id = $1 LIMIT 1");
+				if (!$isPrepared)
+					return null;
+
+				$result = pg_execute($this->connect, 'select_user_by_id', array($id));
+			} else {
+				$isPrepared = $this->prepareQuery('select_user_by_login', "SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE login = $1 LIMIT 1");
+				if (!$isPrepared)
+					return null;
+
+				$result = pg_execute($this->connect, 'select_user_by_login', array($login));
+			}
+
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$row = pg_fetch_assoc($result);
+
+			$row['id'] = intval($row['id']);
+			$row['isadmin'] = $row['isadmin'] == 't' ? true : false;
+			$row['canarchive'] = $row['canarchive'] == 't' ? true : false;
+			$row['canrestore'] = $row['canrestore'] == 't' ? true : false;
+			$row['poolgroup'] = PostgresqlDB::getInteger($row['poolgroup']);
+			$row['disabled'] = $row['disabled'] == 't' ? true : false;
+			$row['meta'] = json_decode($row['meta']);
+
+			return $row;
+		}
+
 		public function getVTL($id) {
 			if (!is_numeric($id) || !isset($id))
 				return false;
@@ -2385,77 +2324,5 @@
 
 			return pg_affected_rows($result) > 0;
 		}
-
-		public function getJob($id) {
-			if (!isset($id) || !is_numeric($id))
-				return false;
-
-			if (!$this->prepareQuery('select_job_by_id', "SELECT j.id, j.name, jt.name AS type, j.nextstart, EXTRACT(EPOCH FROM j.interval) AS interval, j.repetition, j.status, j.update, j.archive, j.backup, j.media, j.pool, j.host, j.login, j.metadata, j.options FROM job j INNER JOIN jobtype jt ON j.type = jt.id WHERE j.id = $1 LIMIT 1 FOR UPDATE"))
-				return null;
-
-			$result = pg_execute($this->connect, 'select_job_by_id', array($id));
-
-			if ($result === false)
-				return null;
-
-			if (pg_num_rows($result) == 0)
-				return false;
-
-			$row = pg_fetch_assoc($result);
-
-			$row['id'] = intval($row['id']);
-			$row['nextstart'] = dateTimeParse($row['nextstart']);
-			$row['interval'] = PostgresqlDB::getInteger($row['interval']);
-			$row['repetition'] = PostgresqlDB::getInteger($row['repetition']);
-			$row['update'] = dateTimeParse($row['update']);
-			$row['archive'] = PostgresqlDB::getInteger($row['archive']);
-			$row['backup'] = PostgresqlDB::getInteger($row['backup']);
-			$row['media'] = PostgresqlDB::getInteger($row['media']);
-			$row['pool'] = PostgresqlDB::getInteger($row['pool']);
-			$row['host'] = intval($row['host']);
-			$row['login'] = intval($row['login']);
-			$row['metadata'] = json_decode($row['metadata']);
-			$row['options'] = json_decode($row['options']);
-
-			return $row;
-		}
-
-		public function getUser($id, $login) {
-			if ((isset($id) && !is_numeric($id)) || (isset($login) && !is_string($login)))
-				return false;
-
-			if (isset($id)) {
-				$isPrepared = $this->prepareQuery('select_user_by_id', "SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE id = $1 LIMIT 1");
-				if (!$isPrepared)
-					return null;
-
-				$result = pg_execute($this->connect, 'select_user_by_id', array($id));
-			} else {
-				$isPrepared = $this->prepareQuery('select_user_by_login', "SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE login = $1 LIMIT 1");
-				if (!$isPrepared)
-					return null;
-
-				$result = pg_execute($this->connect, 'select_user_by_login', array($login));
-			}
-
-			if ($result === false)
-				return null;
-
-			if (pg_num_rows($result) == 0)
-				return false;
-
-			$row = pg_fetch_assoc($result);
-
-			$row['id'] = intval($row['id']);
-			$row['isadmin'] = $row['isadmin'] == 't' ? true : false;
-			$row['canarchive'] = $row['canarchive'] == 't' ? true : false;
-			$row['canrestore'] = $row['canrestore'] == 't' ? true : false;
-			$row['poolgroup'] = PostgresqlDB::getInteger($row['poolgroup']);
-			$row['disabled'] = $row['disabled'] == 't' ? true : false;
-			$row['meta'] = json_decode($row['meta']);
-
-			return $row;
-		}
-
 	}
 ?>

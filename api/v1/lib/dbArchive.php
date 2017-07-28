@@ -1,13 +1,14 @@
 <?php
 	require_once('db.php');
 	require_once("dbJob.php");
+	require_once("dbMedia.php");
 	require_once("dbMetadata.php");
 	require_once("dbPermission.php");
 
 	/**
 	 * \brief Specific interface for archive object
 	 */
-	interface DB_Archive extends DB, DB_Job, DB_Metadata, DB_Permission {
+	interface DB_Archive extends DB, DB_Job, DB_Media, DB_Metadata, DB_Permission {
 		/**
 		 * \brief Check if \i archiveA and \i archiveB have a common archive mirror
 		 * \param $archiveA : id of the first archive
@@ -70,14 +71,6 @@
 		public function getArchivesByPool($id);
 
 		/**
-		 * \brief Get an archive format by its id
-		 * \param $id : archive id
-		 * \return archive format information
-		 * \note No permission check will be performed
-		 */
-		public function getArchiveFormat($id);
-
-		/**
 		 * \brief Get list of archive format ids
 		 * \param $params : optional parameters
 		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
@@ -98,14 +91,6 @@
 		 * \return an iterator which allow to browse on a files list
 		 */
 		public function getFilesFromArchive($id, &$params);
-
-		/**
-		 * \brief Get a media by its id
-		 * \param $id : media id
-		 * \return media information
-		 * \note No permission check will be performed
-		 */
-		public function getMedia($id);
 
 		/**
 		 * \brief Get a media by its name, its pool, its format, its type, its nbfiles, or the format of the archive which it's in.
@@ -144,14 +129,6 @@
 		public function getMediasWithoutPool($mediaformat, &$params);
 
 		/**
-		 * \brief Get a media format by its id
-		 * \param $id : media id
-		 * \return media format information
-		 * \note No permission check will be performed
-		 */
-		public function getMediaFormat($id);
-
-		/**
 		 * \brief Get iterator on files list for a specific media
 		 * \param $id : a media
 		 * \param $params : optional parameters
@@ -165,14 +142,6 @@
 		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
 		 */
 		public function getMediaFormats(&$params);
-
-		/**
-		 * \brief Get a pool by its id
-		 * \param $id : pool id
-		 * \return media format information
-		 * \note No permission check will be performed
-		 */
-		public function getPool($id);
 
 		/**
 		 * \brief Get a pool by its name
