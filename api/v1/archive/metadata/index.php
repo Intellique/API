@@ -17,6 +17,26 @@
  *   - \b 401 Not logged in
  *   - \b 404 Archive not found / Metadata not found
  *   - \b 500 Query failure
+ * \section Metadatas_archives Update metadatas of archives
+ * To update metadatas of an archive,
+ * use \b PUT method : <i>with a reference to an archive id and a reference to a key and a reference to a value</i>
+ * \verbatim path : /storiqone-backend/api/v1/archive/metadata/ \endverbatim
+ * \return HTTP status codes :
+ *   - \b 200 Query succeeded
+ *   - \b 400 Incorrect input
+ *   - \b 401 Not logged in
+ *   - \b 404 Archive not found / Metadata not found
+ *   - \b 500 Query failure
+ * \section Metadatas_archives Create metadatas of archives
+ * To create metadatas of an archive,
+ * use \b POST method : <i>with a reference to an archive id and a reference to a key and a reference to a value</i>
+ * \verbatim path : /storiqone-backend/api/v1/archive/metadata/ \endverbatim
+ * \return HTTP status codes :
+ *   - \b 200 Query succeeded
+ *   - \b 400 Incorrect input
+ *   - \b 401 Not logged in
+ *   - \b 404 Archive not found / Metadata not found
+ *   - \b 500 Query failure
  */
 
 	require_once("../../lib/env.php");
@@ -96,6 +116,90 @@
 							'metadata' => $metadata
 						));
 				}
+			}
+			break;
+
+		case 'PUT':
+			checkConnected();
+
+			$inputData = httpParseInput();
+
+			$key = null;
+			if (isset($inputData['id'])) {
+				if (!is_numeric($inputData['id']))
+					httpResponse(400, array('message' => 'id must be an integer'));
+
+				$archive = $dbDriver->getArchive($inputData['id']);
+				if ($archive === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive/metadata => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchive(%s)', $inputData['id']), $_SESSION['user']['id']);
+					httpResponse(500, array('message' => 'Query failure'));
+				}
+				if ($archive === false)
+					httpResponse(404, array('message' => 'This archive does not exist'));
+
+				// update metadata
+				foreach ($inputData['metadata'] as $key => $value) {
+					if (!is_string($key))
+						httpResponse(400, array('message' => 'key must be a string'));
+					if (array_key_exists($key, $archive['metadata'])) {
+						$resultMetadata = $dbDriver->updateMetadata($archive['id'], $key, $value, 'archive', $_SESSION['user']['id']);
+						if (!$resultMetadata) {
+							$dbDriver->cancelTransaction();
+							$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/archive/metadata => Query failure', $_SESSION['user']['id']);
+							$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updateMetadata(%s, %s, %s, "archive", %s)', $inputData['id'], $key, $value, $_SESSION['user']['id']), $_SESSION['user']['id']);
+							httpResponse(500, array('message' => 'Query failure'));
+						}
+					} else {
+						httpResponse(500, array('message' => 'Query failure'));
+					}
+				}
+
+				$dbDriver->finishTransaction();
+
+				httpResponse(200, array('message' => 'Metadata updated successfully'));
+			}
+			break;
+
+		case 'POST':
+			checkConnected();
+
+			$inputData = httpParseInput();
+
+			$key = null;
+			if (isset($inputData['id'])) {
+				if (!is_numeric($inputData['id']))
+					httpResponse(400, array('message' => 'id must be an integer'));
+
+				$archive = $dbDriver->getArchive($inputData['id']);
+				if ($archive === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive/metadata => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchive(%s)', $inputData['id']), $_SESSION['user']['id']);
+					httpResponse(500, array('message' => 'Query failure'));
+				}
+				if ($archive === false)
+					httpResponse(404, array('message' => 'This archive does not exist'));
+
+				// create metadata
+				foreach ($inputData['metadata'] as $key => $value) {
+					if (!is_string($key))
+						httpResponse(400, array('message' => 'key must be a string'));
+					if (!array_key_exists($key, $archive['metadata'])) {
+						$resultMetadata = $dbDriver->createMetadata($archive['id'], $key, $value, 'archive', $_SESSION['user']['id']);
+						if (!$resultMetadata) {
+							$dbDriver->cancelTransaction();
+							$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/metadata => Query failure', $_SESSION['user']['id']);
+							$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createMetadata(%s, %s, %s, "archive", %s)', $inputData['id'], $key, $value, $_SESSION['user']['id']), $_SESSION['user']['id']);
+							httpResponse(500, array('message' => 'Query failure'));
+						}
+					} else {
+						httpResponse(500, array('message' => 'Query failure'));
+					}
+				}
+
+				$dbDriver->finishTransaction();
+
+				httpResponse(200, array('message' => 'Metadata created successfully'));
 			}
 			break;
 

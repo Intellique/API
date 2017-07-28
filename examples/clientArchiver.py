@@ -1,6 +1,14 @@
 #! /usr/bin/python3
 #-*- coding: Utf-8 -*-
 # Archival task creation : authenticate and create an archival task
+# Error Code:
+# 0 : Success
+# 1 : Some data are not given
+# 2 : incorrect data for authentifiacation
+# 3 : incorrect input data to archive
+# 4 : file protected, impossible to delete
+# 5 : problem with the deamon
+# 6 : folder's size is insufficient
 
 import getpass, http.client, json, sys
 from optparse import OptionParser, OptionGroup
@@ -9,6 +17,9 @@ import time
 import ssl
 import os
 import shutil
+import glob
+
+statusError = 0
 
 def calcul(directory):
 	size = 0
@@ -17,7 +28,7 @@ def calcul(directory):
 			size = size + sum( os.path.getsize( os.path.join(current, file) ) for file in files )
 		except:
 			pass
-	return (size/(1024*1024))
+	return size
 
 parser = OptionParser()
 
@@ -29,9 +40,11 @@ group.add_option("-C", "--thorough-check", action="store_true", dest="thoroughCh
 group.add_option("-d", "--next-start", dest="nextStart", help="Optionnal next start date")
 group.add_option("-D", "--directory", dest="directory", default="~", type="string", help="Specify directory to archive")
 group.add_option("-f", "--file", action="append", dest="files", default=[], type="string", help="Specify file to archive")
+group.add_option("-F", "--special-file", dest="specialFile", default=None, type="string", help="Specify the special file that allow archive")
 group.add_option("-j", "--job-name", dest="jobName", default=None, help="Optionnal job name")
 group.add_option("-m", action="append", dest="meta", default=[], help="Optionnal metadata")
 group.add_option("-p", "--pool-id", dest="poolId", type="int", help="Specify pool id (to create an archive)")
+group.add_option("-S", "--size", dest="size", type="string", help="Specify the size to archive")
 parser.add_option_group(group)
 
 group = OptionGroup(parser, "options for authenticate");
@@ -85,14 +98,94 @@ if options.api_key is None:
 	print("You should specify an API key")
 	ok = False
 
+if options.directory is None:
+	print("You should specify a directory")
+	ok = False
+
 if not ok:
 	sys.exit(1)
 
-path = options.directory
-directory_size = calcul(path)
-print(str(directory_size)+"mo")
+def convertSize(size):
+	length = len(size)-2
+	lastChar = size[-2:]
+	realSize = float(size[:length])
+	if lastChar == "KB":
+		realSize = realSize/1024
+		print(str(realSize)+" MB")
+	elif lastChar == "MB":
+		realSize = realSize
+		print(str(realSize)+" MB")
+	elif lastChar == "GB":
+		realSize = realSize*1024
+		print(str(realSize)+" MB")
+	elif lastChar == "TB":
+		realSize = realSize*(1024*1024)
+		print(str(realSize)+" MB")
+	else:
+		length = len(size)-1
+		lastChar = size[length]
+		if lastChar == "B":
+			realSize = float(size[:length])/(1024*1024)
+			print(str(realSize)+" MB")
+	return realSize
 
-if(directory_size > 0):
+path = options.directory
+directory_size = calcul(path)/(1024*1024)
+
+#set default size to archive
+def defaultSize(path,directory_size):	
+	realSize = 200
+	print(str(directory_size)+" MB")
+	return realSize
+
+def sizeWithParam(path,directory_size):
+	size = options.size
+	realSize = convertSize(size)
+	print(str(directory_size)+" MB")
+	return realSize
+
+def FilePresence(directory,specialFile):
+	presence = False
+	for (current, subDirectory, files) in os.walk(directory):
+		try:
+			for file in files:
+				filename = os.path.basename( os.path.join(current, file) )
+				if filename == specialFile:
+					presence = True
+		except:
+			pass
+	return presence
+
+if options.specialFile is not None:
+	specialFile = options.specialFile
+	presence = FilePresence(path,specialFile)
+else:
+	presence = False
+
+verified = False
+
+if ((options.size is not None) and (options.specialFile is not None)):
+	realSize = sizeWithParam(path,directory_size)
+	if (directory_size >= realSize):
+		if presence:
+			verified = True
+		else:
+			verified = False
+	else:
+		verified = False
+
+elif presence:
+	verified = True
+
+elif (options.size is not None) and (directory_size >= sizeWithParam(path,directory_size)):
+	verified = True
+
+elif ((options.size is None) and (options.specialFile is None)):
+	realSize = defaultSize(path,directory_size)
+	if (directory_size >= realSize):
+		verified = True
+
+if verified:
 	params = {
 		'archive': options.archiveId,
 		'name': options.archiveName,
@@ -189,7 +282,7 @@ if(directory_size > 0):
 		contentType = res.getheader('Content-type').split(';', 1)[0]
 		if contentType is None or contentType != "application/json" or res.status != 201:
 			conn.close()
-			print ("Access denied 2")
+			print ("Access denied")
 			sys.exit(2)
 
 		print ("Access granted")
@@ -225,17 +318,23 @@ if(directory_size > 0):
 					print('Error: Can\'t delete file')
 					e = sys.exc_info()[0]
 					print('Error: %s' % e)
+					statusError = 4
+					return statusError
 
 	is_finish = False
 	while  not is_finish:
-		try:
-			status = update()
-			if status == 'finished':
-				is_finish = True
-				removeall(path)
-			else:
-				time.sleep(60)
-		except:
-			e = sys.exc_info()[0]
-			print('Error: %s' % e)
-			time.sleep(60)
+		status = update()
+		if status == 'finished':
+			is_finish = True
+			statusError = removeall(path)
+		elif status == 'error':
+			print('status : Error')
+			sys.exit(5)
+		else:
+			time.sleep(30)
+
+	sys.exit(statusError)
+
+else:
+	print("The folder size is less than the minimum size required to archive.")
+	sys.exit(6)

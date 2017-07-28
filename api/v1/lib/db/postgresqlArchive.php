@@ -1174,72 +1174,47 @@
 			$query_common = " FROM media";
 			$query_params = array();
 
-			$total_rows = 0;
-			if (isset($params['limit']) or isset($params['offset'])) {
-				$query = "SELECT COUNT(*)" . $query_common;
-				$query_name = "select_total_medias";
-
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
-				$query .= ' WHERE name ~* $' . count($query_params);
-				$clause_where = true;
+				$query_common .= ' WHERE name ~* $' . count($query_params);
 			}
 
 			if (isset($params['pool'])) {
 				$query_params[] = $params['pool'];
-				if ($clause_where)
-					$query .= ' AND pool = $' . count($query_params);
-				else {
-					$query .= ' WHERE pool = $' . count($query_params);
-					$clause_where = true;
-				}
+				if (count($query_params) > 0)
+					$query_common .= ' AND pool = $' . count($query_params);
+				else
+					$query_common .= ' WHERE pool = $' . count($query_params);
 			}
 
 			if (isset($params['type'])) {
 				$query_params[] = $params['type'];
-				if ($clause_where)
-					$query .= ' AND type = $' . count($query_params);
-				else {
-					$query .= ' WHERE type = $' . count($query_params);
-					$clause_where = true;
-				}
+				if (count($query_params) > 0)
+					$query_common .= ' AND type = $' . count($query_params);
+				else
+					$query_common .= ' WHERE type = $' . count($query_params);
 			}
 
 			if (isset($params['archiveformat'])) {
 				$query_params[] = $params['archiveformat'];
-				if ($clause_where)
-					$query .= ' AND archiveformat = $' . count($query_params);
-				else {
-					$query .= ' WHERE archiveformat = $' . count($query_params);
-					$clause_where = true;
-				}
+				if (count($query_params) > 0)
+					$query_common .= ' AND archiveformat = $' . count($query_params);
+				else
+					$query_common .= ' WHERE archiveformat = $' . count($query_params);
 			}
 
 			if (isset($params['mediaformat'])) {
 				$query_params[] = $params['mediaformat'];
-				if ($clause_where)
-					$query .= ' AND mediaformat = $' . count($query_params);
-				else {
-					$query .= ' WHERE mediaformat = $' . count($query_params);
-					$clause_where = true;
-				}
+				if (count($query_params) > 0)
+					$query_common .= ' AND mediaformat = $' . count($query_params);
+				else
+					$query_common .= ' WHERE mediaformat = $' . count($query_params);
 			}
 
-			if (isset($params['order_by'])) {
-				$query .= ' ORDER BY ' . $params['order_by'];
-
-				if (isset($params['order_asc']) && $params['order_asc'] === false)
-					$query .= ' DESC';
-			}
-
-			if (isset($params['limit'])) {
-				$query_params[] = $params['limit'];
-				$query .= ' LIMIT $' . count($query_params);
-			}
-			if (isset($params['offset'])) {
-				$query_params[] = $params['offset'];
-				$query .= ' OFFSET $' . count($query_params);
-			}
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_medias_" . md5($query);
 
 				if (!$this->prepareQuery($query_name, $query))
 					return array(
@@ -1266,9 +1241,24 @@
 				$total_rows = intval($row[0]);
 			}
 
-			$clause_where = false;
-			$query = 'SELECT id, pool FROM media';
+			if (isset($params['order_by'])) {
+				$query_common .= ' ORDER BY ' . $params['order_by'];
 
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query_common .= ' DESC';
+			}
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query_common .= ' LIMIT $' . count($query_params);
+			}
+
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query_common .= ' OFFSET $' . count($query_params);
+			}
+
+			$query = 'SELECT id, pool' . $query_common;
 			$query_name = "select_medias_by_params_" . md5($query);
 
 			if (!$this->prepareQuery($query_name, $query))
