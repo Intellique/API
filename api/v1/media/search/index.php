@@ -148,7 +148,7 @@
 				} else if ($permission)
 					$result[] = $media['id'];
 			}
-/*
+
 			if (count($result) == 0) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'GET api/v1/media/search => A user that cannot get media informations tried to', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
