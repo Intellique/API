@@ -351,9 +351,8 @@
 			$query = 'SELECT id FROM archive WHERE id IN (SELECT archive FROM archivevolume WHERE media IN (SELECT id FROM media WHERE pool = $1)) AND NOT deleted';
 			$query_name = "select_archives_by_pool";
 			$query_params = array();
-			if(isset($id)){
+			if (isset($id))
 				$query_params[] = $id;
-			}
 
 			if (!$this->prepareQuery($query_name, $query))
 				return array(
@@ -931,6 +930,46 @@
 				'query_executed' => true,
 				'rows' => $rows,
 				'total_rows' => count($rows)
+			);
+		}
+
+		public function getArchiveMirrorsByPool($pool, $poolMirror) {
+			$query_name = 'select_archive_mirror_by_pool';
+			$query = 'SELECT a.id, a2am.archivemirror FROM archive a LEFT JOIN archivetoarchivemirror a2am ON a.id = a2am.archive LEFT JOIN archivemirror am ON a2am.archivemirror = am.id AND am.poolmirror = $2 WHERE NOT a.deleted AND a.id IN (SELECT archive FROM archivevolume WHERE sequence = 0 AND media IN (SELECT id FROM media WHERE pool = $1))';
+			$query_params = array($pool, $poolMirror);
+
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'result' => null,
+					'query_params' => &$query_params
+				);
+
+			$result = pg_execute($query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'result' => null,
+					'query_params' => &$query_params
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = array(intval($row[0]), intval($row[1]));
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'result' => &$rows,
+				'query_params' => &$query_params
 			);
 		}
 

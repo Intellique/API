@@ -85,6 +85,13 @@
 		public function getArchiveFormatByName($name);
 
 		/**
+		 * \brief Get list of tuple of archive and archive mirror
+		 * \param $pool : pool id
+		 * \return list of tuple
+		 */
+		public function getArchiveMirrorsByPool($pool, $poolMirror);
+
+		/**
 		 * \brief Get iterator on files list for a specific archive
 		 * \param $id : an archive
 		 * \param $params : optional parameters

@@ -9,7 +9,6 @@
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
-
 			checkConnected();
 
 			if (!isset($_GET['id']) or !is_numeric($_GET['id'])) {
@@ -48,43 +47,60 @@
 			}
 
 			$archivesByPool = array();
+			$archive2archiveMirror = array();
+			$archiveMirror2archive = array();
+
 			foreach ($result['rows'] as $pool) {
-				$temp = $dbDriver->getArchivesByPool($pool);
+				$temp = $dbDriver->getArchiveMirrorsByPool($pool, $_GET['id']);
 
 				if (!$temp['query_executed']) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool/synchronize => Query failure', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchivesByPool(%s)', $pool));
 					httpResponse(500, array(
 						'message' => 'Query failure',
-						'pool' => array(),
+						'pool' => array()
 					));
 				}
 
 				$archivesByPool[$pool] = array();
-				foreach ($temp['rows'] as $archive)
+				foreach ($temp['result'] as list($archive, $archiveMirror)) {
 					$archivesByPool[$pool][$archive] = array();
+
+					if ($archiveMirror == null)
+						continue;
+
+					$archive2archiveMirror[$archive] = $archiveMirror;
+					if (array_key_exists($archiveMirror, $archiveMirror2archive))
+						$archiveMirror2archive[$archiveMirror][] = $archive;
+					else
+						$archiveMirror2archive[$archiveMirror] = array($archive);
+				}
 			}
+
+			$nbArchives = 0;
+			$nbSynchronized = 0;
 
 			foreach ($archivesByPool as $poolA => &$archivesA) {
 				foreach ($archivesByPool as $poolB => &$archivesB) {
 					if ($poolA === $poolB)
 						continue;
 
+					$archiveFound = array();
 					foreach ($archivesA as $archiveA => &$archiveInfoA) {
 						foreach ($archivesB as $archiveB => &$archiveInfoB) {
 							if (in_array($archiveA, $archiveInfoB) || in_array($archiveB, $archiveInfoA))
 								continue;
 
-							$result = $dbDriver->checkArchiveMirrorInCommon($archiveA, $archiveB);
-							if ($result['result'] === null)
-								httpResponse(500, array(
-									'message' => 'Query failure',
-									'pool' => array(),
-								));
+							if (in_array($archiveB, $archiveFound))
+								continue;
 
-							if ($result['result']) {
+							if (!array_key_exists($archiveA, $archive2archiveMirror))
+								continue;
+
+							if (in_array($archiveB, $archiveMirror2archive[$archive2archiveMirror[$archiveA]])) {
 								$archiveInfoA[] = $archiveB;
 								$archiveInfoB[] = $archiveA;
+								$archiveFound[] = $archiveB;
 								break;
 							}
 						}
@@ -94,8 +110,6 @@
 
 			$nbPools = count($archivesByPool);
 			$sync = array();
-			$nbArchives = 0;
-			$nbSynchronized = 0;
 
 			foreach ($archivesByPool as $pool => &$archives) {
 				foreach ($archives as $archive => &$info) {
@@ -132,7 +146,6 @@
 			break;
 
 		case 'POST':
-
 			checkConnected();
 
 			$poolmirror = httpParseInput();
