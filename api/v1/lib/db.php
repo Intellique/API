@@ -22,6 +22,11 @@
 
 		const DB_LOG_DEBUG = 0x8;
 
+
+		const DB_ROW_LOCK_NONE = 0x0;
+		const DB_ROW_LOCK_SHARE = 0x1;
+		const DB_ROW_LOCK_UPDATE = 0x2;
+
 		/**
 		 * \brief Cancel current transaction
 		 * \return \b TRUE on success

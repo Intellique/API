@@ -1,7 +1,7 @@
 {
 	"scheme": "http",
 	"host": "taiko",
-	"path": "/storiqone-backend-zakary/api/v1/",
+	"path": "/storiqone-backend/api/v1/",
 	"apikey": "d017552c-e005-4bc7-86bc-5e3e8b3ade2b",
 	"users": {
 		"admin": {

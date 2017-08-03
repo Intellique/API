@@ -1,7 +1,7 @@
 <?php
 	trait PostgresqlDBPermission {
 		public function checkArchivePermission($archive_id, $user_id) {
-			if (!$this->prepareQuery("check_archive_permission", "SELECT EXISTS(SELECT * FROM archive WHERE id = $1 AND (creator = $2 OR owner = $2)) OR EXISTS(SELECT * FROM archivevolume av INNER JOIN media m ON av.archive = $1 AND av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $2 AND u.poolgroup = ppg.poolgroup))"))
+			if (!$this->prepareQuery("check_archive_permission", "SELECT NOT EXISTS(SELECT * FROM archive WHERE id = $1) OR EXISTS(SELECT * FROM archive WHERE id = $1 AND (creator = $2 OR owner = $2)) OR EXISTS(SELECT * FROM archivevolume av INNER JOIN media m ON av.archive = $1 AND av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $2 AND u.poolgroup = ppg.poolgroup))"))
 				return null;
 
 			$result = pg_execute("check_archive_permission", array($archive_id, $user_id));

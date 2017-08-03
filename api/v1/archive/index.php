@@ -106,6 +106,7 @@
  *   - \b 500 Query failure
  */
 	require_once("../lib/env.php");
+
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
@@ -120,38 +121,56 @@
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
-			if (isset($_GET['id'])) {
-				if (!is_numeric($_GET['id'])) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/archive => id must be an integer and not "%s"', $_GET['id']), $_SESSION['user']['id']);
-					httpResponse(400, array('message' => 'Archive id must be an integer'));
-				}
-
-				$archive = $dbDriver->getArchive($_GET['id']);
-
-				if ($archive === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/archive => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchive(%s)', $_GET['id']), $_SESSION['user']['id']);
-
-					httpResponse(500, array('message' => 'Query failure'));
-				} elseif ($archive === false)
-					httpResponse(404, array('message' => 'Archive not found'));
-
-				$archive['deleted'] = true;
-
-				$result = $dbDriver->updateArchive($archive);
-				if ($result === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/archive => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updateArchive(%s)', $archive['uuid']), $_SESSION['user']['id']);
-
-					httpResponse(500, array('message' => 'Query failure'));
-				} elseif ($result === false)
-					httpResponse(404, array('message' => 'Archive not found'));
-				else
-					httpResponse(200, array('message' => 'Archive deleted'));
-			} else {
+			if (!isset($_GET['id'])) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'Trying to delete an archive without specifying an archive id', $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive ID required'));
 			}
+
+			if (!is_numeric($_GET['id'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/archive => id must be an integer and not "%s"', $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(400, array('message' => 'Archive id must be an integer'));
+			}
+
+			if (!$dbDriver->startTransaction())
+				httpResponse(500, array('message' => 'Query failure'));
+
+			$archive = $dbDriver->getArchive($_GET['id'], DB::DB_ROW_LOCK_UPDATE);
+
+			if ($archive === null) {
+				$dbDriver->cancelTransaction();
+
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/archive => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchive(%s)', $_GET['id']), $_SESSION['user']['id']);
+
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($archive === false) {
+				$dbDriver->cancelTransaction();
+				httpResponse(404, array('message' => 'Archive not found'));
+			}
+
+			if ($archive['deleted']) {
+				$dbDriver->cancelTransaction();
+				httpResponse(304, array('message' => 'Archive already deleted'));
+			}
+
+			$archive['deleted'] = true;
+
+			$result = $dbDriver->updateArchive($archive);
+			if ($result === null) {
+				$dbDriver->cancelTransaction();
+
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/archive => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updateArchive(%s)', $archive['uuid']), $_SESSION['user']['id']);
+
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($result === false) {
+				$dbDriver->cancelTransaction();
+				httpResponse(404, array('message' => 'Archive not found'));
+			} elseif (!$dbDriver->finishTransaction()) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'Query failure'));
+			} else
+				httpResponse(200, array('message' => 'Archive deleted'));
 
 			break;
 
@@ -161,6 +180,19 @@
 			if (isset($_GET['id'])) {
 				if (!is_numeric($_GET['id']))
 					httpResponse(400, array('message' => 'Archive id must be an integer'));
+
+				$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
+				if ($permission_granted === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkArchivePermission(%s, %s)', $_GET['id'], $_SESSION['user']['id']), $_SESSION['user']['id']);
+					httpResponse(500, array(
+						'message' => 'Query failure',
+						'archive' => array()
+					));
+				} elseif ($permission_granted === false) {
+					$dbDriver->writeLog(DB::DB_LOG_WARNING, 'GET api/v1/archive => A user that cannot get archive informations tried to', $_SESSION['user']['id']);
+					httpResponse(403, array('message' => 'Permission denied'));
+				}
 
 				$archive = $dbDriver->getArchive($_GET['id']);
 				if ($archive === null) {
@@ -182,22 +214,9 @@
 						'archive' => array()
 					));
 
-				$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
-				if ($permission_granted === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkArchivePermission(%s, %s)', $_GET['id'], $_SESSION['user']['id']), $_SESSION['user']['id']);
-					httpResponse(500, array(
-						'message' => 'Query failure',
-						'archive' => array()
-					));
-				} elseif ($permission_granted === false) {
-					$dbDriver->writeLog(DB::DB_LOG_WARNING, 'GET api/v1/archive => A user that cannot get archive informations tried to', $_SESSION['user']['id']);
-					httpResponse(403, array('message' => 'Permission denied'));
-				}
-
 				httpResponse(200, array(
-						'message' => 'Query succeeded',
-						'archive' => $archive
+					'message' => 'Query succeeded',
+					'archive' => $archive
 				));
 			} else {
 				$params = array();
@@ -228,12 +247,14 @@
 							$ok = false;
 					}
 				}
+
 				if (isset($_GET['limit'])) {
 					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
 						$params['limit'] = intval($_GET['limit']);
 					else
 						$ok = false;
 				}
+
 				if (isset($_GET['offset'])) {
 					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
 						$params['offset'] = intval($_GET['offset']);
@@ -279,7 +300,8 @@
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
 			}
 
-			$dbDriver->startTransaction();
+			if (!$dbDriver->startTransaction())
+				httpResponse(500, array('message' => 'Query failure'));
 
 			$ok = true;
 			$failed = false;
@@ -295,6 +317,7 @@
 			// pool id
 			$checkPoolPermission = $dbDriver->checkPoolPermission($infoJob['pool'], $_SESSION['user']['id']);
 			if ($checkPoolPermission === null) {
+				$dbDriver->cancelTransaction();
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $infoJob['pool'], $_SESSION['user']['id']), $_SESSION['user']['id']);
 				$failed = true;
 			} else
@@ -314,8 +337,10 @@
 				for ($i = 0, $n = count($files); $ok && $i < $n; $i++) {
 					$ok = is_string($files[$i]) && posix_access($files[$i], POSIX_F_OK);
 					//problem access files or file's name is not a string
-					if (!$ok)
+					if (!$ok) {
+						$dbDriver->cancelTransaction();
 						httpResponse(400, array('message' => 'could not access files or files names are not string'));
+					}
 				}
 			}
 
@@ -329,6 +354,7 @@
 			if ($ok) {
 				$jobType = $dbDriver->getJobTypeId("create-archive");
 				if ($jobType === null || $jobType === false) {
+					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypeId(%s)', "create-archive"), $_SESSION['user']['id']);
 					$failed = true;
 				} else
@@ -339,6 +365,7 @@
 			if ($ok) {
 				$host = $dbDriver->getHost(posix_uname()['nodename']);
 				if ($host === null || $host === false) {
+					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', posix_uname()['nodename']), $_SESSION['user']['id']);
 					$failed = true;
 				} else
@@ -394,6 +421,7 @@
 
 			if ($jobId === null) {
 				$dbDriver->cancelTransaction();
+
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createJob(%s)', $job), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
@@ -403,6 +431,8 @@
 				$selectedfileId = $dbDriver->getSelectedFile($file);
 
 				if ($selectedfileId === null || !$dbDriver->linkJobToSelectedfile($jobId, $selectedfileId)) {
+					$dbDriver->cancelTransaction();
+
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getSelectedFile(%s)', $file), $_SESSION['user']['id']);
 					$failed = true;
 					break;
@@ -413,9 +443,10 @@
 				$dbDriver->cancelTransaction();
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
+			} elseif (!$dbDriver->finishTransaction()) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'Query failure'));
 			}
-
-			$dbDriver->finishTransaction();
 
 			httpAddLocation('/job/?id=' . $jobId);
 			httpResponse(201, array(
@@ -437,34 +468,40 @@
 			if (!is_int($archive['id']))
 				httpResponse(400, array('message' => 'Archive id must be an integer'));
 
-			$dbDriver->startTransaction();
+			if (!$dbDriver->startTransaction())
+				httpResponse(500, array('message' => 'Query failure'));
 
 			$ok = true;
 			$failed = false;
 
-			// check archive
-			$check_archive = $dbDriver->getArchive($archive['id']);
+			// archive id
+			if (!$_SESSION['user']['isadmin']) {
+				$checkArchivePermission = $dbDriver->checkArchivePermission($archive['id'], $_SESSION['user']['id']);
+				if ($checkArchivePermission === null) {
+					$dbDriver->cancelTransaction();
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkArchivePermission(%s)', $archive['id']), $_SESSION['user']['id']);
+					$failed = true;
+				}
 
-			if (!$check_archive)
-				$dbDriver->cancelTransaction();
+				if (!$checkArchivePermission) {
+					$dbDriver->cancelTransaction();
+					$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried to update an archive', $_SESSION['user']['id']);
+					httpResponse(403, array('message' => 'Permission denied'));
+				}
+			}
+
+			// check archive
+			$check_archive = $dbDriver->getArchive($archive['id'], DB::DB_ROW_LOCK_UPDATE);
 
 			if ($check_archive === null) {
+				$dbDriver->cancelTransaction();
+
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/archive => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchive(%s)', $archive['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			} elseif ($check_archive === false)
-				httpResponse(400, array('message' => 'Archive not found'));
-
-			// archive id
-			$checkArchivePermission = $dbDriver->checkArchivePermission($archive['id'], $_SESSION['user']['id']);
-			if ($checkArchivePermission === null) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkArchivePermission(%s)', $archive['id']), $_SESSION['user']['id']);
-				$failed = true;
-			}
-			if (!$_SESSION['user']['isadmin'] || !$checkArchivePermission) {
+			} elseif ($check_archive === false) {
 				$dbDriver->cancelTransaction();
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried to update an archive', $_SESSION['user']['id']);
-				httpResponse(403, array('message' => 'Permission denied 1'));
+				httpResponse(400, array('message' => 'Archive not found'));
 			}
 
 			// name [optional]
@@ -519,6 +556,8 @@
 			$resultArchive = $dbDriver->updateArchive($archive);
 
 			if (!$resultArchive) {
+				$dbDriver->cancelTransaction();
+
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/archive => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updateArchive(%s)', $archive['uuid']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
@@ -559,7 +598,10 @@
 				}
 			}
 
-			$dbDriver->finishTransaction();
+			if (!$dbDriver->finishTransaction()) {
+				$dbDriver->finishTransaction();
+				httpResponse(500, array('message' => 'Query failure'));
+			}
 
 			httpResponse(200, array('message' => 'Archive updated successfully'));
 

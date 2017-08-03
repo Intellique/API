@@ -27,10 +27,11 @@
 		/**
 		 * \brief Get an archive by its id
 		 * \param $id : archive id
+		 * \param $rowLock : put a lock on archive with id $id
 		 * \return archive information
 		 * \note No permission check will be performed
 		 */
-		public function getArchive($id);
+		public function getArchive($id, $rowLock = DB::DB_ROW_LOCK_NONE);
 
 		/**
 		 * \brief Get archives ids list for user \em $user_id

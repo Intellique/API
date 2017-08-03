@@ -1,5 +1,4 @@
 from common_test import CommonTest
-from io import StringIO
 import json
 
 class ArchiveTest(CommonTest):
@@ -108,60 +107,56 @@ class ArchiveTest(CommonTest):
 
     def test_15_post_admin_user_with_wrong_pool_id(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        io = StringIO()
-        json.dump({
+        body = json.dumps({
             'pool': 'toto'
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/', body=body, headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_16_post_basic_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('basic')
-        io = StringIO()
-        json.dump({
+        body = json.dumps({
             'pool': 3
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/', body=body, headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
 
     def test_17_post_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        io = StringIO()
-        json.dump({
+        body = json.dumps({
             'name': '',
             'files': ["/mnt/raid/rcarchives/PRODUITS_DE_DIFFUSION/CEI_DIFFUSION/20081207_MCEI_DON_CARLO_SCALA"],
             'pool': 3,
             'metadata': {},
             'options': {}
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/', body=body, headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_18_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        io = StringIO()
-        json.dump({
+        body = json.dumps({
             'name': 'ArchiveTest',
             'files': ["/mnt/raid/shared/partage/5a7-resto/130007/mnt/raid/VERS LTO DOSSIER SUJET C000/TVR1050-TRANSPORT CIRCULATION-S10.mov"],
             'pool': 3,
             'metadata': {},
             'options': {}
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('POST', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        conn.request('POST', self.path + 'archive/', body=body, headers=headers)
         res = conn.getresponse()
         location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
@@ -198,61 +193,57 @@ class ArchiveTest(CommonTest):
 
     def test_21_put_admin_user_with_wrong_archive_id(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        io = StringIO()
-        json.dump({
+        body = json.dumps({
             'id': 'toto'
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('PUT', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        conn.request('PUT', self.path + 'archive/', body=body, headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_22_put_basic_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('basic')
-        io = StringIO()
-        json.dump({
+        body = json.dumps({
             'id': 2
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('PUT', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        conn.request('PUT', self.path + 'archive/', body=body, headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
 
     def test_23_put_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        io = StringIO()
-        json.dump({
+        body = json.dumps({
             'id': '',
             'name': 'ArchiveModifTest',
             'owner': 3,
             'metadata': {},
             'canappend': False
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('PUT', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        conn.request('PUT', self.path + 'archive/', body=body, headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_24_put_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        io = StringIO()
-        json.dump({
+        body = json.dumps({
             'id': 2,
             'name': 'ArchiveModifTest',
             'owner': 3,
             'metadata': {"foo": "bar"},
             'canappend': False,
             'deleted': False
-        }, io);
+        });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
-        conn.request('PUT', self.path + 'archive/', body=io.getvalue(), headers=headers)
+        conn.request('PUT', self.path + 'archive/', body=body, headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)

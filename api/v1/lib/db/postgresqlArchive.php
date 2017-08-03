@@ -149,14 +149,28 @@
 			return pg_affected_rows($result) > 0;
 		}
 
-		public function getArchive($id) {
+		public function getArchive($id, $rowLock) {
 			if (!is_numeric($id))
 				return false;
 
-			if (!$this->prepareQuery("select_archive_by_id", "SELECT id, uuid, name, creator, owner, canappend, deleted FROM archive WHERE id = $1"))
+			$query = "SELECT id, uuid, name, creator, owner, canappend, deleted FROM archive WHERE id = $1";
+
+			switch ($rowLock) {
+				case DB::DB_ROW_LOCK_SHARE:
+					$query .= ' FOR SHARE';
+					break;
+
+				case DB::DB_ROW_LOCK_UPDATE:
+					$query .= ' FOR UPDATE';
+					break;
+			}
+
+			$query_name = "select_archive_by_id_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
 				return null;
 
-			$result = pg_execute("select_archive_by_id", array($id));
+			$result = pg_execute($query_name, array($id));
 			if ($result === false)
 				return null;
 
@@ -207,7 +221,6 @@
 		}
 
 		public function getArchives(&$user, &$params) {
-
 			$query_common = " FROM archive WHERE (creator = $1 OR owner = $1 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)))";
 			$query_params = array($user['id']);
 
@@ -279,10 +292,12 @@
 				if (isset($params['order_asc']) && $params['order_asc'] === false)
 					$query .= ' DESC';
 			}
+
 			if (isset($params['limit'])) {
 				$query_params[] = $params['limit'];
 				$query .= ' LIMIT $' . count($query_params);
 			}
+
 			if (isset($params['offset'])) {
 				$query_params[] = $params['offset'];
 				$query .= ' OFFSET $' . count($query_params);
@@ -300,10 +315,9 @@
 				);
 
 			$result = pg_execute($this->connect, $query_name, $query_params);
-			if ($total_rows == 0) {
+			if ($total_rows == 0)
 				$total_rows = pg_num_rows($result);
-			}
-			
+
 			if ($result === false)
 				return array(
 					'query' => $query,
@@ -1005,7 +1019,7 @@
 
 			$query = "SELECT id, name, type, mimetype, ownerid, owner, groupid, groups, perm, ctime, mtime, size FROM archivefile WHERE id IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE archivevolume IN (SELECT id from archivevolume WHERE archive = $1))";
 			$query_params = array($id);
-			
+
 			if (isset($params['order_by'])) {
 				$query .= ' ORDER BY ' . $params['order_by'];
 
