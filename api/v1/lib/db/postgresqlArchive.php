@@ -149,7 +149,7 @@
 			return pg_affected_rows($result) > 0;
 		}
 
-		public function getArchive($id, $rowLock) {
+		public function getArchive($id, $rowLock = DB::DB_ROW_LOCK_NONE) {
 			if (!is_numeric($id))
 				return false;
 
