@@ -49,7 +49,8 @@
 				httpResponse(400, array('message' => 'Archive id must be an integer'));
 			}
 
-			$dbDriver->startTransaction();
+			if (!$dbDriver->startTransaction())
+				httpResponse(500, array('message' => 'Query failure'));
 
 			$ok = true;
 			$failed = false;
@@ -64,12 +65,25 @@
 				'options' => array()
 			);
 
+			// archive id
+			if (!$_SESSION['user']) {
+				$checkArchivePermission = $dbDriver->checkArchivePermission($infoJob['archive'], $_SESSION['user']['id']);
+				if ($checkArchivePermission === null) {
+					$dbDriver->cancelTransaction();
+					httpResponse(500, array('message' => 'Query failure'));
+				} elseif (!$checkArchivePermission) {
+					$dbDriver->cancelTransaction();
+
+					$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/check => A user that cannot check tried to', $_SESSION['user']['id']);
+					httpResponse(403, array('message' => 'Permission denied'));
+				}
+			}
+
 			// check archive
 			$check_archive = $dbDriver->getArchive($infoJob['archive']);
 
 			if (!$check_archive)
 				$dbDriver->cancelTransaction();
-
 			if ($check_archive === null) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/check => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchive(%s)', $infoJob['archive']), $_SESSION['user']['id']);
@@ -77,18 +91,7 @@
 			} elseif ($check_archive === false)
 				httpResponse(400, array('message' => 'Archive not found'));
 
-			// archive id
-			$checkArchivePermission = $dbDriver->checkArchivePermission($infoJob['archive'], $_SESSION['user']['id']);
-			if ($checkArchivePermission === null)
-				$failed = true;
-			else
-				$job['archive'] = $infoJob['archive'];
-
-			if (!$checkArchivePermission) {
-				$dbDriver->cancelTransaction();
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/check => A user that cannot check tried to', $_SESSION['user']['id']);
-				httpResponse(403, array('message' => 'Permission denied'));
-			}
+			$job['archive'] = $infoJob['archive'];
 
 			// name [optional]
 			if (isset($infoJob['name'])) {
@@ -102,6 +105,7 @@
 			if ($ok) {
 				$jobType = $dbDriver->getJobTypeId("check-archive");
 				if ($jobType === null || $jobType === false) {
+					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypeId(%s)', "check-archive"), $_SESSION['user']['id']);
 					$failed = true;
 				} else
@@ -120,6 +124,7 @@
 			if ($ok) {
 				$host = $dbDriver->getHost(posix_uname()['nodename']);
 				if ($host === null || $host === false) {
+					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', posix_uname()['nodename']), $_SESSION['user']['id']);
 					$failed = true;
 				} else
@@ -140,15 +145,14 @@
 			}
 
 			// gestion des erreurs
-			if ($failed || !$ok)
-				$dbDriver->cancelTransaction();
-
 			if ($failed) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/check => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
-			if (!$ok)
+			if (!$ok) {
+				$dbDriver->cancelTransaction();
 				httpResponse(400, array('message' => 'Incorrect input'));
+			}
 
 			$jobId = $dbDriver->createJob($job);
 
@@ -159,7 +163,10 @@
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
-			$dbDriver->finishTransaction();
+			if (!$dbDriver->finishTransaction()) {
+				$dbDriver->finishTransaction();
+				httpResponse(500, array('message' => 'Query failure'));
+			}
 
 			httpAddLocation('/job/?id=' . $jobId);
 			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/archive/check => Job %s created', $jobId), $_SESSION['user']['id']);
