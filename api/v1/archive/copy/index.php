@@ -135,6 +135,9 @@
 			if ($check_media['pool']['id'] == $check_pool['id'])
 				$ok = false;
 
+			if ($check_pool['deleted'])
+				$ok = false;
+
 			// name [optional]
 			if (isset($infoJob['name'])) {
 				$ok = is_string($infoJob['name']);

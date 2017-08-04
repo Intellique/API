@@ -329,6 +329,13 @@
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
+			$checkPool = $dbDriver->getPool($infoJob['pool'], DB::DB_ROW_LOCK_SHARE);
+			if ($checkPool['deleted']) {
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('User %s try to archive into a deleted pool \'%s(%d)\'', $_SESSION['user']['login'], $checkPool['name'], $checkPool['id']), $_SESSION['user']['id']);
+				httpResponse(400, array('message' => 'Pool deleted'));
+			}
+
 			// files (checking file access)
 			$files = $infoJob['files'];
 			$ok = isset($files) && is_array($files) && count($files) > 0;

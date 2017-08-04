@@ -27,9 +27,10 @@
 		/**
 		 * \brief Get a pool by its id
 		 * \param $id : pool id
+		 * \param $rowLock : put a lock on archive with id $id
 		 * \return media format information
 		 * \note No permission check will be performed
 		 */
-		public function getPool($id);
+		public function getPool($id, $rowLock = DB::DB_ROW_LOCK_NONE);
 	}
 ?>
