@@ -27,7 +27,7 @@
 		}
 
 		public function checkPoolPermission($pool_id, $user_id) {
-			if (!$this->prepareQuery("check_pool_permission", "SELECT COUNT(*) > 0 AS granted FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $2 AND u.poolgroup = ppg.poolgroup AND ppg.pool = $1"))
+			if (!$this->prepareQuery("check_pool_permission", "SELECT NOT EXISTS(SELECT * FROM pool WHERE id = $1) OR EXISTS(SELECT * FROM pooltopoolgroup WHERE pool = $1 AND poolgroup = (SELECT poolgroup FROM users WHERE id = $2))"))
 				return null;
 
 			$result = pg_execute("check_pool_permission", array($pool_id, $user_id));

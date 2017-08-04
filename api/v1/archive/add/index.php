@@ -82,7 +82,6 @@
 
 			// check archive
 			$check_archive = $dbDriver->getArchive($infoJob['archive'], DB::DB_ROW_LOCK_SHARE);
-
 			if (!$check_archive)
 				$dbDriver->cancelTransaction();
 			if ($check_archive === null) {
