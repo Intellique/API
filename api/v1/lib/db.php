@@ -7,19 +7,12 @@
 	interface DB {
 
 		const DB_LOG_EMERGENCY = 0x1;
-
 		const DB_LOG_ALERT = 0x2;
-
 		const DB_LOG_CRITICAL = 0x3;
-
 		const DB_LOG_ERROR = 0x4;
-
 		const DB_LOG_WARNING = 0x5;
-
 		const DB_LOG_NOTICE = 0x6;
-
 		const DB_LOG_INFO = 0x7;
-
 		const DB_LOG_DEBUG = 0x8;
 
 

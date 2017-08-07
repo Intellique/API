@@ -187,7 +187,22 @@
 
 			$archive['metadata'] = $this->getMetadatas($id, 'archive');
 
-			if (!$this->prepareQuery("select_archive_volume_by_id", "SELECT id, sequence, size, starttime, endtime, checktime, checksumok, media, mediaposition, jobrun, purged FROM archivevolume WHERE archive = $1 ORDER BY sequence"))
+
+			$query = "SELECT id, sequence, size, starttime, endtime, checktime, checksumok, media, mediaposition, jobrun, purged FROM archivevolume WHERE archive = $1 ORDER BY sequence";
+
+			switch ($rowLock) {
+				case DB::DB_ROW_LOCK_SHARE:
+					$query .= ' FOR SHARE';
+					break;
+
+				case DB::DB_ROW_LOCK_UPDATE:
+					$query .= ' FOR UPDATE';
+					break;
+			}
+
+			$query_name = "select_archive_volume_by_id_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
 				return null;
 
 			$result = pg_execute("select_archive_volume_by_id", array($id));
@@ -2109,43 +2124,6 @@
 
 			$pooltemplate = pg_fetch_array($result);
 			return intval($pooltemplate[0]);
-		}
-
-		public function getUser($id, $login) {
-			if ((isset($id) && !is_numeric($id)) || (isset($login) && !is_string($login)))
-				return false;
-
-			if (isset($id)) {
-				$isPrepared = $this->prepareQuery('select_user_by_id', "SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE id = $1 LIMIT 1");
-				if (!$isPrepared)
-					return null;
-
-				$result = pg_execute($this->connect, 'select_user_by_id', array($id));
-			} else {
-				$isPrepared = $this->prepareQuery('select_user_by_login', "SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE login = $1 LIMIT 1");
-				if (!$isPrepared)
-					return null;
-
-				$result = pg_execute($this->connect, 'select_user_by_login', array($login));
-			}
-
-			if ($result === false)
-				return null;
-
-			if (pg_num_rows($result) == 0)
-				return false;
-
-			$row = pg_fetch_assoc($result);
-
-			$row['id'] = intval($row['id']);
-			$row['isadmin'] = $row['isadmin'] == 't' ? true : false;
-			$row['canarchive'] = $row['canarchive'] == 't' ? true : false;
-			$row['canrestore'] = $row['canrestore'] == 't' ? true : false;
-			$row['poolgroup'] = PostgresqlDB::getInteger($row['poolgroup']);
-			$row['disabled'] = $row['disabled'] == 't' ? true : false;
-			$row['meta'] = json_decode($row['meta']);
-
-			return $row;
 		}
 
 		public function getVTL($id) {

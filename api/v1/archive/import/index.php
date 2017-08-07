@@ -29,6 +29,7 @@
  */
 
 	require_once("../../lib/env.php");
+
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
@@ -44,6 +45,7 @@
 			}
 
 			$formatInfo = httpParseInput();
+
 			// media id
 			if (!isset($formatInfo['media'])) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/import => Trying to import an archive without specifying media id', $_SESSION['user']['id']);
@@ -66,7 +68,8 @@
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
 			}
 
-			$dbDriver->startTransaction();
+			if (!$dbDriver->startTransaction())
+				httpResponse(500, array('message' => 'Query failure'));
 
 			$ok = true;
 			$failed = false;
@@ -125,7 +128,7 @@
 				httpResponse(400, array('message' => 'Archive format should be known'));
 			}
 
-			if ($pool['deleted'] ) {
+			if ($pool['deleted']) {
 				$dbDriver->cancelTransaction();
 				httpResponse(400, array('message' => 'Trying to import a media into a deleted pool'));
 			}
