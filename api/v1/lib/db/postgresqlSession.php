@@ -314,6 +314,62 @@
 			$clause_where = false;
 			$query_params = array();
 
+			if (isset($params['poolgroup'])) {
+				$query_params[] = $params['poolgroup'];
+				$query_common .= ' WHERE poolgroup = $' . count($query_params);
+				$clause_where = true;
+			}
+
+			if (isset($params['login'])) {
+				$query_params[] = $params['login'];
+				if ($clause_where)
+					$query_common .= ' AND login ~* $' . count($query_params);
+				else {
+					$query_common .= ' WHERE login ~* $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['isadmin'])) {
+				$query_params[] = $params['isadmin'];
+				if ($clause_where)
+					$query_common .= ' AND isadmin = $' . count($query_params);
+				else {
+					$query_common .= ' WHERE isadmin = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['canarchive'])) {
+				$query_params[] = $params['canarchive'];
+				if ($clause_where)
+					$query_common .= ' AND canarchive = $' . count($query_params);
+				else {
+					$query_common .= ' WHERE canarchive = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['canrestore'])) {
+				$query_params[] = $params['canrestore'];
+				if ($clause_where)
+					$query_common .= ' AND canrestore = $' . count($query_params);
+				else {
+					$query_common .= ' WHERE canrestore = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
+			if (isset($params['disabled'])) {
+				$query_params[] = $params['disabled'];
+				if ($clause_where)
+					$query_common .= ' AND disabled = $' . count($query_params);
+				else {
+					$query_common .= ' WHERE disabled = $' . count($query_params);
+					$clause_where = true;
+				}
+			}
+
 			$total_rows = 0;
 			if (isset($params['limit']) or isset($params['offset'])) {
 				$query = "SELECT COUNT(*)" . $query_common;
@@ -346,72 +402,18 @@
 
 			$query = "SELECT id" . $query_common;
 
-			if (isset($params['poolgroup'])) {
-				$query_params[] = $params['poolgroup'];
-				$query .= ' WHERE poolgroup = $' . count($query_params);
-				$clause_where = true;
-			}
-
-			if (isset($params['login'])) {
-				$query_params[] = $params['login'];
-				if ($clause_where)
-					$query .= ' AND login ~* $' . count($query_params);
-				else {
-					$query .= ' WHERE login ~* $' . count($query_params);
-					$clause_where = true;
-				}
-			}
-
-			if (isset($params['isadmin'])) {
-				$query_params[] = $params['isadmin'];
-				if ($clause_where)
-					$query .= ' AND isadmin = $' . count($query_params);
-				else {
-					$query .= ' WHERE isadmin = $' . count($query_params);
-					$clause_where = true;
-				}
-			}
-
-			if (isset($params['canarchive'])) {
-				$query_params[] = $params['canarchive'];
-				if ($clause_where)
-					$query .= ' AND canarchive = $' . count($query_params);
-				else {
-					$query .= ' WHERE canarchive = $' . count($query_params);
-					$clause_where = true;
-				}
-			}
-
-			if (isset($params['canrestore'])) {
-				$query_params[] = $params['canrestore'];
-				if ($clause_where)
-					$query .= ' AND canrestore = $' . count($query_params);
-				else {
-					$query .= ' WHERE canrestore = $' . count($query_params);
-					$clause_where = true;
-				}
-			}
-
-			if (isset($params['disabled'])) {
-				$query_params[] = $params['disabled'];
-				if ($clause_where)
-					$query .= ' AND disabled = $' . count($query_params);
-				else {
-					$query .= ' WHERE disabled = $' . count($query_params);
-					$clause_where = true;
-				}
-			}
-
 			if (isset($params['order_by'])) {
 				$query .= ' ORDER BY ' . $params['order_by'];
 
 				if (isset($params['order_asc']) && $params['order_asc'] === false)
 					$query .= ' DESC';
 			}
+
 			if (isset($params['limit'])) {
 				$query_params[] = $params['limit'];
 				$query .= ' LIMIT $' . count($query_params);
 			}
+
 			if (isset($params['offset'])) {
 				$query_params[] = $params['offset'];
 				$query .= ' OFFSET $' . count($query_params);
@@ -430,6 +432,9 @@
 				);
 
 			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($total_rows == 0)
+				$total_rows = pg_num_rows($result);
+
 			if ($result === false)
 				return array(
 					'query' => $query,
@@ -450,7 +455,7 @@
 				'query_prepared' => true,
 				'query_executed' => true,
 				'rows' => $rows,
-				'total_rows' => count($rows)
+				'total_rows' => $total_rows
 			);
 		}
 
