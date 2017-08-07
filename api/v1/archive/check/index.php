@@ -93,6 +93,15 @@
 			} elseif ($check_archive === false)
 				httpResponse(400, array('message' => 'Archive not found'));
 
+			if ($check_archive['deleted']) {
+				$dbDriver->cancelTransaction();
+
+				if ($_SESSION['user']['isadmin'])
+					httpResponse(400, array('message' => 'Archive is deleted'));
+				else
+					httpResponse(404, array('message' => 'Archive not found'));
+			}
+
 			$job['archive'] = $infoJob['archive'];
 
 			// name [optional]

@@ -118,9 +118,16 @@
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/add (%d) => getArchive(%s)', __LINE__, $infoJob['archive']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			} elseif ($check_archive === false)
-				httpResponse(400, array('message' => 'Archive not found'));
+				httpResponse(404, array('message' => 'Archive not found'));
 
-			$job['archive'] = $infoJob['archive'];
+			if ($check_archive['deleted']) {
+				$dbDriver->cancelTransaction();
+
+				if ($_SESSION['user']['isadmin'])
+					httpResponse(400, array('message' => 'Archive is deleted'));
+				else
+					httpResponse(404, array('message' => 'Archive not found'));
+			}
 
 			$archiveSynchronized = $dbDriver->isArchiveSynchronized($infoJob['archive']);
 			if (!$archiveSynchronized['query_executed']) {
@@ -135,6 +142,8 @@
 				httpResponse(409, array('message' => 'Request conflict'));
 			}
 
+			$job['archive'] = $infoJob['archive'];
+
 			// name [optional]
 			if (isset($infoJob['name'])) {
 				$ok = is_string($infoJob['name']);
@@ -148,7 +157,7 @@
 				$jobType = $dbDriver->getJobTypeId("create-archive");
 				if ($jobType === null || $jobType === false) {
 					$dbDriver->cancelTransaction();
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/add (%d) => getJobTypeId(%s)', __LINE__), "create-archive"), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/add (%d) => getJobTypeId(%s)', __LINE__, "create-archive"), $_SESSION['user']['id']);
 					$failed = true;
 				} else
 					$job['type'] = $jobType;

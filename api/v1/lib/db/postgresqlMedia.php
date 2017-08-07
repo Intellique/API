@@ -23,14 +23,28 @@
 			return $archiveformat;
 		}
 
-		public function getMedia($id) {
+		public function getMedia($id, $rowLock = DB::DB_ROW_LOCK_NONE) {
 			if (!is_numeric($id))
 				return false;
 
-			if (!$this->prepareQuery("select_media_by_id", "SELECT id, uuid, label, mediumserialnumber, name, status, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, append, type, writelock, archiveformat, mediaformat, pool FROM media WHERE id = $1"))
+			$query = "SELECT id, uuid, label, mediumserialnumber, name, status, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, append, type, writelock, archiveformat, mediaformat, pool FROM media WHERE id = $1";
+
+			switch ($rowLock) {
+				case DB::DB_ROW_LOCK_SHARE:
+					$query .= ' FOR SHARE';
+					break;
+
+				case DB::DB_ROW_LOCK_UPDATE:
+					$query .= ' FOR UPDATE';
+					break;
+			}
+
+			$query_name = "select_media_by_id_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
 				return null;
 
-			$result = pg_execute("select_media_by_id", array($id));
+			$result = pg_execute($query_name, array($id));
 			if ($result === false)
 				return null;
 
@@ -66,7 +80,7 @@
 			$media['writelock'] = $media['writelock'] == 't' ? true : false;
 			$media['archiveformat'] = $this->getArchiveFormat($media['archiveformat']);
 			$media['mediaformat'] = $this->getMediaFormat($media['mediaformat']);
-			$media['pool'] = $this->getPool($media['pool']);
+			$media['pool'] = $this->getPool($media['pool'], $rowLock);
 
 			return $media;
 		}
