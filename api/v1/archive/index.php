@@ -318,13 +318,13 @@
 			$files = &$infoJob['files'];
 			if (!isset($files)) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => files should be defined', __LINE__), $_SESSION['user']['id']);
-				$ok = false;
+				httpResponse(400, array('message' => 'Incorrect input'));
 			} elseif (!is_array($files)) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => files should be an array of string', __LINE__), $_SESSION['user']['id']);
-				$ok = false;
+				httpResponse(400, array('message' => 'Incorrect input'));
 			} elseif (count($files) == 0) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => files should contain at least one file', __LINE__), $_SESSION['user']['id']);
-				$ok = false;
+				httpResponse(400, array('message' => 'Incorrect input'));
 			} else {
 				for ($i = 0; $i < count($files); $i++) {
 					if (!is_string($files[$i])) {
