@@ -317,7 +317,7 @@
 			$total_rows = 0;
 			if (isset($params['limit']) or isset($params['offset'])) {
 				$query = "SELECT COUNT(*)" . $query_common;
-				$query_name = "select_total_users_id";
+				$query_name = "select_total_users";
 
 				if (!$this->prepareQuery($query_name, $query))
 					return array(
@@ -355,9 +355,9 @@
 			if (isset($params['login'])) {
 				$query_params[] = $params['login'];
 				if ($clause_where)
-					$query .= ' AND login = $' . count($query_params);
+					$query .= ' AND login ~* $' . count($query_params);
 				else {
-					$query .= ' WHERE login = $' . count($query_params);
+					$query .= ' WHERE login ~* $' . count($query_params);
 					$clause_where = true;
 				}
 			}
@@ -417,7 +417,7 @@
 				$query .= ' OFFSET $' . count($query_params);
 			}
 
-			$query_name = 'select_users_id_' . md5($query);
+			$query_name = 'select_users_' . md5($query);
 
 			if (!$this->prepareQuery($query_name, $query))
 				return array(

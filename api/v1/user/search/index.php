@@ -145,7 +145,8 @@
 
 			httpResponse(200, array(
 				'message' => 'Query successful',
-				'users' => $result['rows']
+				'users' => $result['rows'],
+				'total_rows' => $result['total_rows']
 			));
 
 			break;
