@@ -291,6 +291,8 @@
 		case 'POST':
 			checkConnected();
 
+			$infoJob = httpParseInput();
+
 			$ok = true;
 			$failed = false;
 
@@ -303,8 +305,6 @@
 				'login' => $_SESSION['user']['id'],
 				'options' => array()
 			);
-
-			$infoJob = httpParseInput();
 
 			// name
 			if (isset($infoJob['name']) && is_string($infoJob['name']))

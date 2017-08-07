@@ -216,7 +216,7 @@
 
 			if (!$dbDriver->finishTransaction()) {
 				$dbDriver->finishTransaction();
-				httpResponse(500, array('message' => 'Query failure'));
+				httpResponse(500, array('message' => 'Transaction failure'));
 			}
 
 			httpAddLocation('/job/?id=' . $jobId);
