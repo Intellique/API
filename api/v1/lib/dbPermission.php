@@ -34,6 +34,6 @@
 		 * \param $rowLock : put a lock on archive with id $id
 		 * \return <b>User informations</b>, \b FALSE if not found, \b NULL on query execution failure
 		 */
-		public function getUser(integer $id, $rowLock = DB::DB_ROW_LOCK_NONE);
+		// public function getUser(integer $id, $rowLock = DB::DB_ROW_LOCK_NONE);
 	}
 ?>

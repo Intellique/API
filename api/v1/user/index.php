@@ -205,14 +205,14 @@
 
 					httpResponse(500, array(
 						'message' => 'Query failure',
-						'users_id' => array(),
+						'users' => array(),
 						'total_rows' => 0
 					));
 				}
 				$dbDriver->writeLog(DB::DB_LOG_INFO, 'Getting list of users', $_SESSION['user']['id']);
 				httpResponse(200, array(
 					'message' => 'Query successful',
-					'users_id' => $users['rows'],
+					'users' => $users['rows'],
 					'total_rows' => $users['total_rows']
 				));
 			} else {
