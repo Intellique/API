@@ -40,10 +40,9 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
-
 		case 'GET':
 			checkConnected();
 
@@ -126,6 +125,8 @@
 
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
+
+			loadDbDriver('archive');
 
 			$result = $dbDriver->getArchives($_SESSION['user'], $params);
 			if ($result['query_prepared'] === false) {

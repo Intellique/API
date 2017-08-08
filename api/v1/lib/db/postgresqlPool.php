@@ -1,4 +1,6 @@
 <?php
+	require_once("dbPool.php");
+
 	trait PostgresqlDBPool {
 		public function createPool(&$pool) {
 			if (!$this->prepareQuery("create_pool", "INSERT INTO pool(uuid, name, archiveformat, mediaformat, autocheck, lockcheck, growable, unbreakablelevel, metadata, backuppool, poolmirror) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id"))

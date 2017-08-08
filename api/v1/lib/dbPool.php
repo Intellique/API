@@ -1,5 +1,5 @@
 <?php
-	interface DB_Pool {
+	interface DB_Pool extends DB {
 		/**
 		 * \brief Create a pool
 		 * \param $pool : a pool

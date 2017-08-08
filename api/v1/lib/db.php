@@ -5,7 +5,6 @@
 	 * \brief Common interface
 	 */
 	interface DB {
-
 		const DB_LOG_EMERGENCY = 0x1;
 		const DB_LOG_ALERT = 0x2;
 		const DB_LOG_CRITICAL = 0x3;
@@ -77,5 +76,15 @@
 		 * \return <b>The value from a specified column</b>
 		 */
 		public function getValue($column);
+	}
+
+	$dbDriver = null;
+	function loadDbDriver($name) {
+		global $dbDriver, $db_config;
+
+		$name = ucfirst($name);
+		require_once("db/${db_config['driver']}${name}Imp.php");
+		$className = sprintf('%sDB%sImp', ucfirst($db_config['driver']), $name);
+		$dbDriver = new $className($db_config);
 	}
 ?>

@@ -33,7 +33,7 @@
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'POST':
@@ -52,6 +52,8 @@
 				'metadata' => array(),
 				'options' => array()
 			);
+
+			loadDbDriver('archive');
 
 			if (!$_SESSION['user']['canarchive']) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/archive/import (%d) => A user that cannot archive tried to', __LINE__), $_SESSION['user']['id']);

@@ -2,7 +2,7 @@
 	/**
 	 * \brief Specific interface for user
 	 */
-	interface DB_User {
+	interface DB_User extends DB {
 		/**
 		 * \brief create a user
 		 * \param $user : PHP object

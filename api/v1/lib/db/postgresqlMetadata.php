@@ -1,4 +1,6 @@
 <?php
+	require_once("dbMetadata.php");
+
 	trait PostgresqlDBMetadata {
 		public function createMetadata($id, $key, $value, $type, $userId) {
 			if (!$this->prepareQuery("insert_metadata", "INSERT INTO metadata (id, type, key, value, login) VALUES ($1, $2, $3, $4, $5)"))

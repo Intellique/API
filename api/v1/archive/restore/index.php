@@ -28,13 +28,16 @@
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'POST':
 			checkConnected();
 
 			$infoJob = httpParseInput();
+
+			loadDbDriver('archive');
+
 			// archive id
 			if (!isset($infoJob['archive'])) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/restore => Trying to restore an archive without specifying archive id', $_SESSION['user']['id']);

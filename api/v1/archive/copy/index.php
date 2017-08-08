@@ -26,7 +26,7 @@
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'POST':
@@ -46,6 +46,8 @@
 				'metadata' => array(),
 				'options' => array()
 			);
+
+			loadDbDriver('archive');
 
 			// archive id
 			if (!isset($infoJob['archive'])) {

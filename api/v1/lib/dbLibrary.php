@@ -1,11 +1,10 @@
 <?php
 	require_once('db.php');
-	require_once("dbMedia.php");
 
 	/**
 	* \brief Specific interface for Library
 	*/
-	interface DB_Library extends DB, DB_Media {
+	interface DB_Library extends DB {
 
 		/**
 		* \brief Returns Drives by Changer

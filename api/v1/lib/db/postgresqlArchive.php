@@ -1,16 +1,8 @@
 <?php
 	require_once("dateTime.php");
-	require_once("postgresql.php");
-	require_once("postgresqlJob.php");
-	require_once("postgresqlMedia.php");
-	require_once("postgresqlMetadata.php");
-	require_once("postgresqlPermission.php");
-	require_once("postgresqlPool.php");
-	require_once("postgresqlUser.php");
+	require_once("dbArchive.php");
 
-	class PostgresqlDBArchive extends PostgresqlDB implements DB_Archive {
-		use PostgresqlDBJob, PostgresqlDBMedia, PostgresqlDBMetadata, PostgresqlDBPermission, PostgresqlDBPool, PostgresqlDBUser;
-
+	trait PostgresqlDBArchive {
 		public function checkArchiveMirrorInCommon($archiveA, $archiveB) {
 			$query = 'SELECT COUNT(*) > 0 FROM archivetoarchivemirror a1 INNER JOIN archivetoarchivemirror a2 ON a1.archivemirror = a2.archivemirror WHERE a1.archive = $1 AND a2.archive = $2';
 			$query_params = array($archiveA, $archiveB);

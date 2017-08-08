@@ -1,4 +1,6 @@
 <?php
+	require_once("dbJob.php");
+
 	trait PostgresqlDBJob {
 		public function createJob(&$job) {
 			if (!$this->prepareQuery("insert_job", "INSERT INTO job (name, type, nextstart, interval, repetition, archive, backup, media, pool, host, login, metadata, options) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id"))

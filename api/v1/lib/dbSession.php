@@ -7,7 +7,7 @@
 	/**
 	 * \brief Specific interface for user, session, job, jobtype
 	 */
-	interface DB_Session extends DB, DB_Job, DB_Permission, DB_User {
+	interface DB_Session extends DB {
 		/**
 		* \brief Get application's apikey by key
 		* \param $apikey : apikey

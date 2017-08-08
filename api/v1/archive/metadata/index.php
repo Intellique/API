@@ -43,13 +43,13 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
-	require_once("dbMetadata.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
-
 		case 'GET':
 			checkConnected();
+
+			loadDbDriver('archive');
 
 			$key = null;
 			if (isset($_GET['id'])) {
@@ -124,6 +124,8 @@
 
 			$inputData = httpParseInput();
 
+			loadDbDriver('archive');
+
 			$key = null;
 			if (isset($inputData['id'])) {
 				if (!is_numeric($inputData['id']))
@@ -165,6 +167,8 @@
 			checkConnected();
 
 			$inputData = httpParseInput();
+
+			loadDbDriver('archive');
 
 			$key = null;
 			if (isset($inputData['id'])) {

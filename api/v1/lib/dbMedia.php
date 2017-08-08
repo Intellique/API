@@ -1,5 +1,5 @@
 <?php
-	interface DB_Media {
+	interface DB_Media extends DB {
 		/**
 		 * \brief Get an archive format by its id
 		 * \param $id : archive id

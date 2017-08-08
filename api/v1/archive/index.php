@@ -110,12 +110,13 @@
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
 			checkConnected();
 
+			loadDbDriver('archive');
 			if (!$_SESSION['user']['isadmin']) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/archive (%d) => A non-admin user (%s) tried to delete an archive', __LINE__, $_SESSION['user']['login']), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
@@ -182,6 +183,7 @@
 				if (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false)
 					httpResponse(400, array('message' => 'Archive id must be an integer'));
 
+				loadDbDriver('archive');
 				$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
 				if ($permission_granted === null) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archive/?id=%d (%d) => Query failure', $_GET['id'], __LINE__), $_SESSION['user']['id']);
@@ -268,6 +270,7 @@
 				if (!$ok)
 					httpResponse(400, array('message' => 'Incorrect input'));
 
+				loadDbDriver('archive');
 				$result = $dbDriver->getArchives($_SESSION['user'], $params);
 				if ($result['query_executed'] == false) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archive (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
@@ -305,6 +308,8 @@
 				'login' => $_SESSION['user']['id'],
 				'options' => array()
 			);
+
+			loadDbDriver('archive');
 
 			// name
 			if (isset($infoJob['name']) && is_string($infoJob['name']))
@@ -497,6 +502,7 @@
 			if (!is_int($archive['id']))
 				httpResponse(400, array('message' => 'Archive id must be an integer'));
 
+			loadDbDriver('archive');
 			if (!$dbDriver->startTransaction()) {
 				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('PUT api/v1/archive (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Transaction failure'));

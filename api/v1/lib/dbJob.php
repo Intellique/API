@@ -2,7 +2,7 @@
 	/**
 	 * \brief Specific interface for job
 	 */
-	interface DB_Job {
+	interface DB_Job extends DB {
 		/**
 		 * \brief Create a archival task
 		 * \param $job : hash table

@@ -2,7 +2,7 @@
 	/**
 	 * \brief specific interface for permission
 	 */
-	interface DB_Permission {
+	interface DB_Permission extends DB {
 		/**
 		 * \brief Check archive permission
 		 * \param $archive_id : archive id

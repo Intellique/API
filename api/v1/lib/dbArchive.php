@@ -1,16 +1,10 @@
 <?php
 	require_once('db.php');
-	require_once("dbJob.php");
-	require_once("dbMedia.php");
-	require_once("dbMetadata.php");
-	require_once("dbPermission.php");
-	require_once("dbPool.php");
-	require_once("dbUser.php");
 
 	/**
 	 * \brief Specific interface for archive object
 	 */
-	interface DB_Archive extends DB, DB_Job, DB_Media, DB_Metadata, DB_Permission, DB_Pool, DB_User {
+	interface DB_Archive extends DB {
 		/**
 		 * \brief Check if \i archiveA and \i archiveB have a common archive mirror
 		 * \param $archiveA : id of the first archive
@@ -109,9 +103,4 @@
 		 */
 		public function updateArchive(&$archive);
 	}
-
-	require_once("db/${db_config['driver']}Archive.php");
-
-	$className = ucfirst($db_config['driver']) . 'DBArchive';
-	$dbDriver = new $className($db_config);
 ?>
