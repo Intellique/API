@@ -205,7 +205,7 @@
 			if (!$this->prepareQuery($query_name, $query))
 				return null;
 
-			$result = pg_execute("select_archive_volume_by_id", array($id));
+			$result = pg_execute($query_name, array($id));
 			if ($result === false)
 				return null;
 
