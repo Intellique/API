@@ -59,14 +59,6 @@
 		public function getPoolMetadatas($id, $key);
 
 		/**
-		 * \brief Get user by id or login
-		 * \param $id : User id or null
-		 * \param $login : User login or null
-		 * \return <b>User informations</b>, \b FALSE if not found, \b NULL on query execution failure
-		 */
-		public function getUser($id, $login);
-
-		/**
 		 * \brief Get metadata from user
 		 * \param $id : id
 		 * \param $key : key

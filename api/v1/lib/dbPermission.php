@@ -27,13 +27,5 @@
 		 * \return \b NULL on query or a boolean value corresponding to the permission
 		 */
 		public function checkPoolPermission($pool_id, $user_id);
-
-		/**
-		 * \brief Get user by id or login
-		 * \param $id : User id or null
-		 * \param $rowLock : put a lock on archive with id $id
-		 * \return <b>User informations</b>, \b FALSE if not found, \b NULL on query execution failure
-		 */
-		// public function getUser(integer $id, $rowLock = DB::DB_ROW_LOCK_NONE);
 	}
 ?>

@@ -38,43 +38,5 @@
 			$row[0] = $row[0] == 't' ? true : false;
 			return $row[0];
 		}
-
-		public function getUser(integer $id, $rowLock = DB::DB_ROW_LOCK_NONE) {
-			$query = 'SELECT id, login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled FROM users WHERE id = $1 LIMIT 1';
-
-			switch ($rowLock) {
-				case DB::DB_ROW_LOCK_SHARE:
-					$query .= ' FOR SHARE';
-					break;
-
-				case DB::DB_ROW_LOCK_UPDATE:
-					$query .= ' FOR UPDATE';
-					break;
-			}
-
-			$query_name = "select_user_by_id_" . md5($query);
-
-			if (!$this->prepareQuery($query_name, $query))
-				return null;
-
-			$result = pg_execute($this->connect, 'select_user_by_login', array($login));
-			if ($result === false)
-				return null;
-
-			if (pg_num_rows($result) == 0)
-				return false;
-
-			$row = pg_fetch_assoc($result);
-
-			$row['id'] = intval($row['id']);
-			$row['isadmin'] = $row['isadmin'] == 't' ? true : false;
-			$row['canarchive'] = $row['canarchive'] == 't' ? true : false;
-			$row['canrestore'] = $row['canrestore'] == 't' ? true : false;
-			$row['poolgroup'] = PostgresqlDB::getInteger($row['poolgroup']);
-			$row['disabled'] = $row['disabled'] == 't' ? true : false;
-			$row['meta'] = json_decode($row['meta']);
-
-			return $row;
-		}
 	}
 ?>

@@ -115,49 +115,499 @@
 			return $mediaformat;
 		}
 
-		public function getPool($id, $rowLock = DB::DB_ROW_LOCK_NONE) {
-			if (!is_numeric($id))
-				return false;
-
-			$query = "SELECT id, uuid, name, archiveformat, mediaformat, autocheck, lockcheck, growable, unbreakablelevel, rewritable, metadata, backuppool, pooloriginal,  poolmirror, deleted FROM pool WHERE id = $1 AND NOT deleted";
-
-			switch ($rowLock) {
-				case DB::DB_ROW_LOCK_SHARE:
-					$query .= ' FOR SHARE';
-					break;
-
-				case DB::DB_ROW_LOCK_UPDATE:
-					$query .= ' FOR UPDATE';
-					break;
-			}
-
-			$query_name = "select_pool_by_id_" . md5($query);
-
-			if (!$this->prepareQuery($query_name, $query))
+		public function getMediaFormatByName($name) {
+			if (!$this->prepareQuery("select_media_format_by_name", "SELECT id FROM mediaformat WHERE name = $1 LIMIT 1"))
 				return null;
 
-			$result = pg_execute($query_name, array($id));
+			$result = pg_execute("select_media_format_by_name", array($name));
 			if ($result === false)
 				return null;
 
 			if (pg_num_rows($result) == 0)
 				return false;
 
-			$pool = pg_fetch_assoc($result);
+			$mediaformat = pg_fetch_array($result);
+			return intval($mediaformat[0]);
+		}
 
-			$pool['id'] = intval($pool['id']);
-			$pool['archiveformat'] = $this->getArchiveFormat($pool['archiveformat']);
-			$pool['mediaformat'] = $this->getMediaFormat($pool['mediaformat']);
-			$pool['lockcheck'] = $pool['lockcheck'] == 't' ? true : false;
-			$pool['growable'] = $pool['growable'] == 't' ? true : false;
-			$pool['rewritable'] = $pool['rewritable'] == 't' ? true : false;
-			$pool['metadata'] = json_decode($pool['metadata']);
-			$pool['backuppool'] = $pool['backuppool'] == 't' ? true : false;
-			$pool['pooloriginal'] = isset($pool['pooloriginal']) ? intval($pool['pooloriginal']) : null;
-			$pool['poolmirror'] = isset($pool['poolmirror']) ? intval($pool['poolmirror']) : null;
-			$pool['deleted'] = $pool['deleted'] == 't' ? true : false;
+		public function getMediaFormats(&$params) {
+			$total_rows = 0;
+			$query_params = array();
 
-			return $pool;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*) FROM mediaformat";
+				$query_name = "select_total_mediaformat";
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$query = "SELECT id FROM mediaformat";
+
+			if (isset($params['order_by'])) {
+				$query .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query .= ' DESC';
+			}
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_media_formats_" . md5($query);
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			if ($total_rows == 0)
+				$total_rows = count($rows);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $rows,
+				'total_rows' => $total_rows
+			);
+		}
+
+		public function getMediasByParams(&$params) {
+			$query_common = " FROM media";
+			$query_params = array();
+
+			if (isset($params['name'])) {
+				$query_params[] = $params['name'];
+				$query_common .= ' WHERE name ~* $' . count($query_params);
+			}
+
+			if (isset($params['pool'])) {
+				$query_params[] = $params['pool'];
+				if (count($query_params) > 0)
+					$query_common .= ' AND pool = $' . count($query_params);
+				else
+					$query_common .= ' WHERE pool = $' . count($query_params);
+			}
+
+			if (isset($params['type'])) {
+				$query_params[] = $params['type'];
+				if (count($query_params) > 0)
+					$query_common .= ' AND type = $' . count($query_params);
+				else
+					$query_common .= ' WHERE type = $' . count($query_params);
+			}
+
+			if (isset($params['archiveformat'])) {
+				$query_params[] = $params['archiveformat'];
+				if (count($query_params) > 0)
+					$query_common .= ' AND archiveformat = $' . count($query_params);
+				else
+					$query_common .= ' WHERE archiveformat = $' . count($query_params);
+			}
+
+			if (isset($params['mediaformat'])) {
+				$query_params[] = $params['mediaformat'];
+				if (count($query_params) > 0)
+					$query_common .= ' AND mediaformat = $' . count($query_params);
+				else
+					$query_common .= ' WHERE mediaformat = $' . count($query_params);
+			}
+
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_medias_" . md5($query);
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			if (isset($params['order_by'])) {
+				$query_common .= ' ORDER BY ' . $params['order_by'];
+
+				if (isset($params['order_asc']) && $params['order_asc'] === false)
+					$query_common .= ' DESC';
+			}
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query_common .= ' LIMIT $' . count($query_params);
+			}
+
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query_common .= ' OFFSET $' . count($query_params);
+			}
+
+			$query = 'SELECT id, pool' . $query_common;
+			$query_name = "select_medias_by_params_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
+				return null;
+
+			$result = pg_execute($query_name, $query_params);
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$rows = array();
+			while ($row = pg_fetch_assoc($result)) {
+				$row['id'] = intval($row['id']);
+				if ($row['pool'])
+					$row['pool'] = intval($row['pool']);
+				$rows[] = $row;
+			}
+			if ($total_rows === 0)
+				$total_rows = count($rows);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'query_params' => &$query_params,
+				'rows' => &$rows,
+				'total_rows' => $total_rows,
+				'params' => &$params
+			);
+		}
+
+		public function getMediasByPool($pool, &$params) {
+			$query_common = " FROM media WHERE pool = $1 ORDER BY id";
+			$query_params = array($pool);
+
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_medias_by_pool";
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$query = "SELECT id" . $query_common;
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_medias_by_pool_" . md5($query);
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			if ($total_rows == 0)
+				$total_rows = count($rows);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $rows,
+				'total_rows' => $total_rows
+			);
+		}
+
+		public function getMediasWithoutPool($mediaformat, &$params) {
+			$query_common = " FROM media WHERE pool IS NULL";
+			$query_params = array();
+			if ($mediaformat != null) {
+				$query_common .= " AND mediaformat = $1";
+				$query_params[] = $mediaformat;
+			}
+			$query_common .= " ORDER BY id";
+
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_medias_with_no_pool";
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$query = "SELECT id" . $query_common;
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_medias_with_no_pool_" . md5($query);
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			if ($total_rows == 0)
+				$total_rows = count($rows);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $rows,
+				'total_rows' => $total_rows
+			);
+		}
+
+		public function getMediasByPoolgroup($user_poolgroup, &$params) {
+			$query_common = " FROM media m INNER JOIN pooltopoolgroup ptpg ON m.pool = ptpg.pool AND ptpg.poolgroup = $1";
+			$query_params = array($user_poolgroup);
+
+			$total_rows = 0;
+			if (isset($params['limit']) or isset($params['offset'])) {
+				$query = "SELECT COUNT(*)" . $query_common;
+				$query_name = "select_total_medias_by_user_poolgroup";
+
+				if (!$this->prepareQuery($query_name, $query))
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => false,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$result = pg_execute($this->connect, $query_name, $query_params);
+				if ($result === false)
+					return array(
+						'query' => $query,
+						'query_name' => $query_name,
+						'query_prepared' => true,
+						'query_executed' => false,
+						'rows' => array(),
+						'total_rows' => 0
+					);
+
+				$row = pg_fetch_array($result);
+				$total_rows = intval($row[0]);
+			}
+
+			$query = "SELECT id" . $query_common. ' ORDER BY id';
+
+			if (isset($params['limit'])) {
+				$query_params[] = $params['limit'];
+				$query .= ' LIMIT $' . count($query_params);
+			}
+			if (isset($params['offset'])) {
+				$query_params[] = $params['offset'];
+				$query .= ' OFFSET $' . count($query_params);
+			}
+
+			$query_name = "select_medias_by_user_poolgroup_" . md5($query);
+			if (!$this->prepareQuery($query_name, $query))
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
+			if ($result === false)
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'rows' => array(),
+					'total_rows' => $total_rows
+				);
+
+			$rows = array();
+			while ($row = pg_fetch_array($result))
+				$rows[] = intval($row[0]);
+
+			if ($total_rows == 0)
+				$total_rows = count($rows);
+
+			return array(
+				'query' => $query,
+				'query_name' => $query_name,
+				'query_prepared' => true,
+				'query_executed' => true,
+				'rows' => $rows,
+				'total_rows' => $total_rows
+			);
+		}
+
+		public function updateMedia(&$media) {
+			if (!$this->prepareQuery("update_media", "UPDATE media SET name = $1, label = $2 WHERE id = $3"))
+				return null;
+
+			$result = pg_execute("update_media", array($media['name'], $media['label'], $media['id']));
+			if ($result === false)
+				return null;
+
+			return pg_affected_rows($result) > 0;
 		}
 	}
 ?>

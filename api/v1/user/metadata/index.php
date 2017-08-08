@@ -40,7 +40,7 @@
 					$key = $_GET['key'];
 				}
 
-				$exists = $dbDriver->getUser($_GET['id']);
+				$exists = $dbDriver->getUserById($_GET['id']);
 				if ($exists === null) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/user/metadata => Query failure', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, null)', $_GET['id']), $_SESSION['user']['id']);

@@ -558,14 +558,14 @@
 					httpResponse(400, array('message' => 'Incorrect input'));
 				}
 
-				$check_user = $dbDriver->getUser($archive['owner'], DB::DB_ROW_LOCK_SHARE);
+				$check_user = $dbDriver->getUserById($archive['owner'], DB::DB_ROW_LOCK_SHARE);
 				if ($check_user === null) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/archive (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/archive (%d) => getUser(%s)', __LINE__, $archive['owner']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/archive (%d) => getUserById(%s)', __LINE__, $archive['owner']), $_SESSION['user']['id']);
 					httpResponse(500, array('message' => 'Query failure'));
 				} elseif ($check_user === false) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/archive (%d) => User not found', __LINE__), $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/archive (%d) => getUser(%s)', __LINE__, $archive['owner']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/archive (%d) => getUserById(%s)', __LINE__, $archive['owner']), $_SESSION['user']['id']);
 					httpResponse(404, array('message' => sprintf('User \'%d\' not found', $archive['owner'])));
 				} else
 					$archive['owner'] = $check_archive['owner'];
