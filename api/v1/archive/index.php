@@ -124,7 +124,7 @@
 			if (!isset($_GET['id'])) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/archive (%d) => Trying to delete an archive without specifying an archive id', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive ID required'));
-			} elseif (!is_integer($_GET['id'])) {
+			} elseif (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/archive (%d) => id must be an integer and not "%s"', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive id must be an integer'));
 			}
@@ -179,7 +179,7 @@
 			checkConnected();
 
 			if (isset($_GET['id'])) {
-				if (!is_integer($_GET['id']))
+				if (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false)
 					httpResponse(400, array('message' => 'Archive id must be an integer'));
 
 				$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
@@ -346,7 +346,7 @@
 				httpResponse(400, array('message' => 'Pool id is required'));
 			}
 
-			if (!is_integer($infoJob['pool'])) {
+			if (filter_var($infoJob['pool'], FILTER_VALIDATE_INT) === false) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => id must be an integer and not "%s"', __LINE__, $infoJob['pool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
 			}
@@ -552,7 +552,7 @@
 					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/archive (%d) => A non-admin user tried to update an archive (%d)', __LINE__, $archive['id']), $_SESSION['user']['id']);
 					httpResponse(403, array('message' => 'Permission denied'));
-				} elseif (is_integer($archive['owner'])) {
+				} elseif (filter_var($archive['owner'], FILTER_VALIDATE_INT) === false) {
 					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/archive (%d) => archive\'s owner shoul be integer', __LINE__), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'Incorrect input'));
