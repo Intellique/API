@@ -42,22 +42,22 @@
 
 		public function getMetadata($id, $key, $type) {
 			if (!isset($id) || !isset($key) || !isset($type) || !is_numeric($id))
-				return array('error' => true, 'founded' => false, 'value' => null);
+				return array('error' => true, 'found' => false, 'value' => null);
 
 			if (!$this->prepareQuery('select_metadata_by_key', "SELECT value FROM metadata WHERE id = $1 AND key = $2 AND type = $3 LIMIT 1"))
-				return array('error' => true, 'founded' => false, 'value' => null);
+				return array('error' => true, 'found' => false, 'value' => null);
 
 			$result = pg_execute($this->connect, 'select_metadata_by_key', array($id, $key, $type));
 
 			if ($result === false)
-				return array('error' => true, 'founded' => false, 'value' => null);
+				return array('error' => true, 'found' => false, 'value' => null);
 
 			if (pg_num_rows($result) == 0)
-				return array('error' => false, 'founded' => false, 'value' => null);
+				return array('error' => false, 'found' => false, 'value' => null);
 
 			$row = pg_fetch_assoc($result);
 
-			return array('error' => false, 'founded' => true, 'value' => json_decode($row['value'], true));
+			return array('error' => false, 'found' => true, 'value' => json_decode($row['value'], true));
 		}
 
 		public function getMetadatas($id, $type) {

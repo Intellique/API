@@ -57,7 +57,7 @@
 							'metadata' => array()
 						));
 					}
-					if ($metadata['founded'] === false)
+					if ($metadata['found'] === false)
 						httpResponse(404, array(
 								'message' => 'No metadata found for this object',
 								'metadata' => array()

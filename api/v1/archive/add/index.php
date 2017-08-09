@@ -63,7 +63,7 @@
 				httpResponse(400, array('message' => 'Archive id is required'));
 			}
 
-			if (filter_var($infoJob['archive'], FILTER_VALIDATE_INT) === false) {
+			if (!is_integer($infoJob['archive']) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/add (%d) => Archive id must be an integer and not %s', __LINE__, $infoJob['archive']) , $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive id must be an integer'));
 			}

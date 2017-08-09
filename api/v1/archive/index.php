@@ -17,6 +17,7 @@
  *   - \b 401 Not logged in
  *   - \b 403 Permission denied
  *   - \b 404 Archive not found
+ *   - \b 410 Archive gone
  *   - \b 500 Query failure
  *
  * \section Archive_ID Archive information
@@ -117,6 +118,7 @@
 			checkConnected();
 
 			loadDbDriver('archive');
+
 			if (!$_SESSION['user']['isadmin']) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/archive (%d) => A non-admin user (%s) tried to delete an archive', __LINE__, $_SESSION['user']['login']), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
@@ -136,7 +138,6 @@
 			}
 
 			$archive = $dbDriver->getArchive($_GET['id'], DB::DB_ROW_LOCK_UPDATE);
-
 			if ($archive === null) {
 				$dbDriver->cancelTransaction();
 
@@ -184,6 +185,7 @@
 					httpResponse(400, array('message' => 'Archive id must be an integer'));
 
 				loadDbDriver('archive');
+
 				$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
 				if ($permission_granted === null) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archive/?id=%d (%d) => Query failure', $_GET['id'], __LINE__), $_SESSION['user']['id']);
@@ -254,15 +256,17 @@
 				}
 
 				if (isset($_GET['limit'])) {
-					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-						$params['limit'] = intval($_GET['limit']);
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 1));
+					if ($limit === false)
+						$params['limit'] = $limit;
 					else
 						$ok = false;
 				}
 
 				if (isset($_GET['offset'])) {
-					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-						$params['offset'] = intval($_GET['offset']);
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					if ($offset === false)
+						$params['offset'] = $offset;
 					else
 						$ok = false;
 				}
@@ -271,6 +275,7 @@
 					httpResponse(400, array('message' => 'Incorrect input'));
 
 				loadDbDriver('archive');
+
 				$result = $dbDriver->getArchives($_SESSION['user'], $params);
 				if ($result['query_executed'] == false) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archive (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
@@ -351,7 +356,7 @@
 				httpResponse(400, array('message' => 'Pool id is required'));
 			}
 
-			if (filter_var($infoJob['pool'], FILTER_VALIDATE_INT) === false) {
+			if (!is_integer($infoJob['pool'])) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => id must be an integer and not "%s"', __LINE__, $infoJob['pool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
 			}
@@ -392,7 +397,7 @@
 
 
 			if (!$dbDriver->startTransaction()) {
-				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/archive (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/archive (%d) => Failed to finish transaction', __LINE__), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Transaction failure'));
 			}
 
@@ -499,10 +504,11 @@
 			if (!isset($archive['id']))
 				httpResponse(400, array('message' => 'Archive id is required'));
 
-			if (!is_int($archive['id']))
+			if (!is_integer($archive['id']))
 				httpResponse(400, array('message' => 'Archive id must be an integer'));
 
 			loadDbDriver('archive');
+
 			if (!$dbDriver->startTransaction()) {
 				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('PUT api/v1/archive (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Transaction failure'));
@@ -558,7 +564,7 @@
 					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/archive (%d) => A non-admin user tried to update an archive (%d)', __LINE__, $archive['id']), $_SESSION['user']['id']);
 					httpResponse(403, array('message' => 'Permission denied'));
-				} elseif (filter_var($archive['owner'], FILTER_VALIDATE_INT) === false) {
+				} elseif (!is_integer($archive['owner'])) {
 					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/archive (%d) => archive\'s owner shoul be integer', __LINE__), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'Incorrect input'));
@@ -620,7 +626,6 @@
 			}
 
 			$resultArchive = $dbDriver->updateArchive($archive);
-
 			if (!$resultArchive) {
 				$dbDriver->cancelTransaction();
 
