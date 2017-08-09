@@ -205,7 +205,7 @@
 			}
 
 			if (!$dbDriver->finishTransaction()) {
-				$dbDriver->finishTransaction();
+				$dbDriver->cancelTransaction();
 				httpResponse(500, array('message' => 'Transaction failure'));
 			}
 
