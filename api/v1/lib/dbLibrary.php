@@ -3,6 +3,17 @@
 	* \brief Specific interface for Library
 	*/
 	interface DB_Library {
+		/**
+		 * \brief Get information of specified changer
+		 * \param id : id of changer
+		 */
+		public function getDevice($id);
+
+		/**
+		 * \brief Get a list of device's ids
+		 */
+		public function getDevices(&$params);
+		public function getDevicesByParams(&$params);
 
 		/**
 		* \brief Returns Drives by Changer

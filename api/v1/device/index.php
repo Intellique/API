@@ -33,25 +33,28 @@
 	require_once("http.php");
 	require_once("session.php");
 	require_once("uuid.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
 			checkConnected();
 
 			if (!$_SESSION['user']['isadmin'] || !$_SESSION['user']['canarchive'] || !$_SESSION['user']['canrestore']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'GET api/v1/device => Permission denied for a non-admin/archiver/restorer user', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/device (%d) => Permission denied for a non-admin/archiver/restorer user', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
+
 			if (isset($_GET['id'])) {
-				if (!is_numeric($_GET['id'])) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/device => id must be an integer and not "%s"', $_GET['id']), $_SESSION['user']['id']);
+				if (filter_var($_GET['id'], FILTER_VALIDATE_INT) !== false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/device (%d) => id must be an integer and not "%s"', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'Device ID must be an integer'));
 				}
+
 				$device = $dbDriver->getDevice($_GET['id']);
 				if ($device === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/device => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getDevice(%s)', $_GET['id']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/device (%d) => Query failure', __LINE__, $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/device (%d) => getDevice(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'device' => array()
@@ -61,23 +64,26 @@
 						'message' => 'Device not found',
 						'device' => array()
 					));
+
 				httpResponse(200, array(
-						'message' => 'Query succeeded',
-						'device' => $device
+					'message' => 'Query succeeded',
+					'device' => $device
 				));
 			} else {
 				$params = array();
 				$ok = true;
 
 				if (isset($_GET['limit'])) {
-					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-						$params['limit'] = intval($_GET['limit']);
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					if ($limit !== false)
+						$params['limit'] = $limit;
 					else
 						$ok = false;
 				}
 				if (isset($_GET['offset'])) {
-					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-						$params['offset'] = intval($_GET['offset']);
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					if ($offset !== false)
+						$params['offset'] = $offset;
 					else
 						$ok = false;
 				}
@@ -87,8 +93,9 @@
 
 				$devices = $dbDriver->getDevices($params);
 				if ($devices['query_executed'] === false) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/device => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getDevices(%s)', var_export($params, true)), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/device (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/device (%d) => getDevices(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
+
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'devices' => array()
@@ -98,9 +105,10 @@
 						'message' => 'Device not found',
 						'devices' => array()
 					));
+
 				httpResponse(200, array(
-						'message' => 'Query succeeded',
-						'devices' => $devices['rows']
+					'message' => 'Query succeeded',
+					'devices' => $devices['rows']
 				));
 			}
 			break;
