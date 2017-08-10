@@ -51,8 +51,6 @@
 				'options' => array()
 			);
 
-			loadDbDriver('archive');
-
 			// archive id
 			if (!isset($infoJob['archive'])) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/archive/check (%d) => Trying to check an archive without specifying archive id', __LINE__), $_SESSION['user']['id']);

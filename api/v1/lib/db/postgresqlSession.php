@@ -1,13 +1,8 @@
 <?php
 	require_once("dateTime.php");
-	require_once("postgresql.php");
-	require_once("postgresqlJob.php");
-	require_once("postgresqlPermission.php");
-	require_once("postgresqlUser.php");
+	require_once("dbSession.php");
 
-	class PostgresqlDBSession extends PostgresqlDB implements DB_Session {
-		use PostgresqlDBJob, PostgresqlDBPermission, PostgresqlDBUser;
-
+	trait PostgresqlDBSession {
 		public function getApiKeyByKey($apikey) {
 			if (!isset($apikey))
 				return false;

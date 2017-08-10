@@ -35,7 +35,7 @@
 	require_once("http.php");
 	require_once("uuid.php");
 	require_once("session.php");
-	require_once("dbSession.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':

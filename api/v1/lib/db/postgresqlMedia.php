@@ -1,4 +1,6 @@
 <?php
+	require_once("dbMedia.php");
+
 	trait PostgresqlDBMedia {
 		public function getArchiveFormat($id) {
 			if (!is_numeric($id))

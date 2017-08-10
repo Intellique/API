@@ -53,8 +53,6 @@
 				'options' => array()
 			);
 
-			loadDbDriver('archive');
-
 			if (!$_SESSION['user']['canarchive']) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/archive/import (%d) => A user that cannot archive tried to', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));

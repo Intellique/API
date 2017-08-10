@@ -36,8 +36,6 @@
 
 			$infoJob = httpParseInput();
 
-			loadDbDriver('archive');
-
 			// archive id
 			if (!isset($infoJob['archive'])) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/restore => Trying to restore an archive without specifying archive id', $_SESSION['user']['id']);

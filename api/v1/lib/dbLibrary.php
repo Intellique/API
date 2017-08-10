@@ -1,10 +1,8 @@
 <?php
-	require_once('db.php');
-
 	/**
 	* \brief Specific interface for Library
 	*/
-	interface DB_Library extends DB {
+	interface DB_Library {
 
 		/**
 		* \brief Returns Drives by Changer
@@ -53,9 +51,4 @@
 		*/
 		public function setLibraryAction($id, $act);
 	}
-
-	require_once("db/${db_config['driver']}Library.php");
-
-	$className = ucfirst($db_config['driver']) . 'DBLibrary';
-	$dbDriver = new $className($db_config);
 ?>

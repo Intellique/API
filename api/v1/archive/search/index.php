@@ -126,8 +126,6 @@
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
-			loadDbDriver('archive');
-
 			$result = $dbDriver->getArchives($_SESSION['user'], $params);
 			if ($result['query_prepared'] === false) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive/search => Query failure', $_SESSION['user']['id']);

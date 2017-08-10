@@ -1,10 +1,7 @@
 <?php
-	require_once("postgresql.php");
-	require_once("postgresqlMedia.php");
+	require_once("dbLibrary.php");
 
-	class PostgresqlDBLibrary extends PostgresqlDB implements DB_Library {
-		use PostgresqlDBMedia;
-
+	trait PostgresqlDBLibrary {
 		public function getDrivesByChanger($id) {
 			$query_name = 'get_drives_by_changer';
 			if (!$this->prepareQuery($query_name, "SELECT cs.index AS drivenumber, d.id, d.model, d.vendor, d.serialnumber, d.status FROM changerslot cs INNER JOIN drive d ON cs.drive = d.id WHERE cs.changer = $1 AND cs.drive IS NOT NULL"))
@@ -123,6 +120,5 @@
 			
 			return pg_execute($this->connect, $query_name, array($act, $id)) !== false;
 		}
-
 	}
 ?>

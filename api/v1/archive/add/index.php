@@ -55,8 +55,6 @@
 
 			$infoJob = httpParseInput();
 
-			loadDbDriver('archive');
-
 			// archive id
 			if (!isset($infoJob['archive'])) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/archive/add (%d) => Archive id is required', __LINE__), $_SESSION['user']['id']);

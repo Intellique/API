@@ -49,15 +49,13 @@
 		case 'GET':
 			checkConnected();
 
-			loadDbDriver('archive');
-
 			if (!isset($_GET['id'])) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/archive/metadata (%d) => Trying to get archive\'s metadata without specifying an archive id', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Archive ID required'));
 			}
 
 			$archiveId = filter_var($_GET['id'], FILTER_VALIDATE_INT);
-			if ($archiveId === false)
+			if ($archiveId !== false)
 				httpResponse(400, array('message' => 'id must be an integer'));
 
 			$checkPermission = $dbDriver->checkArchivePermission($archiveId, $_SESSION['user']['id']);
@@ -141,7 +139,7 @@
 				if (!is_string($key))
 					httpResponse(400, array('message' => 'key must be a string'));
 
-			loadDbDriver('archive');
+			loadDbDriver('Archive');
 
 			if (!$dbDriver->startTransaction()) {
 				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/archive/metadata (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
@@ -217,7 +215,7 @@
 				if (!is_string($key))
 					httpResponse(400, array('message' => 'key must be a string'));
 
-			loadDbDriver('archive');
+			loadDbDriver('Archive');
 
 			if (!$dbDriver->startTransaction()) {
 				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/archive/metadata (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);

@@ -1041,7 +1041,7 @@
 			return $vtl;
 		}
 
-		public function getVTLs(&$params) {
+		public function getVTLs2(&$params) {
 			$query_common = 'FROM vtl';
 			$query_params = array();
 

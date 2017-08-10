@@ -2,7 +2,7 @@
 	/**
 	 * \brief Specific interface for metadata
 	 */
-	interface DB_Metadata extends DB {
+	interface DB_Metadata {
 		/**
 		 * \brief Create a metadata
 		 * \param $id : id

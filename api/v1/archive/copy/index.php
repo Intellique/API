@@ -47,8 +47,6 @@
 				'options' => array()
 			);
 
-			loadDbDriver('archive');
-
 			// archive id
 			if (!isset($infoJob['archive'])) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/archive/copy (%d) => Trying to copy an archive without specifying archive id', __LINE__), $_SESSION['user']['id']);

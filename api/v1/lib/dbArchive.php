@@ -1,10 +1,8 @@
 <?php
-	require_once('db.php');
-
 	/**
 	 * \brief Specific interface for archive object
 	 */
-	interface DB_Archive extends DB {
+	interface DB_Archive {
 		/**
 		 * \brief Check if \i archiveA and \i archiveB have a common archive mirror
 		 * \param $archiveA : id of the first archive

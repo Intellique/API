@@ -1,13 +1,8 @@
 <?php
-	require_once('db.php');
-	require_once("dbJob.php");
-	require_once("dbPermission.php");
-	require_once("dbUser.php");
-
 	/**
 	 * \brief Specific interface for user, session, job, jobtype
 	 */
-	interface DB_Session extends DB {
+	interface DB_Session {
 		/**
 		* \brief Get application's apikey by key
 		* \param $apikey : apikey
@@ -37,9 +32,4 @@
 		 */
 		public function updatePoolgroup($poolgroup, $poolsToChange, $newPools);
 	}
-
-	require_once("db/${db_config['driver']}Session.php");
-
-	$className = ucfirst($db_config['driver']) . 'DBSession';
-	$dbDriver = new $className($db_config);
 ?>

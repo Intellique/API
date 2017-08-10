@@ -16,7 +16,7 @@
 		}
 
 		public function checkArchiveFilePermission($archivefile_id, $user_id) {
-			if (!$this->prepareQuery("check_archivefile_permission", "SELECT COUNT(*) > 0 AS granted FROM archive WHERE id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $2 AND u.poolgroup = ppg.poolgroup) AND av.id IN (SELECT archivevolume FROM archivefiletoarchivevolume WHERE archivefile = $1))"))
+			if (!$this->prepareQuery("check_archivefile_permission", "SELECT NOT EXISTS(SELECT * FROM archivefile WHERE id = $1) OR EXISTS(SELECT * FROM milestones_files WHERE archivefile = $1 AND (archive IN (SELECT id FROM archive WHERE NOT deleted AND (creator = $2 OR owner = $2)) OR pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $2 AND u.poolgroup = ppg.poolgroup)))"))
 				return null;
 
 			$result = pg_execute("check_archivefile_permission", array($archivefile_id, $user_id));

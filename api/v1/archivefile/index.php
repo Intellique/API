@@ -39,20 +39,32 @@
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
-
 		case 'GET':
 			checkConnected();
 
 			if (isset($_GET['id'])) {
-				if (!is_numeric($_GET['id']))
+				if (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false)
 					httpResponse(400, array('message' => 'Archivefile id must be an integer'));
+
+				$permission_granted = $dbDriver->checkArchiveFilePermission($_GET['id'], $_SESSION['user']['id']);
+				if ($permission_granted === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archivefile (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/archivefile (%d) => checkArchiveFilePermission(%s, %s)', __LINE__, $_GET['id'], $_SESSION['user']['id']), $_SESSION['user']['id']);
+					httpResponse(500, array(
+						'message' => 'Query failure',
+						'archivefile' => array()
+					));
+				} elseif ($permission_granted === false) {
+					$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/archivefile (%d) => A user that cannot get archivefile informations tried to', __LINE__), $_SESSION['user']['id']);
+					httpResponse(403, array('message' => 'Permission denied'));
+				}
 
 				$archivefile = $dbDriver->getArchiveFile($_GET['id']);
 				if ($archivefile === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archivefile => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archivefile (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchiveFile(%s)', $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
@@ -64,32 +76,19 @@
 						'archivefile' => array()
 					));
 
-				$permission_granted = $dbDriver->checkArchiveFilePermission($_GET['id'], $_SESSION['user']['id']);
-				if ($permission_granted === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archivefile => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkArchiveFilePermission(%s, %s)', $_GET['id'], $_SESSION['user']['id']), $_SESSION['user']['id']);
-					httpResponse(500, array(
-						'message' => 'Query failure',
-						'archivefile' => array()
-					));
-				} elseif ($permission_granted === false) {
-					$dbDriver->writeLog(DB::DB_LOG_WARNING, 'GET api/v1/archivefile => A user that cannot get archivefile informations tried to', $_SESSION['user']['id']);
-					httpResponse(403, array('message' => 'Permission denied'));
-				}
-
 				httpResponse(200, array(
-						'message' => 'Query succeeded',
-						'archivefile' => $archivefile
+					'message' => 'Query succeeded',
+					'archivefile' => $archivefile
 				));
 			} elseif (isset($_GET['archive'])) {
 				$params = array();
 				$ok = true;
 
-				if (!is_numeric($_GET['archive']))
+				if (filter_var($_GET['archive'], FILTER_VALIDATE_INT) === false)
 					httpResponse(400, array('message' => 'Archive id must be an integer'));
 
 				if (isset($_GET['order_by'])) {
-					if (array_search($_GET['order_by'], array('id', 'name', 'size')))
+					if (array_search($_GET['order_by'], array('id', 'name', 'size')) !== false)
 						$params['order_by'] = $_GET['order_by'];
 					else
 						$ok = false;
@@ -103,14 +102,16 @@
 					}
 				}
 				if (isset($_GET['limit'])) {
-					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-						$params['limit'] = intval($_GET['limit']);
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 1));
+					if ($limit !== false)
+						$params['limit'] = $limit;
 					else
 						$ok = false;
 				}
 				if (isset($_GET['offset'])) {
-					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-						$params['offset'] = intval($_GET['offset']);
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					if ($offset !== false)
+						$params['offset'] = $offset;
 					else
 						$ok = false;
 				}
@@ -135,7 +136,6 @@
 						'total_rows' => 0
 					));
 				} else {
-
 					$iter = $result['iterator'];
 					$filesFound = array();
 					$total_rows = $result['total_rows'];
@@ -152,8 +152,7 @@
 						'total_rows' => $total_rows
 					));
 				}
-			}
-			else 
+			} else
 				httpResponse(400, array('message' => '"id" or "archive" are required'));
 			break;
 

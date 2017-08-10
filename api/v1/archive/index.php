@@ -117,8 +117,6 @@
 		case 'DELETE':
 			checkConnected();
 
-			loadDbDriver('archive');
-
 			if (!$_SESSION['user']['isadmin']) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/archive (%d) => A non-admin user (%s) tried to delete an archive', __LINE__, $_SESSION['user']['login']), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
@@ -184,8 +182,6 @@
 				if (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false)
 					httpResponse(400, array('message' => 'Archive id must be an integer'));
 
-				loadDbDriver('archive');
-
 				$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
 				if ($permission_granted === null) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archive/?id=%d (%d) => Query failure', $_GET['id'], __LINE__), $_SESSION['user']['id']);
@@ -231,7 +227,7 @@
 
 				if (isset($_GET['deleted'])) {
 					if ($_SESSION['user']['isadmin']) {
-						if (false !== array_search($_GET['deleted'], array('yes', 'no', 'only')))
+						if (array_search($_GET['deleted'], array('yes', 'no', 'only') !== false))
 							$params['deleted'] = $_GET['deleted'];
 						else
 							$ok = false;
@@ -241,7 +237,7 @@
 					$params['deleted'] = 'no';
 
 				if (isset($_GET['order_by'])) {
-					if (array_search($_GET['order_by'], array('id', 'uuid', 'name')))
+					if (array_search($_GET['order_by'], array('id', 'uuid', 'name')) !== false)
 						$params['order_by'] = $_GET['order_by'];
 					else
 						$ok = false;
@@ -257,7 +253,7 @@
 
 				if (isset($_GET['limit'])) {
 					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 1));
-					if ($limit === false)
+					if ($limit !== false)
 						$params['limit'] = $limit;
 					else
 						$ok = false;
@@ -265,7 +261,7 @@
 
 				if (isset($_GET['offset'])) {
 					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
-					if ($offset === false)
+					if ($offset !== false)
 						$params['offset'] = $offset;
 					else
 						$ok = false;
@@ -273,8 +269,6 @@
 
 				if (!$ok)
 					httpResponse(400, array('message' => 'Incorrect input'));
-
-				loadDbDriver('archive');
 
 				$result = $dbDriver->getArchives($_SESSION['user'], $params);
 				if ($result['query_executed'] == false) {
@@ -313,8 +307,6 @@
 				'login' => $_SESSION['user']['id'],
 				'options' => array()
 			);
-
-			loadDbDriver('archive');
 
 			// name
 			if (isset($infoJob['name']) && is_string($infoJob['name']))
@@ -506,8 +498,6 @@
 
 			if (!is_integer($archive['id']))
 				httpResponse(400, array('message' => 'Archive id must be an integer'));
-
-			loadDbDriver('archive');
 
 			if (!$dbDriver->startTransaction()) {
 				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('PUT api/v1/archive (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
