@@ -139,8 +139,6 @@
 				if (!is_string($key))
 					httpResponse(400, array('message' => 'key must be a string'));
 
-			loadDbDriver('Archive');
-
 			if (!$dbDriver->startTransaction()) {
 				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/archive/metadata (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Transaction failure'));
@@ -214,8 +212,6 @@
 			foreach ($inputData['metadata'] as $key => $value)
 				if (!is_string($key))
 					httpResponse(400, array('message' => 'key must be a string'));
-
-			loadDbDriver('Archive');
 
 			if (!$dbDriver->startTransaction()) {
 				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/archive/metadata (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);

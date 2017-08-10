@@ -38,10 +38,11 @@
 		/**
 		 * \brief Get an archive file by its id
 		 * \param $id : archive file id
+		 * \param $rowLock : put a lock on archive with id $id
 		 * \return archive file information
 		 * \note No permission check will be performed
 		 */
-		public function getArchiveFile($id);
+		public function getArchiveFile($id, $rowLock = DB::DB_ROW_LOCK_NONE);
 
 		/**
 		 * \brief Get an archive files ids list by an array of parameters

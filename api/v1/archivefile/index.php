@@ -121,15 +121,15 @@
 
 				$checkArchivePermission = $dbDriver->checkArchivePermission($_GET['archive'], $_SESSION['user']['id']);
 				if (!$checkArchivePermission) {
-					$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried to get informations from archive files', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/archivefile (%d) => A non-admin user tried to get informations from archive files', __LINE__), $_SESSION['user']['id']);
 					httpResponse(403, array('message' => 'Permission denied'));
 				}
 
 				$result = $dbDriver->getFilesFromArchive($_GET['archive'], $params);
 
 				if ($result['query_executed'] == false) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archivefile => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getFilesFromArchive(%s, %s)', $_GET['id'], $params), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archivefile (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/archivefile (%d) => getFilesFromArchive(%s, %s)', __LINE__, $_GET['id'], $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'archivefiles' => array(),

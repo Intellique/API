@@ -66,7 +66,7 @@
 				httpResponse(400, array('message' => 'Media id is required'));
 			}
 
-			if (:is_integer($formatInfo['media'])) {
+			if (!is_integer($formatInfo['media'])) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import (%d) => Media id must be an integer and not %s', __LINE__, $formatInfo['media']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id must be an integer'));
 			}
@@ -77,7 +77,7 @@
 				httpResponse(400, array('message' => 'Pool id is required'));
 			}
 
-			if (:is_integer($formatInfo['pool'])) {
+			if (!is_integer($formatInfo['pool'])) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import (%d) => Pool id must be an integer and not %s', __LINE__, $formatInfo['pool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
 			}

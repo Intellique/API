@@ -342,14 +342,28 @@
 			);
 		}
 
-		public function getArchiveFile($id) {
+		public function getArchiveFile($id, $rowLock = DB::DB_ROW_LOCK_NONE) {
 			if (!is_numeric($id))
 				return false;
 
-			if (!$this->prepareQuery("select_archivefile_by_id", "SELECT id, archivefile.name, milestones_files.archive, archivefile.mimetype, ownerid, owner, groupid, groups, ctime, mtime, size, medias FROM archivefile JOIN milestones_files ON archivefile.id=milestones_files.archivefile WHERE id = $1"))
+			$query = "SELECT id, archivefile.name, milestones_files.archive, archivefile.mimetype, ownerid, owner, groupid, groups, ctime, mtime, size, medias FROM archivefile JOIN milestones_files ON archivefile.id = milestones_files.archivefile WHERE id = $1";
+
+			switch ($rowLock) {
+				case DB::DB_ROW_LOCK_SHARE:
+					$query .= ' FOR SHARE';
+					break;
+
+				case DB::DB_ROW_LOCK_UPDATE:
+					$query .= ' FOR UPDATE';
+					break;
+			}
+
+			$query_name = "select_archivefile_by_id" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
 				return null;
 
-			$result = pg_execute("select_archivefile_by_id", array($id));
+			$result = pg_execute($query_name, array($id));
 			if ($result === false)
 				return null;
 
