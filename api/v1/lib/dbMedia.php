@@ -1,14 +1,6 @@
 <?php
 	interface DB_Media {
 		/**
-		 * \brief Get an archive format by its id
-		 * \param $id : archive id
-		 * \return archive format information
-		 * \note No permission check will be performed
-		 */
-		public function getArchiveFormat($id);
-
-		/**
 		 * \brief Get a media by its id
 		 * \param $id : media id
 		 * \param $rowLock : put a lock on media with id $id

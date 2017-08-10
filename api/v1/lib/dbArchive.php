@@ -60,11 +60,12 @@
 		public function getArchivesByPool($id);
 
 		/**
-		 * \brief Get list of archive format ids
-		 * \param $params : optional parameters
-		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
+		 * \brief Get an archive format by its id
+		 * \param $id : archive id
+		 * \return archive format information
+		 * \note No permission check will be performed
 		 */
-		public function getArchiveFormats(&$params);
+		public function getArchiveFormat($id);
 
 		/**
 		 *\brief Get an archive format id by its name
@@ -72,6 +73,13 @@
 		 *\return archive format id or false if not found
 		 */
 		public function getArchiveFormatByName($name);
+
+		/**
+		 * \brief Get list of archive format ids
+		 * \param $params : optional parameters
+		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
+		 */
+		public function getArchiveFormats(&$params);
 
 		/**
 		 * \brief Get list of tuple of archive and archive mirror

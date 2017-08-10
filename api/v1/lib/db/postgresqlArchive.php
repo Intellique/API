@@ -527,6 +527,29 @@
 			);
 		}
 
+		public function getArchiveFormat($id) {
+			if (!is_numeric($id))
+				return false;
+
+			if (!$this->prepareQuery("select_archive_format_by_id", "SELECT id, name, readable, writable FROM archiveformat WHERE id = $1"))
+				return null;
+
+			$result = pg_execute("select_archive_format_by_id", array($id));
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$archiveformat = pg_fetch_assoc($result);
+
+			$archiveformat['id'] = intval($archiveformat['id']);
+			$archiveformat['readable'] = $archiveformat['readable'] == 't' ? true : false;
+			$archiveformat['writable'] = $archiveformat['writable'] == 't' ? true : false;
+
+			return $archiveformat;
+		}
+
 		public function getArchiveFormatByName($name) {
 			if (!$this->prepareQuery("select_archive_format_by_name", "SELECT id FROM archiveformat WHERE name = $1 LIMIT 1"))
 				return null;
