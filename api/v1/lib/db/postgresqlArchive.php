@@ -279,14 +279,28 @@
 			);
 		}
 
-		public function getArchivesByMedia($id) {
+		public function getArchivesByMedia($id, $rowLock = DB::DB_ROW_LOCK_NONE) {
 			if (!is_numeric($id))
 				return false;
 
-			if (!$this->prepareQuery("select_archives_by_media", "SELECT DISTINCT archive FROM archivevolume WHERE media = $1"))
+			$query = "SELECT DISTINCT archive FROM archivevolume WHERE media = $1";
+
+			switch ($rowLock) {
+				case DB::DB_ROW_LOCK_SHARE:
+					$query .= ' FOR SHARE';
+					break;
+
+				case DB::DB_ROW_LOCK_UPDATE:
+					$query .= ' FOR UPDATE';
+					break;
+			}
+
+			$query_name = "select_archives_by_media_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
 				return null;
 
-			$result = pg_execute("select_archives_by_media", array($id));
+			$result = pg_execute($query_name, array($id));
 			if ($result === false)
 				return null;
 

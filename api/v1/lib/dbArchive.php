@@ -33,7 +33,7 @@
 		 * \param $id : media id
 		 * \return an array of archive ids or NULL on query failure
 		 */
-		public function getArchivesByMedia($id);
+		public function getArchivesByMedia($id, $rowLock = DB::DB_ROW_LOCK_NONE);
 
 		/**
 		 * \brief Get an archive file by its id
