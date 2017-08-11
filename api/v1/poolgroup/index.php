@@ -100,12 +100,13 @@
 					'users' => array()
 				));
 
+			$result = $exists;
 			$result['users'] = $users['rows'];
 			$result['pools'] = $pools;
 
 			httpResponse(200, array(
 				'message' => 'Query succeeded',
-				'poolgroup '.intval($_GET['id']) => $result
+				'poolgroup' => $result
 			));
 			break;
 
