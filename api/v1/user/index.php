@@ -301,11 +301,13 @@
 				$ok = isset($user['canrestore']) && is_bool($user['canrestore']);
 
 			// metadata
-			if ($ok)
-				$ok = isset($user['meta']) && is_array($user['meta']);
-			if ($ok) {
+			if ($ok && isset($user['meta']))
+				$ok = is_array($user['meta']);
+			
+			elseif ($ok) {
 				$user['meta']['step'] = 5;
 				$user['meta']['showHelp'] = true;
+				$ok = is_array($user['meta']);
 			}
 
 			// poolgroup
