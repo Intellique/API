@@ -14,15 +14,15 @@
 	require_once("../lib/env.php");
 
 	require_once("http.php");
-	require_once("dbSession.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
 			$jobtype = $dbDriver->getJobTypes();
 
 			if ($jobtype === null) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/jobtype => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypes()'), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/jobtype (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/jobtype (%d) => getJobTypes()'), __LINE__, $_SESSION['user']['id']);
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'jobtype' => array()
