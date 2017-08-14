@@ -517,14 +517,28 @@
 			);
 		}
 
-		public function getPoolTemplate($id) {
+		public function getPoolTemplate($id, $rowLock = DB::DB_ROW_LOCK_NONE) {
 			if (!is_numeric($id))
 				return false;
 
-			if (!$this->prepareQuery("select_pooltemplate_by_id", "SELECT id, name, autocheck, lockcheck, growable, unbreakablelevel, rewritable, metadata, createproxy FROM pooltemplate WHERE id = $1"))
+			$query = "SELECT id, name, autocheck, lockcheck, growable, unbreakablelevel, rewritable, metadata, createproxy FROM pooltemplate WHERE id = $1";
+
+			switch ($rowLock) {
+				case DB::DB_ROW_LOCK_SHARE:
+					$query .= ' FOR SHARE';
+					break;
+
+				case DB::DB_ROW_LOCK_UPDATE:
+					$query .= ' FOR UPDATE';
+					break;
+			}
+
+			$query_name = "select_pooltemplate_by_id_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
 				return null;
 
-			$result = pg_execute("select_pooltemplate_by_id", array($id));
+			$result = pg_execute($query_name, array($id));
 			if ($result === false)
 				return null;
 

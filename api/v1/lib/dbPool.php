@@ -96,6 +96,14 @@
 		public function getPoolMirrors(&$params);
 
 		/**
+		 * \brief Get pooltemplate by id
+		 * \param $id : pooltemplate id
+		 * \param $rowLock : put a lock on pool with id $id
+		 * \return <b>PoolTemplate information</b>, \b FALSE if not found, \b NULL on query execution failure
+		 */
+		public function getPoolTemplate($id, $rowLock = DB::DB_ROW_LOCK_NONE);
+
+		/**
 		 * \brief Get a list of pool template
 		 * \param $params : optional parameters
 		 * \return pool templates information
