@@ -348,6 +348,42 @@
 			);
 		}
 
+		public function getPoolGroup($id, $rowLock = DB::DB_ROW_LOCK_NONE) {
+			if (!isset($id) || !is_numeric($id))
+				return false;
+
+			$query = "SELECT id, uuid, name FROM poolgroup WHERE id = $1 LIMIT 1";
+
+			switch ($rowLock) {
+				case DB::DB_ROW_LOCK_SHARE:
+					$query .= ' FOR SHARE';
+					break;
+
+				case DB::DB_ROW_LOCK_UPDATE:
+					$query .= ' FOR UPDATE';
+					break;
+			}
+
+			$query_name = "select_poolgroup_by_id_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
+				return null;
+
+			$result = pg_execute($this->connect, $query_name, array($id));
+
+			if ($result === false)
+				return null;
+
+			if (pg_num_rows($result) == 0)
+				return false;
+
+			$row = pg_fetch_assoc($result);
+
+			$row['id'] = intval($row['id']);
+
+			return $row;
+		}
+
 		public function getPoolMirror($id, $rowLock = DB::DB_ROW_LOCK_NONE) {
 			if (!is_numeric($id))
 				return false;

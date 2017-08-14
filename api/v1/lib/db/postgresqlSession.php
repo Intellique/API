@@ -23,28 +23,6 @@
 			return intval($row['id']);
 		}
 
-		public function getPoolgroup($id) {
-			if (!isset($id) || !is_numeric($id))
-				return false;
-
-			if (!$this->prepareQuery('select_poolgroup_by_id', "SELECT id, uuid, name FROM poolgroup WHERE id = $1 LIMIT 1"))
-				return null;
-
-			$result = pg_execute($this->connect, 'select_poolgroup_by_id', array($id));
-
-			if ($result === false)
-				return null;
-
-			if (pg_num_rows($result) == 0)
-				return false;
-
-			$row = pg_fetch_assoc($result);
-
-			$row['id'] = intval($row['id']);
-
-			return $row;
-		}
-
 		public function getPoolgroups(&$params) {
 			$query_common = " FROM poolgroup";
 			$clause_where = false;

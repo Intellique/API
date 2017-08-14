@@ -314,9 +314,9 @@
 			if ($ok)
 				$ok = array_key_exists('poolgroup', $user) && (is_int($user['poolgroup']) || is_null($user['poolgroup']));
 			if ($ok && is_int($user['poolgroup'])) {
-				$check_poolgroup = $dbDriver->getPoolgroup($user['poolgroup']);
+				$check_poolgroup = $dbDriver->getPoolGroup($user['poolgroup']);
 				if ($check_poolgroup === null) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolgroup(%s)', $user['poolgroup']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolGroup(%s)', $user['poolgroup']), $_SESSION['user']['id']);
 					$failed = true;
 				}
 				elseif ($check_poolgroup === false)
@@ -463,9 +463,9 @@
 			if ($ok)
 				$ok = array_key_exists('poolgroup', $user) && (is_int($user['poolgroup']) || is_null($user['poolgroup']));
 			if ($ok && is_int($user['poolgroup'])) {
-				$check_poolgroup = $dbDriver->getPoolgroup($user['poolgroup']);
+				$check_poolgroup = $dbDriver->getPoolGroup($user['poolgroup']);
 				if ($check_poolgroup === null) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolgroup(%s)', $user['poolgroup']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolGroup(%s)', $user['poolgroup']), $_SESSION['user']['id']);
 					$failed = true;
 				}
 				elseif ($check_poolgroup === false)

@@ -73,8 +73,17 @@
 		public function getPoolsByPoolgroup($user_poolgroup, &$params);
 
 		/**
+		 * \brief Get poolgroup by id
+		 * \param $id : Poolgroup id
+		 * \param $rowLock : put a lock on pool with id $id
+		 * \return <b>Poolgroup information</b>, \b FALSE if not found, \b NULL on query execution failure
+		 */
+		public function getPoolGroup($id, $rowLock = DB::DB_ROW_LOCK_NONE);
+
+		/**
 		 * \brief Get a pool mirror by its id
 		 * \param $id : id of pool mirror
+		 * \param $rowLock : put a lock on pool with id $id
 		 * \return pool mirror information
 		 */
 		public function getPoolMirror($id, $rowLock = DB::DB_ROW_LOCK_NONE);

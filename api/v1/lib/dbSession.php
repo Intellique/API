@@ -17,13 +17,6 @@
 		public function getPooltopoolgroup($id);
 
 		/**
-		 * \brief Get poolgroup by id
-		 * \param $id : Poolgroup id
-		 * \return <b>Poolgroup information</b>, \b FALSE if not found, \b NULL on query execution failure
-		 */
-		public function getPoolgroup($id);
-
-		/**
 		 * \brief Get poolgroups id list
 		 *
 		 * <b>Optional parameters</b>
