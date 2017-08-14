@@ -199,7 +199,7 @@
 			if (!isset($pooltemplate['autocheck']))
 				$pooltemplate['autocheck'] = 'none';
 			elseif (!is_string ($pooltemplate['autocheck'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => autocheckmode must be a string and not "%s"', __LINE__), $pooltemplate['autocheck']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => autocheckmode must be a string and not "%s"', __LINE__, $pooltemplate['autocheck']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'autocheckmode must be a string'));
 			} elseif (array_search($pooltemplate['autocheck'], $autocheckmode) === false) {
 				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $autocheckmode));

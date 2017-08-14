@@ -40,39 +40,38 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
-
 		case 'GET':
 			checkConnected();
 
 			$params = array();
 			$ok = true;
-			if (isset($_GET['name'])) {
-				if (is_string($_GET['name']))
-					$params['name'] = $_GET['name'];
-				else
-					$ok = false;
-			}
+
+			if (isset($_GET['name']))
+				$params['name'] = $_GET['name'];
 
 			if (isset($_GET['autocheck'])) {
-				if (is_string($_GET['autocheck']) && ($_GET['autocheck'] === 't' || $_GET['autocheck'] === 'f'))
-					$params['autocheck'] = $_GET['autocheck'];
+				$autocheck = filter_var($_GET['autocheck'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+				if ($autocheck !== null)
+					$params['autocheck'] = $autocheck;
 				else
 					$ok = false;
 			}
 
 			if (isset($_GET['lockcheck'])) {
-				if (is_string($_GET['lockcheck']) && ($_GET['lockcheck'] === 't' || $_GET['lockcheck'] === 'f'))
-					$params['lockcheck'] = $_GET['lockcheck'];
+				$lockcheck = filter_var($_GET['lockcheck'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+				if ($lockcheck !== null)
+					$params['lockcheck'] = $lockcheck;
 				else
 					$ok = false;
 			}
 
 			if (isset($_GET['rewritable'])) {
-				if (is_string($_GET['rewritable']) && ($_GET['rewritable'] === 't' || $_GET['rewritable'] === 'f'))
-					$params['rewritable'] = $_GET['rewritable'];
+				$rewritable = filter_var($_GET['rewritable'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+				if ($rewritable !== null)
+					$params['rewritable'] = $rewritable;
 				else
 					$ok = false;
 			}
@@ -93,14 +92,17 @@
 			}
 
 			if (isset($_GET['limit'])) {
-				if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-					$params['limit'] = intval($_GET['limit']);
+				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 1));
+				if ($limit !== false)
+					$params['limit'] = $limit;
 				else
 					$ok = false;
 			}
+
 			if (isset($_GET['offset'])) {
-				if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-					$params['offset'] = intval($_GET['offset']);
+				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
+				if ($offset !== false)
+					$params['offset'] = $offset;
 				else
 					$ok = false;
 			}
@@ -109,15 +111,14 @@
 				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$result = $dbDriver->getPoolTemplates($params);
-
 			if ($result['query_prepared'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pooltemplate/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolTemplates(%s)', var_export($params, true)), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/pooltemplate/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pooltemplate/search (%d) => getPoolTemplates(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 			if ($result['query_executed'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pooltemplate/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolTemplates(%s)', var_export($params, true)), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/pooltemplate/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pooltemplate/search (%d) => getPoolTemplates(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
