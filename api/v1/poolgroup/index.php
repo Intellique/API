@@ -66,6 +66,7 @@
 				httpResponse(400, array('message' => 'Poolgroup ID is required'));
 
 			$exists = $dbDriver->getPoolGroup($_GET['id']);
+			$result = $exists;
 			if ($exists === null) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/poolgroup (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolgroup (%d) => getPoolGroup(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
@@ -79,10 +80,9 @@
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolgroup (%d) => getPooltopoolgroup(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			} elseif ($pools === false)
-				httpResponse(404, array(
-					'message' => 'Pools not found',
-					'pools' => array()
-				));
+				$result['pools'] = 'Pools not found';
+			else
+				$result['pools'] = $pools;
 
 			$users = $dbDriver->getUsers($params);
 			if ($users['query_executed'] === false) {
@@ -93,14 +93,9 @@
 					'users' => array()
 				));
 			} elseif ($users['total_rows'] === 0)
-				httpResponse(404, array(
-					'message' => 'Users not found',
-					'users' => array()
-				));
-
-			$result = $exists;
-			$result['users'] = $users['rows'];
-			$result['pools'] = $pools;
+				$result['users'] = 'Users not found';
+			else
+				$result['users'] = $users['rows'];
 
 			httpResponse(200, array(
 				'message' => 'Query succeeded',
