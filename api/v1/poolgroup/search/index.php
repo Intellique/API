@@ -38,7 +38,7 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbSession.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
@@ -46,19 +46,12 @@
 
 			$params = array();
 			$ok = true;
-			if (isset($_GET['name'])) {
-				if (is_string($_GET['name']))
-					$params['name'] = $_GET['name'];
-				else
-					$ok = false;
-			}
 
-			if (isset($_GET['uuid'])) {
-				if (is_string($_GET['uuid']))
-					$params['uuid'] = $_GET['uuid'];
-				else
-					$ok = false;
-			}
+			if (isset($_GET['name']))
+				$params['name'] = $_GET['name'];
+
+			if (isset($_GET['uuid']))
+				$params['uuid'] = $_GET['uuid'];
 
 			if (isset($_GET['order_by'])) {
 				if (array_search($_GET['order_by'], array('id', 'login', 'fullname', 'poolgroup')) !== false)
@@ -76,14 +69,17 @@
 			}
 
 			if (isset($_GET['limit'])) {
-				if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-					$params['limit'] = intval($_GET['limit']);
+				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 1));
+				if ($limit !== false)
+					$params['limit'] = $limit;
 				else
 					$ok = false;
 			}
+
 			if (isset($_GET['offset'])) {
-				if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-					$params['offset'] = intval($_GET['offset']);
+				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
+				if ($offset !== false)
+					$params['offset'] = $offset;
 				else
 					$ok = false;
 			}
@@ -92,20 +88,18 @@
 				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$result = $dbDriver->getPoolgroups($params);
-
 			if ($result['query_prepared'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/poolgroup/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolgroups(%s)', var_export($params, true)), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/poolgroup/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolgroup/search (%d) => getPoolgroups(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			}
-			if ($result['query_executed'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/oolgroup/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolgroups(%s)', var_export($params, true)), $_SESSION['user']['id']);
+			} elseif ($result['query_executed'] === false) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/oolgroup/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/oolgroup/search (%d) => getPoolgroups(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
 			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('User %s cannot get the ids list of poolgroups', $_SESSION['user']['login']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/oolgroup/search (%d) => User %s cannot get the ids list of poolgroups', __LINE__, $_SESSION['user']['login']), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 			if ($result['total_rows'] == 0)
