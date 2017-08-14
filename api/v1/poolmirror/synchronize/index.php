@@ -5,21 +5,25 @@
 	require_once("http.php");
 	require_once("session.php");
 	require_once("uuid.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
 			checkConnected();
 
-			if (!isset($_GET['id']) or !is_numeric($_GET['id'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolmirror => id must be an integer and not "%s"', $_GET['id']), $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'Pool mirror ID must be an integer'));
+			if (!isset($_GET['id'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/poolmirror/synchronize (%d) => Trying to synchronize a poolmirror without id', __LINE__), $_SESSION['user']['id']);
+				httpResponse(400, array('message' => 'Pool mirror\'s id must be defined'));
+			} elseif (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/poolmirror/synchronize (%d) => id must be an integer and not "%s"', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(400, array('message' => 'Pool mirror\'s id must be an integer'));
 			}
 
 			$result = $dbDriver->getPoolsByPoolMirror($_GET['id'], null);
 			if ($result['query_executed'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/poolmirror/synchronize/ => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolsByPoolMirror(%s, null)', $_GET['id']));
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/poolmirror/synchronize/ (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolmirror/synchronize/ (%d) => getPoolsByPoolMirror(%s, null)', __LINE__, $_GET['id']));
+
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'poolmirror' => array()
@@ -27,22 +31,24 @@
 			}
 
 			if (!$_SESSION['user']['isadmin']) {
-				$autorise = false;
+				$allowed = false;
+
 				foreach ($result['rows'] as $pool) {
 					$permission_granted = $dbDriver->checkPoolPermission($pool, $_SESSION['user']['id']);
 					if ($permission_granted === null) {
-						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool/synchronize => Query failure', $_SESSION['user']['id']);
-						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $_GET['id'], $_SESSION['user']['id']), $_SESSION['user']['id']);
+						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/pool/synchronize (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pool/synchronize (%d) => checkPoolPermission(%s, %s)', __LINE__, $_GET['id'], $_SESSION['user']['id']), $_SESSION['user']['id']);
 						httpResponse(500, array(
 							'message' => 'Query failure',
 							'pool' => array()
 						));
 					} elseif ($permission_granted === true) {
-						$autorise = true;
+						$allowed = true;
 						break;
 					}
 				}
-				if ($autorise === false)
+
+				if ($allowed === false)
 					httpResponse(403, array('message' => 'Permission denied'));
 			}
 
@@ -54,8 +60,8 @@
 				$temp = $dbDriver->getArchiveMirrorsByPool($pool, $_GET['id']);
 
 				if (!$temp['query_executed']) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool/synchronize => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchivesByPool(%s)', $pool));
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/pool/synchronize (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pool/synchronize (%d) => getArchivesByPool(%s)', __LINE__, $pool));
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'pool' => array()
@@ -151,7 +157,7 @@
 			$poolmirror = httpParseInput();
 
 			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'A non-admin user tried to delete a user', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/poolmirror (%d) => id A non-admin user tried to delete a user', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
@@ -159,19 +165,19 @@
 				httpResponse(400, array('message' => 'Poolmirror information is required'));
 
 			if (isset($poolmirror['id'])) {
-				if (!is_numeric($poolmirror['id'])) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolmirror => id must be an integer and not "%s"', $poolmirror['id']), $_SESSION['user']['id']);
+				if (filter_var($poolmirror['id'], FILTER_VALIDATE_INT) === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolmirror (%d) => id must be an integer and not "%s"', __LINE__, $poolmirror['id']), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'id must be an integer'));
 				}
 			} else {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolmirror => id is required "%s"', $poolmirror['id']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolmirror (%d) => id is required "%s"', __LINE__, $poolmirror['id']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'id is required'));
 			}
 
 			$result = $dbDriver->getPoolsByPoolMirror($poolmirror['id'], null);
 			if ($result['query_executed'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/poolmirror/synchronize/ => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolsByPoolMirror(%s, null)', $poolmirror['id']));
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/poolmirror/synchronize (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolmirror/synchronize (%d) => getPoolsByPoolMirror(%s, null)', __LINE__, $poolmirror['id']), $_SESSION['user']['id']);
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'poolmirror' => array()
@@ -182,8 +188,8 @@
 			foreach ($result['rows'] as $pool) {
 				$temp = $dbDriver->getArchivesByPool($pool);
 				if (!$temp['query_executed']){
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool/synchronize => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchivesByPool(%s)', $pool));
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/pool/synchronize (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool/synchronize (%d) => getArchivesByPool(%s)', __LINE__, $pool), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'pool' => array(),
@@ -194,7 +200,7 @@
 
 			$jobType = $dbDriver->getJobTypeId("copy-archive");
 			if ($jobType === null || $jobType === false) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypeId(%s)', "copy-archive"), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool/synchronize (%d) => getJobTypeId(%s)', __LINE__, "copy-archive"), $_SESSION['user']['id']);
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'pool' => array(),
@@ -231,7 +237,10 @@
 
 			$jobs = array();
 
-			$dbDriver->startTransaction();
+			if (!$dbDriver->startTransaction()) {
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/pool/synchronize (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
 
 			foreach ($archivesByPool as $poolA => &$archivesA) {
 				foreach ($archivesByPool as $poolB => &$archivesB) {
@@ -260,7 +269,6 @@
 						}
 
 						if (!$found) {
-
 							$archiveInfo = $dbDriver->getArchive($archiveA);
 
 							$job = array(
@@ -285,8 +293,8 @@
 
 							if ($jobId === null) {
 								$dbDriver->cancelTransaction();
-								$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/copy => Query failure', $_SESSION['user']['id']);
-								$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createJob(%s)', $job), $_SESSION['user']['id']);
+								$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/pool/synchronize (%d) => failure', __LINE__), $_SESSION['user']['id']);
+								$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pool/synchronize (%d) => createJob(%s)', __LINE__, $job), $_SESSION['user']['id']);
 								httpResponse(500, array('message' => 'Query failure'));
 							} else
 								$jobs[] = $jobId;
@@ -295,9 +303,11 @@
 				}
 			}
 
-			$dbDriver->finishTransaction();
+			if (!$dbDriver->finishTransaction()) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
 
-			//$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/archive/copy => Job %s created', $jobId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Jobs created successfully',
 				'jobs_id' => &$jobs
