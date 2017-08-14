@@ -77,7 +77,7 @@
 		 * \param $id : id of pool mirror
 		 * \return pool mirror information
 		 */
-		public function getPoolMirror($id);
+		public function getPoolMirror($id, $rowLock = DB::DB_ROW_LOCK_NONE);
 
 		/**
 		 * \brief Get a list of pool mirror

@@ -348,11 +348,25 @@
 			);
 		}
 
-		public function getPoolMirror($id) {
+		public function getPoolMirror($id, $rowLock = DB::DB_ROW_LOCK_NONE) {
 			if (!is_numeric($id))
 				return false;
 
-			if (!$this->prepareQuery("select_poolmirror_by_id", "SELECT id, uuid, name, synchronized FROM poolmirror WHERE id = $1"))
+			$query = "SELECT id, uuid, name, synchronized FROM poolmirror WHERE id = $1";
+
+			switch ($rowLock) {
+				case DB::DB_ROW_LOCK_SHARE:
+					$query .= ' FOR SHARE';
+					break;
+
+				case DB::DB_ROW_LOCK_UPDATE:
+					$query .= ' FOR UPDATE';
+					break;
+			}
+
+			$query_name = "select_poolmirror_by_id_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
 				return null;
 
 			$result = pg_execute("select_poolmirror_by_id", array($id));
