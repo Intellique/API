@@ -395,33 +395,35 @@
 			}
 
 			// password
-			if ($ok)
-				$ok = isset($user['password']) && is_string($user['password']);
-			if ($ok) {
-				$check_user = $dbDriver->getUser($user['id'], null, true);
-				if ($check_user === null) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $user['login'], 'null'), $_SESSION['user']['id']);
-					$failed = true;
-				} elseif ($check_user === false)
-					$ok = false;
-
-				if ($ok && !$failed && $user['password'] != $check_user['password']) {
-					if (strlen($user['password']) < 6)
+			if (isset($user['password']))
+			{
+				$ok = is_string($user['password']);
+				if ($ok) {
+					$check_user = $dbDriver->getUser($user['id'], null, true);
+					if ($check_user === null) {
+						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $user['login'], 'null'), $_SESSION['user']['id']);
+						$failed = true;
+					} elseif ($check_user === false)
 						$ok = false;
 
-					$half_length = strlen($user['password']) >> 1;
-					$handle = fopen("/dev/urandom", "r");
-					$data = str_split(fread($handle, 8));
-					fclose($handle);
+					if ($ok && !$failed && $user['password'] != $check_user['password']) {
+						if (strlen($user['password']) < 6)
+							$ok = false;
 
-					$user['salt'] = "";
-					foreach ($data as $char) {
-						$user['salt'] .= sprintf("%02x", ord($char));
+						$half_length = strlen($user['password']) >> 1;
+						$handle = fopen("/dev/urandom", "r");
+						$data = str_split(fread($handle, 8));
+						fclose($handle);
+
+						$user['salt'] = "";
+						foreach ($data as $char) {
+							$user['salt'] .= sprintf("%02x", ord($char));
+						}
+
+						$user['password'] = sha1(substr($user['password'], 0, $half_length) . $user['salt'] . substr($user['password'], $half_length));
 					}
-
-					$user['password'] = sha1(substr($user['password'], 0, $half_length) . $user['salt'] . substr($user['password'], $half_length));
 				}
-			}
+			}	
 
 			// fullname
 			if ($ok)
@@ -492,7 +494,7 @@
 				httpResponse(200, array('message' => 'User updated successfully'));
 			} else {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/user => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updateUser(%s)', $user), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updateUser(%s)', var_export($user, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
