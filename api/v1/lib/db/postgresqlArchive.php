@@ -41,35 +41,6 @@
 			);
 		}
 
-		public function createVTL(&$vtl) {
-			if (!$this->prepareQuery("create_vtl", "INSERT INTO vtl(uuid, path, prefix, nbslots, nbdrives, mediaformat, host, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id"))
-				return NULL;
-
-			if (isset($vtl['deleted']))
-				$deleted = $vtl['deleted'] ? "TRUE" : "FALSE";
-			else
-				$deleted = "FALSE";
-
-			$result = pg_execute("create_vtl", array($vtl['uuid'], $vtl['path'], $vtl['prefix'], $vtl['nbslots'], $vtl['nbdrives'], $vtl['mediaformat'], $vtl['host'], $deleted));
-
-			if ($result === false)
-				return null;
-
-			$row = pg_fetch_array($result);
-			return intval($row[0]);
-		}
-
-		public function deleteVTL($id) {
-			if (!$this->prepareQuery("delete_vtl", "UPDATE vtl SET deleted = true WHERE id = $1"))
-				return NULL;
-
-			$result = pg_execute("delete_vtl", array($id));
-			if ($result === false)
-				return null;
-
-			return pg_affected_rows($result) > 0;
-		}
-
 		public function getArchive($id, $rowLock = DB::DB_ROW_LOCK_NONE) {
 			if (!is_numeric($id))
 				return false;
@@ -805,27 +776,6 @@
 			);
 		}
 
-		public function getVTL($id) {
-			if (!is_numeric($id) || !isset($id))
-				return false;
-
-			if (!$this->prepareQuery("select_vtl", "SELECT * FROM vtl WHERE id = $1"))
-				return NULL;
-
-			$result = pg_execute("select_vtl", array($id));
-
-			if ($result === false)
-				return null;
-
-			if (pg_num_rows($result) == 0)
-				return false;
-
-			$vtl = pg_fetch_assoc($result);
-			$vtl['deleted'] = $vtl['deleted'] == 't' ? true : false;
-
-			return $vtl;
-		}
-
 		public function getVTLs2(&$params) {
 			$query_common = 'FROM vtl';
 			$query_params = array();
@@ -955,19 +905,6 @@
 			$deleted = $archive['deleted'] ? "TRUE" : "FALSE";
 
 			$result = pg_execute("update_archive", array($archive['name'], $archive['owner'], $canappend, $deleted, $archive['id']));
-			if ($result === false)
-				return null;
-
-			return pg_affected_rows($result) > 0;
-		}
-
-		public function updateVTL($vtl) {
-			if (!$this->prepareQuery("update_vtl", "UPDATE vtl SET uuid = $2, path = $3, prefix = $4, nbslots = $5, nbdrives = $6, mediaformat = $7, host = $8, deleted = $9 WHERE id = $1"))
-				return null;
-
-			$deleted = $vtl['deleted'] ? "TRUE" : "FALSE";
-
-			$result = pg_execute("update_vtl", array($vtl['id'], $vtl['uuid'], $vtl['path'], $vtl['prefix'], $vtl['nbslots'], $vtl['nbdrives'], $vtl['mediaformat'], $vtl['host'], $deleted));
 			if ($result === false)
 				return null;
 

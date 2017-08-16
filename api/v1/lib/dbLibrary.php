@@ -4,6 +4,18 @@
 	*/
 	interface DB_Library {
 		/**
+		 * \brief Create a vtl
+		 * \param vtl : attributs of new VTL
+		 */
+		public function createVTL(&$vtl);
+
+		/**
+		 * \brief Mark a vtl as deleted
+		 * \param id : id of VTL
+		 */
+		public function deleteVTL($id);
+
+		/**
 		 * \brief Get information of specified changer
 		 * \param id : id of changer
 		 */
@@ -50,6 +62,14 @@
 
 		/**
 		* \brief Returns VTL
+		 * \param $id : VTL's id
+		 * \param $rowLock : put a lock on archive with id $id
+		* \return \b an array with VTL, \b FALSE when no VTL was found
+		*/
+		public function getVTL($id, $rowLock = DB::DB_ROW_LOCK_NONE);
+
+		/**
+		* \brief Returns VTLs
 		* \return \b an array with VTL, \b FALSE when no VTL was found
 		*/
 		public function getVTLs();
@@ -61,5 +81,11 @@
 		* \return \b TRUE of
 		*/
 		public function setLibraryAction($id, $act);
+
+		/**
+		 * \brief Update a VTL
+		 * \param vtl : new attributs of VTL
+		 */
+		public function updateVTL($vtl);
 	}
 ?>
