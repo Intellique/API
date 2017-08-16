@@ -271,16 +271,27 @@
 		}
 
 		public function updateUser(&$user) {
-			if (!$this->prepareQuery("update_user", "UPDATE users SET login = $1, password = $2, salt = $3, fullname = $4, email = $5, homedirectory = $6, isadmin = $7, canarchive = $8, canrestore = $9, meta = $10, poolgroup = $11, disabled = $12 WHERE id = $13"))
-				return null;
-
 			$isadmin = $user['isadmin'] ? "TRUE" : "FALSE";
 			$canarchive = $user['canarchive'] ? "TRUE" : "FALSE";
 			$canrestore = $user['canrestore'] ? "TRUE" : "FALSE";
 			$disabled = $user['disabled'] ? "TRUE" : "FALSE";
 			$meta = json_encode($user['meta'], JSON_FORCE_OBJECT);
 
-			$result = pg_execute($this->connect, "update_user", array($user['login'], $user['password'], $user['salt'], $user['fullname'], $user['email'], $user['homedirectory'], $isadmin, $canarchive, $canrestore, $meta, $user['poolgroup'], $disabled, $user['id']));
+			$query = "UPDATE users SET login = $1, fullname = $2, email = $3, homedirectory = $4, isadmin = $5, canarchive = $6, canrestore = $7, meta = $8, poolgroup = $9, disabled = $10";
+			$query_params = array($user['login'], $user['fullname'], $user['email'], $user['homedirectory'], $isadmin, $canarchive, $canrestore, $meta, $user['poolgroup'], $disabled, $user['id']);
+
+			if (isset($user['password'])) {
+				$query .= ", password = $12, salt = $13";
+				array_push($query_params, $user['password'], $user['salt']);
+			}
+
+			$query .= " WHERE id = $11";
+			$query_name = "update_user_" . md5($query);
+
+			if (!$this->prepareQuery($query_name, $query))
+				return null;
+
+			$result = pg_execute($this->connect, $query_name, $query_params);
 
 			if ($result === false)
 				return null;

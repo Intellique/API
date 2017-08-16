@@ -411,15 +411,16 @@
 			}
 
 			// password
-			if ($ok)
-				$ok = isset($user['password']) && is_string($user['password']);
-			if ($ok) {
-				$check_user = $dbDriver->getUser($user['id'], null, true);
-				if ($check_user === null) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUser(%s, %s)', $user['login'], 'null'), $_SESSION['user']['id']);
-					$failed = true;
-				} elseif ($check_user === false)
-					$ok = false;
+			if (isset($user['password'])) {
+				$ok = is_string($user['password']);
+				if ($ok) {
+					$check_user = $dbDriver->getUser($user['id'], null, true);
+					if ($check_user === null) {
+						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/user (%d) => getUser(%s, %s)', __LINE__, $user['login'], 'null'), $_SESSION['user']['id']);
+						$failed = true;
+					} elseif ($check_user === false)
+						$ok = false;
+				}
 
 				if ($ok && !$failed && $user['password'] != $check_user['password']) {
 					if (strlen($user['password']) < 6)
@@ -506,7 +507,7 @@
 				httpResponse(200, array('message' => 'User updated successfully'));
 			} else {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/user (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/user (%d) => updateUser(%s)', __LINE__, $user), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/user (%d) => updateUser(%s)', __LINE__, var_export($user, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
