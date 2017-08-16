@@ -47,7 +47,7 @@
 			checkConnected();
 
 			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/vtl (%d) => A non-admin user tried to delete a VTL', __LINE__, $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/vtl (%d) => A non-admin user tried to delete a VTL', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
@@ -343,7 +343,7 @@
 
 			// gestion des erreurs
 			if ($failed) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/vtl (%d) => Query failure', __LINE__, $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/vtl (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
@@ -356,7 +356,7 @@
 			if (!result)
 				$dbDriver->cancelTransaction();
 			if ($result === null) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/vtl (%d) => Query failure', __LINE__, $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/vtl (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/vtl (%d) => updateVTL(%s)', __LINE__, $vtl['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			} elseif ($result === false) {
