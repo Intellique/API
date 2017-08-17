@@ -1,3 +1,9 @@
+storiqone-backend (0.1.0b4-2+stretch) polisher; urgency=low
+
+  * Change dependancy from php5 to php7
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Thu, 17 Aug 2017 19:23:25 +0200
+
 storiqone-backend (0.1.0b4-1+stretch) polisher; urgency=low
 
   * New bug fix release
