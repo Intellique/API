@@ -131,20 +131,20 @@
 					httpResponse(400, array('message' => 'Incorrect input'));
 
 				$vtl = $dbDriver->getVTLs($params);
-				if ($vtl['query_executed'] === false) {
+				if ($vtl === null) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/vtl (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/vtl (%d) => getVTLs(%s)', __LINE__, $params), $_SESSION['user']['id']);
 
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'vtls' => array(),
-						'total_rows' => $vtl['total_rows']
+						'total_rows' => 0
 					));
 				} else
 					httpResponse(200, array(
 						'message' => 'Query successful',
-						'vtls' => $vtl['rows'],
-						'total_rows' => $vtl['total_rows']
+						'vtls' => $vtl,
+						'total_rows' => count($vtl)
 					));
 			}
 
@@ -353,7 +353,7 @@
 			}
 
 			$result = $dbDriver->updateVTL($vtl);
-			if (!result)
+			if (!$result)
 				$dbDriver->cancelTransaction();
 			if ($result === null) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/vtl (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
