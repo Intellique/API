@@ -55,7 +55,7 @@
 			}
 
 			$archiveId = filter_var($_GET['id'], FILTER_VALIDATE_INT);
-			if ($archiveId !== false)
+			if ($archiveId === false)
 				httpResponse(400, array('message' => 'id must be an integer'));
 
 			$checkPermission = $dbDriver->checkArchivePermission($archiveId, $_SESSION['user']['id']);

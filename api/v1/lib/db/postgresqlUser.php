@@ -100,7 +100,7 @@
 			if (!$this->prepareQuery($query_name, $query))
 				return null;
 
-			$result = pg_execute($this->connect, 'select_user_by_login', array($login));
+			$result = pg_execute($this->connect, $query_name, array($id));
 			if ($result === false)
 				return null;
 
@@ -122,63 +122,56 @@
 
 		public function getUsers(&$params) {
 			$query_common = " FROM users";
-			$clause_where = false;
 			$query_params = array();
 
 			if (isset($params['poolgroup'])) {
 				$query_params[] = $params['poolgroup'];
 				$query_common .= ' WHERE poolgroup = $' . count($query_params);
-				$clause_where = true;
 			}
 
 			if (isset($params['login'])) {
 				$query_params[] = $params['login'];
-				if ($clause_where)
-					$query_common .= ' AND login ~* $' . count($query_params);
-				else {
-					$query_common .= ' WHERE login ~* $' . count($query_params);
-					$clause_where = true;
-				}
+				if (count($query_params) > 1)
+					$query_common .= ' AND ';
+				else
+					$query_common .= ' WHERE ';
+				$query_common .= 'login ~* $' . count($query_params);
 			}
 
 			if (isset($params['isadmin'])) {
-				$query_params[] = $params['isadmin'];
-				if ($clause_where)
-					$query_common .= ' AND isadmin = $' . count($query_params);
-				else {
-					$query_common .= ' WHERE isadmin = $' . count($query_params);
-					$clause_where = true;
-				}
+				$query_params[] = $params['isadmin'] ? "TRUE" : "FALSE";
+				if (count($query_params) > 1)
+					$query_common .= ' AND ';
+				else
+					$query_common .= ' WHERE ';
+				$query_common .= 'isadmin = $' . count($query_params);
 			}
 
 			if (isset($params['canarchive'])) {
 				$query_params[] = $params['canarchive'];
-				if ($clause_where)
-					$query_common .= ' AND canarchive = $' . count($query_params);
-				else {
-					$query_common .= ' WHERE canarchive = $' . count($query_params);
-					$clause_where = true;
-				}
+				if (count($query_params) > 1)
+					$query_common .= ' AND ';
+				else
+					$query_common .= ' WHERE ';
+				$query_common .= 'canarchive = $' . count($query_params);
 			}
 
 			if (isset($params['canrestore'])) {
 				$query_params[] = $params['canrestore'];
-				if ($clause_where)
-					$query_common .= ' AND canrestore = $' . count($query_params);
-				else {
-					$query_common .= ' WHERE canrestore = $' . count($query_params);
-					$clause_where = true;
-				}
+				if (count($query_params) > 1)
+					$query_common .= ' AND ';
+				else
+					$query_common .= ' WHERE ';
+				$query_common .= 'canrestore = $' . count($query_params);
 			}
 
 			if (isset($params['disabled'])) {
-				$query_params[] = $params['disabled'];
-				if ($clause_where)
-					$query_common .= ' AND disabled = $' . count($query_params);
-				else {
-					$query_common .= ' WHERE disabled = $' . count($query_params);
-					$clause_where = true;
-				}
+				$query_params[] = $params['disabled'] ? "TRUE" : "FALSE";
+				if (count($query_params) > 1)
+					$query_common .= ' AND ';
+				else
+					$query_common .= ' WHERE ';
+				$query_common .= 'disabled = $' . count($query_params);
 			}
 
 			$total_rows = 0;

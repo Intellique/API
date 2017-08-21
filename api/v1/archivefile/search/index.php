@@ -59,20 +59,14 @@
 					$ok = false;
 			}
 
-			if (isset($_GET['type'])) {
-				if (is_string($_GET['type']))
-					$params['type'] = $_GET['type'];
-				else
-					$ok = false;
-			}
+			if (isset($_GET['type']))
+				$params['type'] = $_GET['type'];
 
-			if (isset($_GET['mimetype'])) {
+			if (isset($_GET['mimetype']))
 				$params['mimetype'] = $_GET['mimetype'];
-			}
 
-			if (isset($_GET['archive_name'])) {
+			if (isset($_GET['archive_name']))
 				$params['archive_name'] = $_GET['archive_name'];
-			}
 
 			if (isset($_GET['order_by'])) {
 				if (array_search($_GET['order_by'], array('id', 'size', 'name', 'type', 'owner', 'groups')) !== false)
@@ -90,7 +84,7 @@
 			}
 
 			if (isset($_GET['limit'])) {
-				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 1));
+				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 				if ($limit !== false)
 					$params['limit'] = $limit;
 				else
@@ -98,7 +92,7 @@
 			}
 
 			if (isset($_GET['offset'])) {
-				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
+				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
 				if ($offset !== false)
 					$params['offset'] = $offset;
 				else
@@ -106,9 +100,9 @@
 			}
 
 			if (!$ok)
-				httpResponse(400, array('message' => 'Incorrect input', 'limit' => $limit, 'GET' => &$_GET));
+				httpResponse(400, array('message' => 'Incorrect input'));
 
-			$archivefile = $dbDriver->getArchiveFilesByParams($params);
+			$archivefile = $dbDriver->getArchiveFilesByParams($params, $_SESSION['user']['id']);
 			if (!$archivefile['query_executed']) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archivefile/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/archivefile/search (%d) => getArchiveFilesByParams(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
@@ -125,30 +119,9 @@
 					'total_rows' => 0
 				));
 
-			$result = array();
-			foreach ($archivefile['rows'] as $id) {
-				$permission_granted = $dbDriver->checkArchiveFilePermission($id, $_SESSION['user']['id']);
-				if ($permission_granted === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archivefile/serach (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/archivefile/serach (%d) => checkArchiveFilePermission(%s, %s)', __LINE__, $id, $_SESSION['user']['id']), $_SESSION['user']['id']);
-					httpResponse(500, array(
-						'message' => 'Query failure',
-						'archivefiles' => array(),
-						'total_rows' => 0,
-						'debug' => $archivefile
-					));
-				} elseif ($permission_granted === true)
-					$result[] = $id;
-			}
-
-			if (count($result) == 0) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/archivefile/search (%d) => A user that cannot get archivefile informations tried to', __LINE__), $_SESSION['user']['id']);
-				httpResponse(403, array('message' => 'Permission denied'));
-			}
-
 			httpResponse(200, array(
 				'message' => 'Query succeeded',
-				'archivefiles' => $result,
+				'archivefiles' => $archivefile['rows'],
 				'total_rows' => $archivefile['total_rows']
 			));
 

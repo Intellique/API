@@ -79,7 +79,7 @@
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
-			if (isset($_GET['id']))
+			if (!isset($_GET['id']))
 				httpResponse(400, array('message' => 'Pool ID required'));
 			elseif (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/pool (%d) => id must be an integer and not "%s"', __LINE__, $_GET['id']), $_SESSION['user']['id']);
@@ -178,14 +178,14 @@
 					$params['deleted'] = 'no';
 
 				if (isset($_GET['limit'])) {
-					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 1));
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 					if ($limit !== false)
 						$params['limit'] = $limit;
 					else
 						$ok = false;
 				}
 				if (isset($_GET['offset'])) {
-					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
 					if ($offset !== false)
 						$params['offset'] = $offset;
 					else

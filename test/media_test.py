@@ -40,7 +40,7 @@ class MediaTest(CommonTest):
 
     def test_06_get_medias_by_pool_not_allowed(self):
         conn, headers, message = self.newLoggedConnection('archiver')
-        conn.request('GET', "%smedia/?pool=%d" % (self.path, 5), headers=headers)
+        conn.request('GET', "%smedia/?pool=%d" % (self.path, 6), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)

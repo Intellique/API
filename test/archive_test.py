@@ -127,7 +127,7 @@ class ArchiveTest(CommonTest):
         conn.request('POST', self.path + 'archive/', body=body, headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 403)
+        self.assertEqual(res.status, 400)
 
     def test_17_post_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
@@ -206,7 +206,7 @@ class ArchiveTest(CommonTest):
     def test_22_put_basic_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         body = json.dumps({
-            'id': 2
+            'id': 1
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -278,7 +278,7 @@ class ArchiveTest(CommonTest):
 
     def test_29_archive_deleted_by_admin_successfully(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('DELETE', self.path + 'archive/?id=2', headers=headers)
+        conn.request('DELETE', self.path + 'archive/?id=5', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)

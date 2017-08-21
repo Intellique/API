@@ -42,17 +42,6 @@
 			$ok = true;
 			$failed = false;
 
-			$job = array(
-				'interval' => null,
-				'backup' => null,
-				'media' => $formatInfo['media'],
-				'archive' => null,
-				'pool' => $formatInfo['pool'],
-				'login' => $_SESSION['user']['id'],
-				'metadata' => array(),
-				'options' => array()
-			);
-
 			if (!$_SESSION['user']['canarchive']) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/archive/import (%d) => A user that cannot archive tried to', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
@@ -81,6 +70,17 @@
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import (%d) => Pool id must be an integer and not %s', __LINE__, $formatInfo['pool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
 			}
+
+			$job = array(
+				'interval' => null,
+				'backup' => null,
+				'media' => $formatInfo['media'],
+				'archive' => null,
+				'pool' => $formatInfo['pool'],
+				'login' => $_SESSION['user']['id'],
+				'metadata' => array(),
+				'options' => array()
+			);
 
 			if (!$dbDriver->startTransaction()) {
 				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/archive/import (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);

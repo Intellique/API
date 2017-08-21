@@ -42,7 +42,8 @@
 				} elseif ($exists === false)
 					httpResponse(404, array('message' => 'This pool does not exist'));
 
-				$metadata = $dbDriver->getPoolMetadatas($_GET['id'], $_GET['key']);
+				$key = isset($_GET['key']) ? $_GET['key'] : null;
+				$metadata = $dbDriver->getPoolMetadatas($_GET['id'], $key);
 				if ($metadata === null) {
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/pool/metadata (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pool/metadata (%d) => getPoolMetadatas(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);

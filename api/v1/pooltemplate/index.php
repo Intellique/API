@@ -143,7 +143,7 @@
 				$ok = true;
 
 				if (isset($_GET['limit'])) {
-					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 1));
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 					if ($limit !== false)
 						$params['limit'] = $limit;
 					else
@@ -151,7 +151,7 @@
 				}
 
 				if (isset($_GET['offset'])) {
-					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
 					if ($offset !== false)
 						$params['offset'] = $offset;
 					else
@@ -296,7 +296,7 @@
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/archive (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/archive (%d) => getPoolTemplate(%s)', __LINE__, $pooltemplate['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			} elseif ($check_archive === false)
+			} elseif ($pooltemplate_base === false)
 				httpResponse(404, array('message' => 'Pool template not found'));
 
 			if (isset($pooltemplate['name'])) {

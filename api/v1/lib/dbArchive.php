@@ -50,7 +50,7 @@
 		 * \return array of archive file ids
 		 * \note No permission check will be performed
 		 */
-		public function getArchiveFilesByParams(&$params);
+		public function getArchiveFilesByParams(&$params, $userId);
 
 		/**
 		 * \brief Get a list of archive ids by pool id

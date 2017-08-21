@@ -75,7 +75,7 @@
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbSession.php");
+	require_once("db.php");
 
 	function checkPermissions($jobId, $returnJob) {
 		global $dbDriver;

@@ -51,7 +51,9 @@
 			if (isset($_GET['name']))
 				$params['name'] = $_GET['name'];
 
-			if (isset($_GET['poolgroup'])) {
+			if (!$_SESSION['user']['isadmin'])
+				$params['poolgroup'] = $_SESSION['user']['poolgroup'];
+			elseif (isset($_GET['poolgroup'])) {
 				$poolgroup = filter_var($_GET['poolgroup'], FILTER_VALIDATE_INT);
 				if ($poolgroup === false)
 					$ok = false;
@@ -83,7 +85,7 @@
 			}
 
 			if (isset($_GET['limit'])) {
-				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 1));
+				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 				if ($limit !== false)
 					$params['limit'] = $limit;
 				else
@@ -91,7 +93,7 @@
 			}
 
 			if (isset($_GET['offset'])) {
-				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
+				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
 				if ($offset !== false)
 					$params['offset'] = $offset;
 				else
@@ -102,39 +104,21 @@
 				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$pools = $dbDriver->getPoolsByParams($params);
-			if ($pools === null) {
+			if ($pools['query executed'] === false) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/pool/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pool/search (%d) => getPoolByParams(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			} elseif ($pools === false)
-				httpResponse(404,
-					array('message' => 'Pools not found',
-					'pools' => array()
+			} elseif ($pools['total rows'] === 0)
+				httpResponse(404, array(
+					'message' => 'Pools not found',
+					'pools' => array(),
+					"debug" => &$params
 				));
 
-			$result = array();
-			foreach ($pools as $id) {
-				$permission_granted = $dbDriver->checkPoolPermission($id, $_SESSION['user']['id']);
-				if ($permission_granted === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/pool/serach (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pool/serach (%d) => checkPoolPermission(%s, %s)', __LINE__, $id, $_SESSION['user']['id']), $_SESSION['user']['id']);
-
-					httpResponse(500, array(
-						'message' => 'Query failure',
-						'pools' => array()
-					));
-				} elseif ($permission_granted === true)
-					$result[] = $id;
-			}
-
-			if (count($result) == 0) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/pool/search (%d) => A user that cannot get pool informations tried to', __LINE__), $_SESSION['user']['id']);
-				httpResponse(403, array('message' => 'Permission denied'));
-			}
 			httpResponse(200, array(
 				'message' => 'Query succeeded',
-				'pools' => $result,
-				'total_rows' => count($result)
+				'pools' => $pools['rows'],
+				'total_rows' => $pools['total rows']
 			));
 
 			break;

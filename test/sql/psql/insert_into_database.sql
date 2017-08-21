@@ -143,6 +143,7 @@ COPY jobtype (id, name) FROM stdin;
 ALTER SEQUENCE jobtype_id_seq RESTART 8;
 
 COPY archive (id, uuid, name, creator, owner, canappend, status, deleted) FROM stdin;
+1	3b6cd74b-6bce-45a8-be11-baf968d45af0	analysis_DiffMural_A2016	3	3	t	complete	f
 2	20c07322-607c-4e67-9ae4-2db8ad9d707f	OESC_AMON_LE_VICTORIEUX_C_BARBOTIN	1	1	t	complete	f
 5	5ad9e676-570e-4e3b-8ed3-53e36f65991d	MONARCHIVE	1	1	t	complete	f
 \.

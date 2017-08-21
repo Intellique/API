@@ -41,7 +41,7 @@ class ArchiveAddTest(CommonTest):
         conn.request('POST', self.path + 'archive/add/', body=add, headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 403)
+        self.assertEqual(res.status, 400)
 
     def test_05_post_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')

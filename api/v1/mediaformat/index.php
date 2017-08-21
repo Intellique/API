@@ -168,7 +168,7 @@
 				}
 
 				if (isset($_GET['limit'])) {
-					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array('min_range' => 1));
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 					if ($limit !== false)
 						$params['limit'] = $limit;
 					else
@@ -176,7 +176,7 @@
 				}
 
 				if (isset($_GET['offset'])) {
-					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
 					if ($offset !== false)
 						$params['offset'] = $offset;
 					else

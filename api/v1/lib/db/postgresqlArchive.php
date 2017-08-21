@@ -360,55 +360,33 @@
 			return $archivefile;
 		}
 
-		public function getArchiveFilesByParams(&$params) {
-			$query_common = ' FROM milestones_files';
-			$query_params = array();
-			$clause_where = false;
+		public function getArchiveFilesByParams(&$params, $userId) {
+			$query_common = ' FROM milestones_files mf INNER JOIN archive a ON mf.archive = a.id AND NOT a.deleted WHERE a.creator = $1 OR a.owner = $1 OR pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)';
+			$query_params = array($userId);
 
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
-				$query_common .= ' WHERE name ~* $' . count($query_params);
-				$clause_where = true;
+				$query_common .= ' AND mf.name ~* $' . count($query_params);
 			}
 
 			if (isset($params['archive'])) {
 				$query_params[] = $params['archive'];
-				if ($clause_where)
-					$query_common .= ' AND archive = $' . count($query_params);
-				else {
-					$query_common .= ' WHERE archive = $' . count($query_params);
-					$clause_where = true;
-				}
+				$query_common .= ' AND archive = $' . count($query_params);
 			}
 
 			if (isset($params['type'])) {
 				$query_params[] = $params['type'];
-				if ($clause_where)
-					$query_common .= ' AND type = $' . count($query_params);
-				else {
-					$query_common .= ' WHERE type = $' . count($query_params);
-					$clause_where = true;
-				}
+				$query_common .= ' AND type = $' . count($query_params);
 			}
 
 			if (isset($params['mimetype'])) {
 				$query_params[] = $params['mimetype'];
-				if ($clause_where)
-					$query_common .= ' AND mimetype = $' . count($query_params);
-				else {
-					$query_common .= ' WHERE mimetype = $' . count($query_params);
-					$clause_where = true;
-				}
+				$query_common .= ' AND mimetype = $' . count($query_params);
 			}
 
 			if (isset($params['archive_name'])) {
 				$query_params[] = $params['archive_name'];
-				if ($clause_where)
-					$query_common .= ' AND archive_name = $' . count($query_params);
-				else {
-					$query_common .= ' WHERE archive_name = $' . count($query_params);
-					$clause_where = true;
-				}
+				$query_common .= ' AND archive_name = $' . count($query_params);
 			}
 
 			$total_rows = 0;
@@ -458,7 +436,7 @@
 				$total_rows = intval($row[0]);
 			}
 
-			$query = 'SELECT archivefile' . $query_common;
+			$query = 'SELECT mf.archivefile' . $query_common;
 			$query_name = "select_archive_files_by_params_" . md5($query);
 
 			if (!$this->prepareQuery($query_name, $query)) {
@@ -898,13 +876,47 @@
 		}
 
 		public function updateArchive(&$archive) {
-			if (!$this->prepareQuery("update_archive", "UPDATE archive SET name = $1, owner = $2, canappend = $3, deleted = $4 WHERE id = $5"))
+			$query = "UPDATE archive SET";
+			$query_params = array();
+
+			if (isset($archive['name'])) {
+				$query .= " name = $1";
+				$query_params[] = $archive['name'];
+			}
+
+			if (isset($archive['owner'])) {
+				if (count($query_params) > 0)
+					$query .= ",";
+				$query_params[] = $archive['owner'];
+				$query .= " owner = $" . count($query_params);
+			}
+
+			if (isset($archive['canappend'])) {
+				if (count($query_params) > 0)
+					$query .= ",";
+				$query_params[] = $archive['canappend'] ? "TRUE" : "FALSE";
+				$query .= " canappend = $" . count($query_params);
+			}
+
+			if (isset($archive['deleted'])) {
+				if (count($query_params) > 0)
+					$query .= ",";
+				$query_params[] = $archive['deleted'] ? "TRUE" : "FALSE";
+				$query .= " deleted = $" . count($query_params);
+			}
+
+			if (count($query_params) == 0)
 				return null;
 
-			$canappend = $archive['canappend'] ? "TRUE" : "FALSE";
-			$deleted = $archive['deleted'] ? "TRUE" : "FALSE";
+			$query_params[] = $archive['id'];
+			$query .= " WHERE id = $" . count($query_params);
+			$query_name = "update_archive_" . md5($query);
 
-			$result = pg_execute("update_archive", array($archive['name'], $archive['owner'], $canappend, $deleted, $archive['id']));
+
+			if (!$this->prepareQuery($query_name, $query))
+				return null;
+
+			$result = pg_execute($query_name, $query_params);
 			if ($result === false)
 				return null;
 

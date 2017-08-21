@@ -118,7 +118,7 @@
 			}
 
 			if (!is_integer($input['poolgroup'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolgroup (%d) => poolgroup must be an integer and not %s', __LINE__, $input['poolgroup']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolgroup (%d) => poolgroup must be an integer and not %s', __LINE__, var_export($input['poolgroup'], true)), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Poolgroup must be an integer'));
 			}
 
@@ -137,33 +137,25 @@
 			} elseif ($exists === false)
 				httpResponse(404, array('message' => 'Poolgroup not found'));
 
-			$updatedPools = explode(',', $input['pools']);
-			foreach($updatedPools as $value) {
-				if (!is_integer($value)) {
+			foreach($input['pools'] as $pool) {
+				if (!is_integer($pool)) {
 					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolgroup (%d) => values in pools must be integer', __LINE__), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'Values in pools must be integer'));
 				}
+
+				$exists = $dbDriver->getPool($pool, DB::DB_ROW_LOCK_SHARE);
+				if (!$exists)
+					$dbDriver->cancelTransaction();
+				if ($exists === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/poolgroup (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolgroup (%d) => getPool(%s)', __LINE__, $pool), $_SESSION['user']['id']);
+					httpResponse(500, array('message' => 'Query failure'));
+				} elseif ($exists === false)
+					httpResponse(404, array('message' => sprintf('Pool (%d) not found', $pool)));
 			}
 
-			$params = array('poolgroup' => $input['poolgroup']);
-			$poolsToChange = $dbDriver->getPooltopoolgroup($input['poolgroup']);
-			if ($poolsToChange === null) {
-				$dbDriver->cancelTransaction();
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/poolgroup (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolgroup (%d) => getPooltopoolgroup(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
-				httpResponse(500, array('message' => 'Query failure'));
-			}
-
-			if ($poolsToChange === false) {
-				$dbDriver->cancelTransaction();
-				httpResponse(404, array(
-					'message' => 'Pools not found',
-					'pools' => array()
-				));
-			}
-
-			$result = $dbDriver->updatePoolgroup($input['poolgroup'], $poolsToChange, $updatedPools);
+			$result = $dbDriver->updatePoolGroup($input['poolgroup'], $input['pools']);
 			if ($result === null) {
 				$dbDriver->cancelTransaction();
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/poolgroup (%d) => Query failure', __LINE__), $_SESSION['user']['id']);

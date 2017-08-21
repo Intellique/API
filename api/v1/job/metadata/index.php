@@ -23,12 +23,9 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
-	require_once("dbMetadata.php");
-// 	require_once("dbSession.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
-
 		case 'GET':
 			checkConnected();
 
