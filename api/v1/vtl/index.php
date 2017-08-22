@@ -222,6 +222,9 @@
 			if (isset($vtl['deleted'])) {
 				if ($ok)
 					$ok = is_bool($vtl['deleted']);
+
+				if ($ok && $vtl['deleted'])
+					$ok = false;
 			}
 
 			// gestion des erreurs
