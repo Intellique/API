@@ -237,5 +237,4 @@
 			httpUnsupportedMethod();
 			break;
 		}
-
 ?>
