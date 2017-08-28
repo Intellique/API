@@ -12,6 +12,7 @@
 	function checkConnected() {
 		if (!isset($_SESSION["user"]))
 			httpResponse(401, array('message' => 'Not logged in'));
+		$_SESSION['LASTACTION'] = time();
 		return true;
 	}
 
