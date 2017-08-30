@@ -9,16 +9,17 @@
  * \verbatim path : /storiqone-backend/api/v1/archive/search \endverbatim
 
  * <b>Optional parameters</b>
- * |   Name    |  Type   |                                  Description                                        |           Constraint            |
- * | :-------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------: |
- * | name      | string  | search an archive specifying its name                                               |                                 |
- * | owner     | string or integer  | search an archive specifying its owner                                   |                                 |
- * | creator   | string  | search an archive specifying its creator                                            |                                 |
- * | pool      | integer | search an archive specifying its pool                                               |                                 |
- * | order_by  | enum    | order by column                                                                     | value in : 'id', 'uuid', 'name', 'creator', 'owner' |
- * | order_asc | boolean | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
- * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
- * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
+ * |    Name     |  Type             |                                  Description                                        |           Constraint            |
+ * | :---------: | :---------------: | :---------------------------------------------------------------------------------: | :-----------------------------: |
+ * | name        | string            | search an archive specifying its name                                               |                                 |
+ * | owner       | string or integer | search an archive specifying its owner                                              |                                 |
+ * | creator     | string or integer | search an archive specifying its creator                                            |                                 |
+ * | archivefile | string or integer | search an archive specifying its file                                               |                                 |
+ * | pool        | string or integer | search an archive specifying its pool                                               |                                 |
+ * | order_by    | enum              | order by column                                                                     | value in : 'id', 'uuid', 'name', 'creator', 'owner' |
+ * | order_asc   | boolean           | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
+ * | limit       | integer           | specifies the maximum number of rows to return.                                     | limit > 0                       |
+ * | offset      | integer           | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
  *
  * \warning <b>Make sure to pass at least one of the first four parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
@@ -49,36 +50,37 @@
 			$params = array();
 			$ok = true;
 
-			if (isset($_GET['name'])) {
-				if (!is_string($_GET['name']))
-					$ok = false;
+			if (isset($_GET['name']))
 				$params['name'] = $_GET['name'];
-			}
 
 			if (isset($_GET['owner'])) {
-				if (is_numeric($_GET['owner']))
-					$params['owner'] = intval($_GET['owner']);
-				else if (is_string($_GET['owner']))
-					$params['owner'] = $_GET['owner'];
+				$owner = filter_var($_GET['owner'], FILTER_VALIDATE_INT);
+				if ($owner !== false)
+					$params['owner'] = $owner;
 				else
-					$ok = false;
+					$params['owner'] = $_GET['owner'];
 			}
 
 			if (isset($_GET['creator'])) {
-				if (!is_numeric($_GET['creator']))
-					$ok = false;
-				$params['creator'] = $_GET['creator'];
+				$creator = filter_var($_GET['creator'], FILTER_VALIDATE_INT);
+				if ($creator !== false)
+					$params['creator'] = $creator;
+				else
+					$params['creator'] = $_GET['creator'];
 			}
 
-			/*if (isset($_GET['pool'])) {
-				if(!is_numeric($_GET['pool']))
-					$ok = false;
-				$params['pool'] = $_GET['pool'];
-			}*/
+			if (isset($_GET['pool'])) {
+				$pool = filter_var($_GET['pool'], FILTER_VALIDATE_INT);
+				if ($pool !== false)
+					$params['pool'] = $pool;
+				else
+					$params['pool'] = $_GET['pool'];
+			}
 
 			if (isset($_GET['archivefile'])) {
-				if (!is_numeric($_GET['archivefile']))
-					$ok = false;
+				$archivefile = filter_var($_GET['archivefile'], FILTER_VALIDATE_INT);
+				if ($archivefile !== false)
+					$params['archivefile'] = $archivefile;
 				else
 					$params['archivefile'] = $_GET['archivefile'];
 			}

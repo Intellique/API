@@ -128,8 +128,18 @@
 		}
 
 		public function getArchives(&$user, &$params) {
-			$query_common = " FROM archive WHERE (creator = $1 OR owner = $1 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)))";
+			$query_common = " FROM archive WHERE (creator = $1 OR owner = $1 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup";
 			$query_params = array($user['id']);
+
+			if (isset($params['pool'])) {
+				$query_params[] = $params['pool'];
+				if (is_integer($params['pool']))
+					$query_common .= ' AND ppg.pool = $' . count($query_params);
+				else
+					$query_common .= ' AND ppg.pool = (SELECT id FROM pool WHERE name ~* $' . count($query_params) . ')';
+			}
+
+			$query_common .= ')))';
 
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
@@ -138,15 +148,18 @@
 
 			if (isset($params['creator'])) {
 				$query_params[] = $params['creator'];
-				$query_common .= ' AND creator = $' . count($query_params);
+				if (is_integer($params['creator']))
+					$query_common .= ' AND creator = $' . count($query_params);
+				else
+					$query_common .= ' AND creator = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
 			}
 
 			if (isset($params['owner'])) {
 				$query_params[] = $params['owner'];
-				if (is_numeric($params['owner']))
+				if (is_integer($params['owner']))
 					$query_common .= ' AND owner = $' . count($query_params);
 				else
-					$query_common .= ' AND owner IN (SELECT id FROM users WHERE login = $' . count($query_params) .')';
+					$query_common .= ' AND owner = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
 			}
 
 			if (isset($params['archivefile'])) {
