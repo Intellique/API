@@ -1,5 +1,4 @@
 from common_test import CommonTest
-from io import StringIO
 import json
 
 class PoolgroupTest(CommonTest):
@@ -48,8 +47,8 @@ class PoolgroupTest(CommonTest):
     def test_06_put_poolgroup_success(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'poolgroup':1,
-            'pools':'8,3,7,5'
+            'poolgroup': 1,
+            'pools': [8, 7, 6]
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -61,8 +60,8 @@ class PoolgroupTest(CommonTest):
     def test_07_put_poolgroup_non_admin_user(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         data=json.dumps({
-            'poolgroup':1,
-            'pools':'6,3,7,5'
+            'poolgroup': 1,
+            'pools': [6, 3, 7, 5]
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -74,8 +73,8 @@ class PoolgroupTest(CommonTest):
     def test_08_put_poolgroup_wrong_parameters(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'pooflgroup':1,
-            'poolgs':'6,3,7,5'
+            'pools': 1,
+            'poolgroup': [6, 3, 7, 5]
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -87,8 +86,8 @@ class PoolgroupTest(CommonTest):
     def test_09_put_poolgroup_wrong_type(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'poolgroup':'1',
-            'pools':'6,3,foo'
+            'poolgroup': 1,
+            'pools': [6, 'foo']
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -100,8 +99,8 @@ class PoolgroupTest(CommonTest):
     def test_10_put_poolgroup_pool_does_not_exist(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'poolgroup':'1',
-            'pools':'6,3,15'
+            'poolgroup': 1,
+            'pools': [6, 3, 15]
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)

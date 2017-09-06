@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup job
+ * \page job
  * \section Delete_job Job deletion
  * To delete a job,
  * use \b DELETE method
@@ -74,7 +75,7 @@
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbSession.php");
+	require_once("db.php");
 
 	function checkPermissions($jobId, $returnJob) {
 		global $dbDriver;
@@ -119,20 +120,25 @@
 			checkConnected();
 
 			if (!isset($_GET['id'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'DELETE api/v1/job => Trying to delete a job without specifying job id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/job (%d) => Trying to delete a job without specifying job id', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Job id is required'));
+			} elseif (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/job (%d) => Job id is not an integer', __LINE__), $_SESSION['user']['id']);
+				httpResponse(400, array('message' => 'Job id must be an integer'));
 			}
 
-			$dbDriver->startTransaction();
+			if (!$dbDriver->startTransaction()) {
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('DELETE api/v1/job (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
 
 			$job = checkPermissions($_GET['id'], true);
-
 			if ($job['job'] === null || $job['permission'] === false)
 				$dbDriver->cancelTransaction();
 
 			if ($job['failure']) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/job => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPermissions(%s, %s)', $_GET['id'], "true"), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('DELETE api/v1/job (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/job (%d) => checkPermissions(%s, %s)', __LINE__, $_GET['id'], "true"), $_SESSION['user']['id']);
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'job' => array()
@@ -143,7 +149,7 @@
 					'job' => array()
 				));
 			elseif ($job['permission'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'DELETE api/v1/job => A non-admin user tried to delete a job', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/job (%d) => A non-admin user tried to delete a job', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array(
 					'message' => 'Permission denied',
 					'job' => array()
@@ -151,19 +157,16 @@
 			}
 
 			$delete_status = $dbDriver->deleteJob($_GET['id']);
-
-			if ($delete_status)
-				$dbDriver->finishTransaction();
-			else
+			if (!$delete_status)
 				$dbDriver->cancelTransaction();
-
 			if ($delete_status === null) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/job => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('deleteJob(%s)', $_GET['id']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('DELETE api/v1/job (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/job (%d) => deleteJob(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			} elseif ($delete_status === false)
-				httpResponse(404, array('message' => 'Job not found'));
-			else {
+			} elseif (!$dbDriver->finishTransaction()) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'Transaction failure'));
+			} else {
 				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('DELETE api/v1/job => Job %s deleted', $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(200, array('message' => 'Deletion successful'));
 			}
@@ -225,18 +228,18 @@
 					}
 				}
 
-				$limit = null;
 				if (isset($_GET['limit'])) {
-					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-						$limit = intval($_GET['limit']);
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+					if ($limit !== false)
+						$params['limit'] = $limit;
 					else
 						$ok = false;
 				}
 
-				$offset = 0;
 				if (isset($_GET['offset'])) {
-					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-						$offset = intval($_GET['offset']);
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+					if ($offset !== false)
+						$params['offset'] = $offset;
 					else
 						$ok = false;
 				}
@@ -293,7 +296,8 @@
 					'total_rows' => $iRow
 				));
 			}
-		break;
+
+			break;
 
 		case 'PUT':
 			checkConnected();

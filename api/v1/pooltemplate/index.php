@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup pooltemplate
+ * \page pooltemplate
  * \section PoolTemplate_ID Pool template information
  * To get a pool template by its id
  * use \b GET method
@@ -58,59 +59,71 @@
 	require_once("http.php");
 	require_once("session.php");
 	require_once("uuid.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
 			checkConnected();
 
 			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'DELETE api/v1/pooltemplate => A non-admin user tried to delete a pooltemplate', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/pooltemplate (%d) => A non-admin user tried to delete a pooltemplate', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
-			if (isset($_GET['id'])) {
-				if (!is_numeric($_GET['id'])) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/pooltemplate => id must be an integer and not "%s"', $_GET['id']), $_SESSION['user']['id']);
-					httpResponse(400, array('message' => 'pooltemplate ID must be an integer'));
-				}
-
-				$pooltemplate = $dbDriver->getPoolTemplate($_GET['id']);
-				if ($pooltemplate === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/pooltemplate => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolTemplate(%s)', $_GET['id']), $_SESSION['user']['id']);
-					httpResponse(500, array('message' => 'Query failure'));
-				} elseif ($pooltemplate === false)
-					httpResponse(404, array('message' => 'Pool template not found'));
-
-				$result = $dbDriver->deletePoolTemplate($_GET['id']);
-				if ($result === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/pooltemplate => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('deletePoolTemplate(%s)', $_GET['id']), $_SESSION['user']['id']);
-					httpResponse(500, array('message' => 'Query failure'));
-				}
-
-				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('pooltemplate %s deleted', $_GET['id']), $_SESSION['user']['id']);
-				httpResponse(200, array('message' => 'Pool template deleted'));
-
-			} else
+			if (!isset($_GET['id']))
 				httpResponse(400, array('message' => 'Pool template ID required'));
+			elseif (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/pooltemplate (%d) => id must be an integer and not "%s"', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(400, array('message' => 'pooltemplate ID must be an integer'));
+			}
 
-		break;
+			if (!$dbDriver->startTransaction()) {
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('DELETE api/v1/pooltemplate (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
+
+			$pooltemplate = $dbDriver->getPoolTemplate($_GET['id'], DB::DB_ROW_LOCK_UPDATE);
+			if (!$pooltemplate)
+				$dbDriver->cancelTransaction();
+			if ($pooltemplate === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('DELETE api/v1/pooltemplate (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/pooltemplate (%d) => getPoolTemplate(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($pooltemplate === false)
+				httpResponse(404, array('message' => 'Pool template not found'));
+
+			$result = $dbDriver->deletePoolTemplate($_GET['id']);
+			if ($result === null) {
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('DELETE api/v1/pooltemplate (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/pooltemplate (%d) => deletePoolTemplate(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($result === null) {
+				$dbDriver->cancelTransaction();
+				httpResponse(404, array('message' => 'Pool template not found'));
+			} elseif (!$dbDriver->finishTransaction()) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'Transaction failure'));
+			} else {
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('DELETE api/v1/pooltemplate (%d) => pooltemplate %s deleted', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(200, array('message' => 'Pool template deleted'));
+			}
+
+			break;
 
 		case 'GET':
 			checkConnected();
 
 			if (isset($_GET['id'])) {
-				if (!is_numeric($_GET['id'])) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pooltemplate => id must be an integer and not "%s"', $_GET['id']), $_SESSION['user']['id']);
+				if (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pooltemplate (%d) => id must be an integer and not "%s"', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'pooltemplate ID must be an integer'));
 				}
 
 				$pooltemplate = $dbDriver->getPoolTemplate($_GET['id']);
 				if ($pooltemplate === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pooltemplate => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolTemplate(%s)', $_GET['id']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/pooltemplate (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pooltemplate (%d) => getPoolTemplate(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'pooltemplate' => array()
@@ -122,22 +135,25 @@
 					));
 
 				httpResponse(200, array(
-						'message' => 'Query succeeded',
-						'pooltemplate' => $pooltemplate
+					'message' => 'Query succeeded',
+					'pooltemplate' => $pooltemplate
 				));
 			} else {
 				$params = array();
 				$ok = true;
 
 				if (isset($_GET['limit'])) {
-					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-						$params['limit'] = intval($_GET['limit']);
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+					if ($limit !== false)
+						$params['limit'] = $limit;
 					else
 						$ok = false;
 				}
+
 				if (isset($_GET['offset'])) {
-					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-						$params['offset'] = intval($_GET['offset']);
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+					if ($offset !== false)
+						$params['offset'] = $offset;
 					else
 						$ok = false;
 				}
@@ -147,8 +163,8 @@
 
 				$result = $dbDriver->getPoolTemplates($params);
 				if ($result['query_executed'] === false) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pooltemplate => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolTemplates(%s)', var_export($params, true)), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/pooltemplate (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pooltemplate (%d) => getPoolTemplates(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'pooltemplates' => array(),
@@ -162,18 +178,20 @@
 					));
 			}
 
+			break;
+
 		case 'POST':
 			checkConnected();
 
 			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/pooltemplate => A non-admin user tried to create a pooltemplate', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/pooltemplate (%d) => A non-admin user tried to create a pooltemplate', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
 			$pooltemplate = httpParseInput();
 
 			if (!isset($pooltemplate['name'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/pooltemplate => Trying to create a pooltemplate without specifying pooltemplate name', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/pooltemplate (%d) => Trying to create a pooltemplate without specifying pooltemplate name', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'pooltemplate name is required'));
 			}
 
@@ -181,10 +199,9 @@
 			if (!isset($pooltemplate['autocheck']))
 				$pooltemplate['autocheck'] = 'none';
 			elseif (!is_string ($pooltemplate['autocheck'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => autocheckmode must be a string and not "%s"', $pooltemplate['autocheck']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => autocheckmode must be a string and not "%s"', __LINE__, $pooltemplate['autocheck']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'autocheckmode must be a string'));
-			}
-			elseif (array_search($pooltemplate['autocheck'], $autocheckmode) === false) {
+			} elseif (array_search($pooltemplate['autocheck'], $autocheckmode) === false) {
 				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $autocheckmode));
 				httpResponse(400, array('message' => 'autocheckmode value is invalid. It should be in ' . $string_mode));
 			}
@@ -192,13 +209,14 @@
 			if (!isset($pooltemplate['lockcheck']))
 				$pooltemplate['lockcheck'] = False;
 			elseif (!is_bool($pooltemplate['lockcheck'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => lockcheck must be a boolean and not "%s"', $pooltemplate['lockcheck']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => lockcheck must be a boolean and not "%s"', __LINE__, $pooltemplate['lockcheck']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'lockcheck must be a boolean'));
 			}
+
 			if (!isset($pooltemplate['growable']))
 				$pooltemplate['growable'] = False;
 			elseif (!is_bool($pooltemplate['growable'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => growable must be a boolean and not "%s"', $pooltemplate['growable']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => growable must be a boolean and not "%s"', __LINE__, $pooltemplate['growable']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'growable must be a boolean'));
 			}
 
@@ -206,10 +224,9 @@
 			if (!isset($pooltemplate['unbreakablelevel']))
 				$pooltemplate['unbreakablelevel'] = 'none';
 			elseif (!is_string ($pooltemplate['unbreakablelevel'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => unbreakablelevel must be a string and not "%s"', $pooltemplate['unbreakablelevel']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => unbreakablelevel must be a string and not "%s"', __LINE__, $pooltemplate['unbreakablelevel']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'unbreakablelevel must be a string'));
-			}
-			elseif (array_search($pooltemplate['unbreakablelevel'], $unbreakablelevel) === false) {
+			} elseif (array_search($pooltemplate['unbreakablelevel'], $unbreakablelevel) === false) {
 				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $unbreakablelevel));
 				httpResponse(400, array('message' => 'unbreakablelevel value is invalid. It should be in ' . $string_mode));
 			}
@@ -217,7 +234,7 @@
 			if (!isset($pooltemplate['rewritable']))
 				$pooltemplate['rewritable'] = True;
 			elseif (!is_bool($pooltemplate['rewritable'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => rewritable must be a boolean and not "%s"', $pooltemplate['rewritable']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => rewritable must be a boolean and not "%s"', __LINE__, $pooltemplate['rewritable']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'rewritable must be a boolean'));
 			}
 
@@ -227,20 +244,19 @@
 			if (!isset($pooltemplate['createproxy']))
 				$pooltemplate['createproxy'] = False;
 			elseif (!is_bool($pooltemplate['createproxy'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => createproxy must be a boolean and not "%s"', $pooltemplate['createproxy']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => createproxy must be a boolean and not "%s"', __LINE__, $pooltemplate['createproxy']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'createproxy must be a boolean'));
 			}
 
 			$pooltemplateId = $dbDriver->createPoolTemplate($pooltemplate);
-
 			if ($pooltemplateId === NULL) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/pooltemplate => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createPoolTemplate(%s)', $pooltemplate), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/pooltemplate (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => createPoolTemplate(%s)', __LINE__, $pooltemplate), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query Failure'));
 			}
 
 			httpAddLocation('/pooltemplate/?id=' . $pooltemplateId);
-			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('pooltemplate %s created', $pooltemplateId), $_SESSION['user']['id']);
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/pooltemplate (%d) => pooltemplate %s created', __LINE__, $pooltemplateId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Pool template created successfully',
 				'pooltemplate_id' => $pooltemplateId
@@ -250,36 +266,50 @@
 			checkConnected();
 
 			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/pooltemplate => A non-user admin tried to update a pool template', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/pooltemplate (%d) => A non-user admin tried to update a pool template', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
 			$pooltemplate = httpParseInput();
 			if ($pooltemplate === NULL) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/pooltemplate => Trying to update a pooltemplate without specifying it', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/pooltemplate (%d) => Trying to update a pooltemplate without specifying it', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'pooltemplate is required'));
 			}
-			if (!isset($pooltemplate['id'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/pooltemplate => Trying to update a pooltemplate without specifying its id', $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'pooltemplate id is required'));
-			}
 
-			if (!is_int($pooltemplate['id'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => id must be an integer and not "%s"', $pooltemplate['id']), $_SESSION['user']['id']);
+			if (!isset($pooltemplate['id'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/pooltemplate (%d) => Trying to update a pooltemplate without specifying its id', __LINE__), $_SESSION['user']['id']);
+				httpResponse(400, array('message' => 'pooltemplate id is required'));
+			} elseif (!is_integer($pooltemplate['id'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => id must be an integer and not "%s"', __LINE__, $pooltemplate['id']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'id must be an integer'));
 			}
 
-			$pooltemplate_base = $dbDriver->getPoolTemplate($pooltemplate['id']);
+			if (!$dbDriver->startTransaction()) {
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/pooltemplate (%d) => Failed to finish transaction', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
+
+			$pooltemplate_base = $dbDriver->getPoolTemplate($pooltemplate['id'], DB::DB_ROW_LOCK_UPDATE);
+			if (!$pooltemplate_base)
+				$dbDriver->cancelTransaction();
+			if ($pooltemplate_base === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/archive (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/archive (%d) => getPoolTemplate(%s)', __LINE__, $pooltemplate['id']), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($pooltemplate_base === false)
+				httpResponse(404, array('message' => 'Pool template not found'));
 
 			if (isset($pooltemplate['name'])) {
 				$id_pooltemplate_by_name = $dbDriver->getPoolTemplateByName($pooltemplate['name']);
 				if ($id_pooltemplate_by_name === NULL) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/pooltemplate => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolTemplateByName(%s)', $pooltemplate['name']), $_SESSION['user']['id']);
+					$dbDriver->cancelTransaction();
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/pooltemplate (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pooltemplate (%d) => getPoolTemplateByName(%s)', __LINE__, $pooltemplate['name']), $_SESSION['user']['id']);
 					httpResponse(500, array('message' => 'Query Failure'));
-				}
-				if ($id_pooltemplate_by_name === $pooltemplate['id'])
+				} elseif ($id_pooltemplate_by_name === $pooltemplate['id']) {
+					$dbDriver->cancelTransaction();
 					httpResponse(400, array('message' => 'Specified name already exists in the database and does not belong to the pooltemplate you are editing'));
+				}
 			} else
 				$pooltemplate['name'] = $pooltemplate_base['name'];
 
@@ -287,10 +317,11 @@
 			if (!isset($pooltemplate['autocheck']))
 				$pooltemplate['autocheck'] = $pooltemplate_base['autocheck'];
 			elseif (!is_string ($pooltemplate['autocheck'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => autocheck must be a string and not "%s"', $pooltemplate['autocheck']), $_SESSION['user']['id']);
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => autocheck must be a string and not "%s"', __LINE__, $pooltemplate['autocheck']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'autocheckmode must be a string'));
-			}
-			elseif (array_search($pooltemplate['autocheck'], $autocheckmode) === false) {
+			} elseif (array_search($pooltemplate['autocheck'], $autocheckmode) === false) {
+				$dbDriver->cancelTransaction();
 				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $autocheckmode));
 				httpResponse(400, array('message' => 'autocheckmode value is invalid. It should be in ' . $string_mode));
 			}
@@ -298,14 +329,16 @@
 			if (!isset($pooltemplate['lockcheck']))
 				$pooltemplate['lockcheck'] = $pooltemplate_base['lockcheck'];
 			elseif (!is_bool($pooltemplate['lockcheck'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => lockcheck must be a boolean and not "%s"', $pooltemplate['lockcheck']), $_SESSION['user']['id']);
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => lockcheck must be a boolean and not "%s"', __LINE__, $pooltemplate['lockcheck']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'lockcheck must be a boolean'));
 			}
 
 			if (!isset($pooltemplate['growable']))
 				$pooltemplate['growable'] = $pooltemplate_base['growable'];
 			elseif (!is_bool($pooltemplate['growable'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => growable must be a boolean and not "%s"', $pooltemplate['growable']), $_SESSION['user']['id']);
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => growable must be a boolean and not "%s"', __LINE__, $pooltemplate['growable']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'growable must be a boolean'));
 			}
 
@@ -313,10 +346,11 @@
 			if (!isset($pooltemplate['unbreakablelevel']))
 				$pooltemplate['unbreakablelevel'] = $pooltemplate_base['unbreakablelevel'];
 			elseif (!is_string ($pooltemplate['unbreakablelevel'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => unbreakablelevel must be a string and not "%s"', $pooltemplate['unbreakablelevel']), $_SESSION['user']['id']);
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => unbreakablelevel must be a string and not "%s"', __LINE__, $pooltemplate['unbreakablelevel']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'unbreakablelevel must be a string'));
-			}
-			elseif (array_search($pooltemplate['unbreakablelevel'], $unbreakablelevel) === false) {
+			} elseif (array_search($pooltemplate['unbreakablelevel'], $unbreakablelevel) === false) {
+				$dbDriver->cancelTransaction();
 				$string_mode = join(', ', array_map(function ($value) { return '"'.$value.'"';}, $unbreakablelevel));
 				httpResponse(400, array('message' => 'unbreakablelevel value is invalid. It should be in ' . $string_mode));
 			}
@@ -324,7 +358,8 @@
 			if (!isset($pooltemplate['rewritable']))
 				$pooltemplate['rewritable'] = $pooltemplate_base['rewritable'];
 			elseif (!is_bool($pooltemplate['rewritable'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => rewritable must be a boolean and not "%s"', $pooltemplate['rewritable']), $_SESSION['user']['id']);
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => rewritable must be a boolean and not "%s"', __LINE__, $pooltemplate['rewritable']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'rewritable must be a boolean'));
 			}
 
@@ -334,21 +369,29 @@
 			if (!isset($pooltemplate['createproxy']))
 				$pooltemplate['createproxy'] = False;
 			elseif (!is_bool($pooltemplate['createproxy'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate => createproxy must be a boolean and not "%s"', $pooltemplate['createproxy']), $_SESSION['user']['id']);
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/pooltemplate (%d) => createproxy must be a boolean and not "%s"', __LINE__, $pooltemplate['createproxy']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'createproxy must be a boolean'));
 			}
 
 
 			$result = $dbDriver->updatePoolTemplate($pooltemplate);
-
-			if ($result) {
-				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('pooltemplate %s updated', $pooltemplate['id']), $_SESSION['user']['id']);
-				httpResponse(200, array('message' => 'Pool template updated successfully'));
-			} else {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/pooltemplate => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updatePoolTemplate(%s)', var_export($pooltemplate, true)), $_SESSION['user']['id']);
+			if ($result === null) {
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/pooltemplate (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updatePoolTemplate(%s)', $pooltemplate['uuid']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($result === false) {
+				$dbDriver->cancelTransaction();
+				httpResponse(404, array('message' => 'Pool Template not found'));
+			} elseif (!$dbDriver->finishTransaction()) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'Transaction failure'));
+			} else {
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('PUT api/v1/pooltemplate (%d) => pooltemplate %s updated', __LINE__, $pooltemplate['id']), $_SESSION['user']['id']);
+				httpResponse(200, array('message' => 'Pool template updated successfully'));
 			}
+
 			break;
 
 

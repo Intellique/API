@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup media
+ * \page media
+ * \subpage format Media Format
  * \section Format_media_task Format media task creation
  * To create a Format media task,
  * use \b POST method
@@ -31,67 +33,61 @@
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'POST':
 			checkConnected();
 
 			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/format => A non admin user tried to format a media', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/media/format (%d) => A non admin user tried to format a media', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
 			$formatInfo = httpParseInput();
 			// media id
 			if (!isset($formatInfo['media'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/format => Trying to format a media without specifying media id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/media/format (%d) => Trying to format a media without specifying media id', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id is required'));
-			}
-
-			if (!is_int($formatInfo['media'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/format => Media id must be an integer and not %s', $formatInfo['media']), $_SESSION['user']['id']);
+			} elseif (!is_integer($formatInfo['media'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/format (%d) => Media id must be an integer and not %s', __LINE__, $formatInfo['media']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id must be an integer'));
 			}
 
-
 			// pool id
 			if (!isset($formatInfo['pool'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/media/format => Trying to format a media without specifying pool id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/media/format (%d) => Trying to format a media without specifying pool id', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id is required'));
-			}
-
-			if (!is_int($formatInfo['pool'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/format => Pool id must be an integer and not %s', $formatInfo['pool']), $_SESSION['user']['id']);
+			} elseif (!is_integer($formatInfo['pool'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/format (%d) => Pool id must be an integer and not %s', __LINE__, $formatInfo['pool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
 			}
 
-			$dbDriver->startTransaction();
+			if (!$dbDriver->startTransaction()) {
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/media/format (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
 
 			$ok = true;
 			$failed = false;
 
 			// check media
-			$media = $dbDriver->getMedia($formatInfo['media']);
-
+			$media = $dbDriver->getMedia($formatInfo['media'], DB::DB_ROW_LOCK_SHARE);
 			if (!$media)
 				$dbDriver->cancelTransaction();
-
 			if ($media === null) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/format => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMedia(%s)', $formatInfo['media']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/media/format (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/format (%d) => getMedia(%s)', __LINE__, $formatInfo['media']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			} elseif ($media === false)
 				httpResponse(400, array('message' => 'Media not found'));
 
-			$pool = $dbDriver->getPool($formatInfo['pool']);
-
+			$pool = $dbDriver->getPool($formatInfo['pool'], DB::DB_ROW_LOCK_SHARE);
 			if (!$pool)
 				$dbDriver->cancelTransaction();
-
 			if ($pool === null) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/format => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPool(%s)', $formatInfo['pool']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/media/format (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/format (%d) => getPool(%s)', __LINE__, $formatInfo['pool']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			} elseif ($pool === false)
 				httpResponse(400, array('message' => 'Pool not found'));
@@ -148,6 +144,7 @@
 			if ($ok) {
 				$jobType = $dbDriver->getJobTypeId("format-media");
 				if ($jobType === null || $jobType === false) {
+					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypeId(%s)', "format-media"), $_SESSION['user']['id']);
 					$failed = true;
 				} else
@@ -166,7 +163,7 @@
 			// options [optional]
 			//option block size ne prend d'un entier ou une chaine de caractères (auto, default...)
 			if ($ok && isset($formatInfo['options']['block size'])) {
-				if (is_int($formatInfo['options']['block size']) and $formatInfo['options']['block size'] >= 0)
+				if (is_integer($formatInfo['options']['block size']) and $formatInfo['options']['block size'] >= 0)
 					$job['options']['block size'] = $formatInfo['options']['block size'];
 				elseif (is_string($formatInfo['options']['block size'])) {
 					if (array_search($formatInfo['options']['block size'], array('auto', 'default') !== false))
@@ -181,6 +178,7 @@
 			if ($ok) {
 				$host = $dbDriver->getHost(posix_uname()['nodename']);
 				if ($host === null || $host === false) {
+					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', posix_uname()['nodename']), $_SESSION['user']['id']);
 					$failed = true;
 				} else
@@ -188,34 +186,36 @@
 			}
 
 			// gestion des erreurs
-			if ($failed || !$ok)
-				$dbDriver->cancelTransaction();
-
 			if ($failed) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/format => Query failure', $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
-
-			if (!$ok)
+			if (!$ok) {
+				$dbDriver->cancelTransaction();
 				httpResponse(400, array('message' => 'Incorrect input'));
+			}
 
 			$jobId = $dbDriver->createJob($job);
-
 			if ($jobId === null) {
 				$dbDriver->cancelTransaction();
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/media/format => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createJob(%s)', $job), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/media/format (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/media/format (%d) => createJob(%s)', __LINE__, $job), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
-			$dbDriver->finishTransaction();
+			if (!$dbDriver->finishTransaction()) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
 
 			httpAddLocation('/job/?id=' . $jobId);
-			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/media/format => Job %s created', $jobId), $_SESSION['user']['id']);
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/media/format (%d) => Job %s created', __LINE__, $jobId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Job created successfully',
 				'job_id' => $jobId,
 			));
+
+			break;
 
 		case 'OPTIONS':
 			httpOptionsMethod(HTTP_POST);

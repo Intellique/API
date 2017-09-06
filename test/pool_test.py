@@ -22,7 +22,7 @@ class PoolTest(CommonTest):
 
     def test_03_get_pool_not_found(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%spool/?id=%d" % (self.path, 2), headers=headers)
+        conn.request('GET', "%spool/?id=%d" % (self.path, 5), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 404)
@@ -248,10 +248,10 @@ class PoolTest(CommonTest):
     def test_26_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'uuid': 'b2719811-bad0-466a-8c00-7e7a51c7f475',
-            'name' :'EXPORT_PROVISOIRE_RUS',
-            'archiveformat':1,
-            'mediaformat' :2
+            'uuid': 'ef8d47f2-a6d3-468d-89e9-f961e6c39cec',
+            'name': 'EXPORT_PROVISOIRE_RUSH',
+            'archiveformat': 1,
+            'mediaformat': 2
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -262,12 +262,10 @@ class PoolTest(CommonTest):
         self.assertEqual(res.status, 201)
         self.assertIsNotNone(location)
         conn = self.newConnection()
-        print('new location: %s' % location)
-        conn.request('GET', location, headers=headers)
+        conn.request('GET', location, headers=cookie)
         res = conn.getresponse()
         response = res.read()
         conn.close()
-        """UNE Erreur 403 apparait"""
         self.assertEqual(res.status, 200)
 
     def test_27_post_pool_admin_using_pooltemplate(self):
@@ -303,7 +301,6 @@ class PoolTest(CommonTest):
         res = conn.getresponse()
         message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        print(message)
         self.assertEqual(res.status, 404)
 
     def test_29_put_user_not_logged(self):
@@ -443,15 +440,43 @@ class PoolTest(CommonTest):
 
     def test_38_put_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
-        data=json.dumps({
-            'id':5,
-            'name' :'EXPORT_PROVISOIRE_RUSHS',
-            'archiveformat':1,
-            'mediaformat' :2
+        data = json.dumps({
+            'id': 6,
+            'name': 'EXPORT_PROVISOIRE_RUSHS',
+            'archiveformat': 1,
+            'mediaformat': 2
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
         conn.request('PUT', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_39_basic_user_tries_to_get_deleted_pool(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('GET', self.path + 'pool/?deleted=yes', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_40_basic_user_tries_to_get_only_deleted_pool(self):
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('GET', self.path + 'pool/?deleted=only', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_41_admin_user_tries_to_get_deleted_pool(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'pool/?deleted=yes', headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_42_admin_user_tries_to_get_only_deleted_pool(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'pool/?deleted=only', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)

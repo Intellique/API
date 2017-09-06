@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage user 
  * \section Search_user Searching users
  * To search users and then to get users ids list,
  * use \b GET method :
@@ -40,7 +42,7 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbSession.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
@@ -48,44 +50,46 @@
 
 			$params = array();
 			$ok = true;
-			if (isset($_GET['login'])) {
-				if (is_string($_GET['login']))
-					$params['login'] = $_GET['login'];
-				else
-					$ok = false;
-			}
+
+			if (isset($_GET['login']))
+				$params['login'] = $_GET['login'];
 
 			if (isset($_GET['poolgroup'])) {
-				if (is_numeric($_GET['poolgroup']))
-					$params['poolgroup'] = $_GET['poolgroup'];
+				$poolgroup = filter_var($_GET['poolgroup'], FILTER_VALIDATE_INT);
+				if ($poolgroup !== false)
+					$params['poolgroup'] = $poolgroup;
 				else
 					$ok = false;
 			}
 
 			if (isset($_GET['isadmin'])) {
-				if (is_string($_GET['isadmin']) && ($_GET['isadmin'] === 't' || $_GET['isadmin'] === 'f'))
-					$params['isadmin'] = $_GET['isadmin'];
+				$isadmin = filter_var($_GET['isadmin'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+				if ($isadmin !== null)
+					$params['isadmin'] = $isadmin;
 				else
 					$ok = false;
 			}
 
 			if (isset($_GET['canarchive'])) {
-				if (is_string($_GET['canarchive']) && ($_GET['canarchive'] === 't' || $_GET['canarchive'] === 'f'))
-					$params['canarchive'] = $_GET['canarchive'];
+				$canarchive = filter_var($_GET['canarchive'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+				if ($canarchive !== null)
+					$params['canarchive'] = $canarchive;
 				else
 					$ok = false;
 			}
 
 			if (isset($_GET['canrestore'])) {
-				if (is_string($_GET['canrestore']) && ($_GET['canrestore'] === 't' || $_GET['canrestore'] === 'f'))
-					$params['canrestore'] = $_GET['canrestore'];
+				$canrestore = filter_var($_GET['canrestore'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+				if ($canrestore !== null)
+					$params['canrestore'] = $canrestore;
 				else
 					$ok = false;
 			}
 
 			if (isset($_GET['disabled'])) {
-				if (is_string($_GET['disabled']) && ($_GET['disabled'] === 't' || $_GET['disabled'] === 'f'))
-					$params['disabled'] = $_GET['disabled'];
+				$disabled = filter_var($_GET['disabled'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+				if ($disabled !== null)
+					$params['disabled'] = $disabled;
 				else
 					$ok = false;
 			}
@@ -106,14 +110,17 @@
 			}
 
 			if (isset($_GET['limit'])) {
-				if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-					$params['limit'] = intval($_GET['limit']);
+				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+				if ($limit !== false)
+					$params['limit'] = $limit;
 				else
 					$ok = false;
 			}
+
 			if (isset($_GET['offset'])) {
-				if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-					$params['offset'] = intval($_GET['offset']);
+				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+				if ($offset !== false)
+					$params['offset'] = $offset;
 				else
 					$ok = false;
 			}
@@ -124,26 +131,29 @@
 			$result = $dbDriver->getUsers($params);
 
 			if ($result['query_prepared'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/user/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUsers(%s)', var_export($params, true)), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/user/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/user/search (%d) => getUsers(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
+
 			if ($result['query_executed'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/user/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getUsers(%s)', var_export($params, true)), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/user/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/user/search (%d) => getUsers(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
 			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('User %s cannot get the ids list of users', $_SESSION['user']['login']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/user/search (%d) => User %s cannot get the ids list of users', __LINE__, $_SESSION['user']['login']), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
+
 			if ($result['total_rows'] == 0)
 				httpResponse(404, array('message' => 'Users not found'));
 
 			httpResponse(200, array(
 				'message' => 'Query successful',
-				'users' => $result['rows']
+				'users' => $result['rows'],
+				'total_rows' => $result['total_rows']
 			));
 
 			break;

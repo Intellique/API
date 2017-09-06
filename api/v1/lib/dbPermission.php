@@ -8,6 +8,7 @@
 		 * \param $archive_id : archive id
 		 * \param $user_id : user id
 		 * \return \b NULL on query or a boolean value corresponding to the permission
+		 * \note return \b true if $archive_id does not exist
 		 */
 		public function checkArchivePermission($archive_id, $user_id);
 

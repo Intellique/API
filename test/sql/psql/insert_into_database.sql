@@ -32,9 +32,29 @@ INSERT INTO DriveFormatSupport(driveFormat, mediaFormat, read, write) VALUES
 	(5, 6, TRUE, TRUE),
 	(6, 6, TRUE, TRUE);
 
+INSERT INTO Application(name) VALUES
+    ('StoriqOne Changer'),
+    ('StoriqOne Daemon'),
+    ('StoriqOne Drive'),
+    ('StoriqOne Job'),
+    ('StoriqOne Logger');
+
+COPY archiveformat (id, name, readable, writable) FROM stdin;
+1	Storiq One (TAR)	t	t
+2	LTFS	t	f
+\.
+ALTER SEQUENCE archiveformat_id_seq RESTART 2;
+
+INSERT INTO Pool(uuid, name, archiveFormat, mediaFormat, backupPool) VALUES
+	('b9650cc3-12ec-4a0f-88db-d70f0b269a6b', 'storiq', 1, 1, FALSE),
+	('d9f976d4-e087-4d0a-ab79-96267f6613f0', 'Stone_Db_Backup', 1, 1, TRUE);
+
 INSERT INTO PoolGroup(uuid, name) VALUES
 	('7a9102a2-6f4d-c85f-1553-e8d769569558', 'basic'),
 	('755d095a-7f59-40be-a11b-c4fdf4be5839', 'archive');
+
+INSERT INTO PoolToPoolGroup VALUES
+    (1, 1);
 
 INSERT INTO Users(login, password, salt, fullname, email, homedirectory, isAdmin, canArchive, canRestore, poolgroup, meta) VALUES
 	('admin', '8a6eb1d3b4fecbf8a1d6528a6aecb064e801b1e0', 'cd8c63688e0c2cff', 'admin', 'admin@storiqone-backend.net', '/mnt/raid', TRUE, TRUE, TRUE, 1, '{"step":5,"showHelp":true}'),
@@ -45,14 +65,6 @@ INSERT INTO UserEvent(event) VALUES
 	('connection'),
 	('disconnection');
 
-INSERT INTO Application(name) VALUES
-    ('StoriqOne Changer'),
-    ('StoriqOne Daemon'),
-    ('StoriqOne Drive'),
-    ('StoriqOne Job'),
-    ('StoriqOne Logger'),
-    ('StoriqOne API');
-
 INSERT INTO Application(name, apikey) VALUES
     ('UnitTest','d017552c-e005-4bc7-86bc-5e3e8b3ade2b');
 
@@ -61,12 +73,6 @@ COPY host (id, uuid, name, domaine, description, daemonVersion, updated) FROM st
 \.
 ALTER SEQUENCE host_id_seq RESTART 7;
 
-COPY archiveformat (id, name, readable, writable) FROM stdin;
-1	Storiq One (TAR)	t	t
-2	LTFS	t	f
-\.
-ALTER SEQUENCE archiveformat_id_seq RESTART 2;
-
 COPY selectedfile (id, path) FROM stdin;
 2	/mnt/raid/rcarchives/Archives_Audiovisuels/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN
 \.
@@ -74,19 +80,19 @@ ALTER SEQUENCE selectedfile_id_seq RESTART 3;
 
 COPY pool (id, uuid, name, archiveformat, mediaformat, autocheck, growable, unbreakablelevel, rewritable, metadata, pooloriginal, deleted, lockcheck, poolmirror) FROM stdin;
 3	60885acc-aa6f-47e2-8164-f80f039420a5	ARCHIVES_CAPTATIONS	1	2	none	f	file	t	[]	\N	f	f	\N
-5	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	1	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	\N	f	f	\N
+6	b2719811-bad0-466a-8c00-7e7a51c7f473	EXPORT_PROVISOIRE_RUSHS	1	2	thorough mode	f	file	t	{"NOMENCLATURE":{"mandatory":true,"type":"label"}}	\N	f	f	\N
 7	cf3d97b5-d5fe-4384-945e-927ab6fa7608	ARCHIVES_TESTS	1	2	none	f	file	t	[]	\N	f	f	\N
 \.
 ALTER SEQUENCE pool_id_seq RESTART 8;
 
 COPY pooltopoolgroup (pool, poolgroup) FROM stdin;
 3	1
-5	1
+6	1
 7	1
 \.
 
 COPY media (id, uuid, label, mediumserialnumber, name, status, firstused, usebefore, lastread, lastwrite, loadcount, readcount, writecount, operationcount, nbtotalblockread, nbtotalblockwrite, nbreaderror, nbwriteerror, nbfiles, blocksize, freeblock, totalblock, haspartition, type, mediaformat, pool, archiveformat) FROM stdin;
-1	8a391d01-6139-4ad9-8463-2ba6e8852040	EXP006	HA1PFAp084	EXPORTS_RUSHS_06	in use	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	2	5	1
+1	8a391d01-6139-4ad9-8463-2ba6e8852040	EXP006	HA1PFAp084	EXPORTS_RUSHS_06	in use	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	2	6	1
 2	4fb920af-afbd-4365-91b8-2019fa7297fb	EXP007	HA2PFAp093	EXPORTS_RUSHS_07	foreign	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	1	\N	1
 3	4fb920af-afbd-4365-91b8-2019fa7297fc	EXP008	HA2PFAp094	EXPORTS_RUSHS_08	foreign	2012-09-27 13:34:50	2012-09-27 13:34:58	2014-09-24 12:06:48	\N	1938277	44	14	0	7289630	4	0	0	9	32768	8001952	25607232	f	rewritable	2	\N	1
 \.
@@ -136,8 +142,10 @@ COPY jobtype (id, name) FROM stdin;
 \.
 ALTER SEQUENCE jobtype_id_seq RESTART 8;
 
-COPY archive (id, uuid, name, creator, owner, canappend, deleted) FROM stdin;
-2	20c07322-607c-4e67-9ae4-2db8ad9d707f	OESC_AMON_LE_VICTORIEUX_C_BARBOTIN	1	1	t	f
+COPY archive (id, uuid, name, creator, owner, canappend, status, deleted) FROM stdin;
+1	3b6cd74b-6bce-45a8-be11-baf968d45af0	analysis_DiffMural_A2016	3	3	t	complete	f
+2	20c07322-607c-4e67-9ae4-2db8ad9d707f	OESC_AMON_LE_VICTORIEUX_C_BARBOTIN	1	1	t	complete	f
+5	5ad9e676-570e-4e3b-8ed3-53e36f65991d	MONARCHIVE	1	1	t	complete	f
 \.
 ALTER SEQUENCE archive_id_seq RESTART 3;
 
@@ -194,6 +202,15 @@ COPY archivefile (id, name, type, mimetype, ownerid, owner, groupid, groups, per
 \.
 ALTER SEQUENCE archivefile_id_seq RESTART 36;
 
+INSERT INTO metadata(id, type, key, value, login) VALUES
+	(2, 'archive', 'foo', '"foo"', 1);
+
+INSERT INTO metadata(id, type, key, value, login) VALUES
+	(6, 'archive', 'foo', '"bar"', 1);
+
+INSERT INTO metadata(id, type, key, value, login) VALUES
+	(6, 'archivefile', 'foo', '"bar"', 1);
+
 COPY archivefiletoarchivevolume (archivevolume, archivefile, blocknumber, archivetime, checktime, checksumok) FROM stdin;
 2	6	0	2012-09-27 16:59:47	\N	f
 2	7	0	2012-09-27 16:59:47	\N	f
@@ -235,3 +252,13 @@ INSERT INTO poolmirror(uuid, name, synchronized) VALUES
 ('609abc8a-3f92-4450-89df-5e6012baee70', 'test', 't'),
 ('322980de-0af7-4e48-beaa-f58c6ab4a302', 'test2', 'f'),
 ('44dc3636-fa69-4e5c-991a-0ebb6b20cdb2', 'test3', 't');
+
+INSERT INTO jobrun (job) VALUES (5);
+INSERT INTO archivemirror(id) VALUES (1);
+INSERT INTO archivetoarchivemirror (archive,archivemirror,lastupdate,jobrun) VALUES (2,1,default,5), (5,1,default,5);
+INSERT INTO archivevolume (starttime,archive,media) VALUES (now(),5,1);
+UPDATE archivetoarchivemirror SET lastupdate = '2012-09-27 16:59:47' where archive = 5; 
+
+UPDATE pool SET poolmirror = 1 WHERE id IN (1, 7);
+
+REFRESH MATERIALIZED VIEW milestones_files;

@@ -1,10 +1,21 @@
 <?php
 	require_once("dateTime.php");
+	require_once("postgresqlArchive.php");
+	require_once("postgresqlJob.php");
+	require_once("postgresqlLibrary.php");
+	require_once("postgresqlMedia.php");
+	require_once("postgresqlMetadata.php");
+	require_once("postgresqlPermission.php");
+	require_once("postgresqlPool.php");
+	require_once("postgresqlSession.php");
+	require_once("postgresqlUser.php");
 
 	/**
 	 * \brief postgresql's implementation
 	 */
 	class PostgresqlDB implements DB {
+		use PostgresqlDBArchive, PostgresqlDBJob, PostgresqlDBLibrary, PostgresqlDBMedia, PostgresqlDBMetadata, PostgresqlDBPermission, PostgresqlDBPool, PostgresqlDBSession, PostgresqlDBUser;
+
 		/**
 		 * \brief connection resource required by pg_*
 		 */

@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup Archive
+ * \page archive
+ * \subpage import
  * \section Import_archive_task Import archive task creation
  * To create an Import archive task,
  * use \b POST method
@@ -27,70 +29,81 @@
  */
 
 	require_once("../../lib/env.php");
+
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'POST':
 			checkConnected();
 
+			$ok = true;
+			$failed = false;
+
 			if (!$_SESSION['user']['canarchive']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/import => A user that cannot archive tried to', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/archive/import (%d) => A user that cannot archive tried to', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
 			$formatInfo = httpParseInput();
+
 			// media id
 			if (!isset($formatInfo['media'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/import => Trying to import an archive without specifying media id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/archive/import (%d) => Trying to import an archive without specifying media id', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id is required'));
 			}
 
-			if (!is_int($formatInfo['media'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import => Media id must be an integer and not %s', $formatInfo['media']), $_SESSION['user']['id']);
+			if (!is_integer($formatInfo['media'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import (%d) => Media id must be an integer and not %s', __LINE__, $formatInfo['media']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Media id must be an integer'));
 			}
 
 			// pool id
 			if (!isset($formatInfo['pool'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/archive/import => Trying to import an archive without specifying pool id', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/archive/import (%d) => Trying to import an archive without specifying pool id', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id is required'));
 			}
 
-			if (!is_int($formatInfo['pool'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import => Pool id must be an integer and not %s', $formatInfo['pool']), $_SESSION['user']['id']);
+			if (!is_integer($formatInfo['pool'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import (%d) => Pool id must be an integer and not %s', __LINE__, $formatInfo['pool']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Pool id must be an integer'));
 			}
 
-			$dbDriver->startTransaction();
+			$job = array(
+				'interval' => null,
+				'backup' => null,
+				'media' => $formatInfo['media'],
+				'archive' => null,
+				'pool' => $formatInfo['pool'],
+				'login' => $_SESSION['user']['id'],
+				'metadata' => array(),
+				'options' => array()
+			);
 
-			$ok = true;
-			$failed = false;
+			if (!$dbDriver->startTransaction()) {
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/archive/import (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
 
 			// check media
-			$media = $dbDriver->getMedia($formatInfo['media']);
-
+			$media = $dbDriver->getMedia($formatInfo['media'], DB::DB_ROW_LOCK_SHARE);
 			if (!$media)
 				$dbDriver->cancelTransaction();
-
 			if ($media === null)
 				httpResponse(500, array('message' => 'Query failure'));
 			elseif ($media === false)
 				httpResponse(400, array('message' => 'Media not found'));
 
-			$pool = $dbDriver->getPool($formatInfo['pool']);
-
+			$pool = $dbDriver->getPool($formatInfo['pool'], DB::DB_ROW_LOCK_SHARE);
 			if (!$pool)
 				$dbDriver->cancelTransaction();
-
 			if ($pool === null) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/import => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPool(%s)', $formatInfo['pool']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/archive/import (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import (%d) => getPool(%s)', __LINE__, $formatInfo['pool']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			} elseif ($pool === false)
-
 				httpResponse(400, array('message' => 'Pool not found'));
 
 			if ($media['mediaformat']['id'] != $pool['mediaformat']['id']) {
@@ -123,21 +136,10 @@
 				httpResponse(400, array('message' => 'Archive format should be known'));
 			}
 
-			if ($pool['deleted'] ) {
+			if ($pool['deleted']) {
 				$dbDriver->cancelTransaction();
 				httpResponse(400, array('message' => 'Trying to import a media into a deleted pool'));
 			}
-
-			$job = array(
-				'interval' => null,
-				'backup' => null,
-				'media' => $formatInfo['media'],
-				'archive' => null,
-				'pool' => $formatInfo['pool'],
-				'login' => $_SESSION['user']['id'],
-				'metadata' => array(),
-				'options' => array()
-			);
 
 			// name [optional]
 			if (isset($formatInfo['name'])) {
@@ -155,7 +157,8 @@
 			if ($ok) {
 				$jobType = $dbDriver->getJobTypeId("format-media");
 				if ($jobType === null || $jobType === false) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobTypeId(%s)', "format-media"), $_SESSION['user']['id']);
+					$dbDriver->cancelTransaction();
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import (%d) => getJobTypeId(%s)', __LINE__, "format-media"), $_SESSION['user']['id']);
 					$failed = true;
 				} else
 					$job['type'] = $jobType;
@@ -169,27 +172,22 @@
 			} elseif ($ok)
 				$job['nextstart'] = new DateTime();
 
-
-			// options [optional]
-
-
-
 			// host
 			if ($ok) {
 				$host = $dbDriver->getHost(posix_uname()['nodename']);
 				if ($host === null || $host === false) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', posix_uname()['nodename']), $_SESSION['user']['id']);
+					$dbDriver->cancelTransaction();
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/import (%d) => getHost(%s)', __LINE__, posix_uname()['nodename']), $_SESSION['user']['id']);
 					$failed = true;
 				} else
 					$job['host'] = $host;
 			}
 
 			// gestion des erreurs
-			if ($failed || !$ok)
+			if (!$ok)
 				$dbDriver->cancelTransaction();
-
 			if ($failed) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/import => Query failure', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/archive/import (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 			if (!$ok)
@@ -198,14 +196,18 @@
 			$jobId = $dbDriver->createJob($job);
 
 			if ($jobId === null) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/archive/copy => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createJob(%s)', $job), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/archive/copy (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/copy (%d) => createJob(%s)', __LINE__, $job), $_SESSION['user']['id']);
 				$dbDriver->cancelTransaction();
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 
-			$dbDriver->finishTransaction();
-			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/archive/import => Job %s created', $jobId), $_SESSION['user']['id']);
+			if (!$dbDriver->finishTransaction()) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
+
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/archive/import (%d) => Job %s created', __LINE__, $jobId), $_SESSION['user']['id']);
 			httpAddLocation('/job/?id=' . $jobId);
 			httpResponse(201, array(
 				'message' => 'Job created successfully',

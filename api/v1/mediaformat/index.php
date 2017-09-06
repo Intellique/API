@@ -2,6 +2,7 @@
 
 /**
  * \addtogroup MediaFormat Media Format
+ * \page mediaformat
  * \section MediaFormat Media Format
  * \subsection MediaFormatBrief How does it work?
  * If the user inputs an \e id, the function returns information concerning the corresponding media format, regardless of the other parameters.
@@ -95,24 +96,23 @@
  *   - \b 500 Query failure
  */
 
-
 	require_once("../lib/env.php");
 
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
-		if (isset($_GET['id'])) {
-				if (!is_numeric($_GET['id']))
+			if (isset($_GET['id'])) {
+				if (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false)
 					httpResponse(400, array('message' => 'Mediaformat id must be an integer'));
 
 				$mediaformat = $dbDriver->getMediaFormat($_GET['id']);
 				if ($mediaformat === NULL) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/mediaformat => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediaFormat(%s)', $_GET['id']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/mediaformat (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/mediaformat (%d) => getMediaFormat(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query Failure',
 						'mediaformat' => null
@@ -132,8 +132,8 @@
 				$mediaformat = $dbDriver->getMediaFormatByName($_GET['name']);
 
 				if ($mediaformat === NULL) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/mediaformat => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediaFormatByName(%s)', $_GET['name']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/mediaformat (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/mediaformat (%d) => getMediaFormatByName(%s)', __LINE__, $_GET['name']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query Failure',
 						'mediaformat id' => null
@@ -148,14 +148,12 @@
 					'message' => 'Query succeeded',
 					'mediaformat id' => $mediaformat
 				));
-
-
 			} else {
 				$params = array();
 				$ok = true;
 
 				if (isset($_GET['order_by'])) {
-					if (array_search($_GET['order_by'], array('id', 'name', 'capacity')))
+					if (array_search($_GET['order_by'], array('id', 'name', 'capacity')) !== false)
 						$params['order_by'] = $_GET['order_by'];
 					else
 						$ok = false;
@@ -168,15 +166,19 @@
 							$ok = false;
 					}
 				}
+
 				if (isset($_GET['limit'])) {
-					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-						$params['limit'] = intval($_GET['limit']);
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+					if ($limit !== false)
+						$params['limit'] = $limit;
 					else
 						$ok = false;
 				}
+
 				if (isset($_GET['offset'])) {
-					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-						$params['offset'] = intval($_GET['offset']);
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+					if ($offset !== false)
+						$params['offset'] = $offset;
 					else
 						$ok = false;
 				}
@@ -186,8 +188,8 @@
 
 				$result = $dbDriver->getMediaFormats($params);
 				if ($result['query_executed'] == false) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/mediaformat => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediaFormats(%s)', $params), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/mediaformat (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/mediaformat (%d) => getMediaFormats(%s)', __LINE__, $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'media formats' => array(),
@@ -201,6 +203,7 @@
 					));
 			}
 
+			break;
 
 		case 'OPTIONS':
 			httpOptionsMethod(HTTP_GET);

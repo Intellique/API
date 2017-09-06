@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup authentication
+ * \page auth Authentication
  * \section Authentication
  * To authenticate a user,
  * use \b POST method
@@ -34,12 +35,12 @@
 	require_once("http.php");
 	require_once("uuid.php");
 	require_once("session.php");
-	require_once("dbSession.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
 			if (isset($_SESSION['user'])) {
-				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('DELETE api/v1/auth => User %s logged out', $_SESSION['user']['login']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('DELETE api/v1/auth (%d) => User %s logged out', __LINE__, $_SESSION['user']['login']), $_SESSION['user']['id']);
 				session_destroy();
 				httpResponse(200, array('message' => 'Logged out'));
 			}
@@ -64,17 +65,14 @@
 				httpResponse(400, array('message' => 'apikey is not valid'));
 
 			$apikey = $dbDriver->getApiKeyByKey($credential['apikey']);
-
 			if ($apikey === null) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/auth => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getApiKeyByKey(%s)', $credential['apikey']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/auth (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/auth (%d) => getApiKeyByKey(%s)', __LINE__, $credential['apikey']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			}
-			if ($apikey === false)
+			} elseif ($apikey === false)
 				httpResponse(401, array('message' => 'Invalid API key'));
 
-			$user = $dbDriver->getUser(null, $credential['login']);
-
+			$user = $dbDriver->getUser(null, $credential['login'], true);
 			if ($user === false || $user['disabled'])
 				httpResponse(401, array('message' => 'Log in failed'));
 
@@ -89,7 +87,7 @@
 			$_SESSION['apikey'] = $apikey;
 
 			httpAddLocation('/auth/');
-			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/auth => User %s logged in', $_SESSION['user']['login']), $_SESSION['user']['id']);
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/auth (%d) => User %s logged in', __LINE__, $_SESSION['user']['login']), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Logged in',
 				'user_id' => $user['id']

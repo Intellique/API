@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage jobsearch
  * \section Search_job Searching jobs
  * To search jobs and then to get jobs ids list,
  * use \b GET method :
@@ -39,7 +41,7 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbSession.php");
+	require_once("db.php");
 
 	function checkPermissions($jobId, $returnJob) {
 		global $dbDriver;
@@ -86,40 +88,47 @@
 			$params = array();
 			$ok = true;
 
-			if (isset($_GET['name'])) {
-				if (!is_string($_GET['name']))
-					$ok = false;
+			if (isset($_GET['name']))
 				$params['name'] = $_GET['name'];
-			}
 
 			if (isset($_GET['pool'])) {
-				if (!is_numeric($_GET['pool']))
+				$pool = filter_var($_GET['pool'], FILTER_VALIDATE_INT);
+				if ($pool === false)
 					$ok = false;
-				$params['pool'] = $_GET['pool'];
+				else
+					$params['pool'] = $pool;
 			}
 
 			if (isset($_GET['login'])) {
-				if (!is_numeric($_GET['login']))
+				$login = filter_var($_GET['login'], FILTER_VALIDATE_INT);
+				if ($login === false)
 					$ok = false;
-				$params['login'] = $_GET['login'];
+				else
+					$params['login'] = $login;
 			}
 
 			if (isset($_GET['type'])) {
-				if (!is_numeric($_GET['type']))
+				$type = filter_var($_GET['type'], FILTER_VALIDATE_INT);
+				if ($type === false)
 					$ok = false;
-				$params['type'] = $_GET['type'];
+				else
+					$params['type'] = $type;
 			}
 
 			if (isset($_GET['archive'])) {
-				if (!is_numeric($_GET['archive']))
+				$archive = filter_var($_GET['archive'], FILTER_VALIDATE_INT);
+				if ($archive === false)
 					$ok = false;
-				$params['archive'] = $_GET['archive'];
+				else
+					$params['archive'] = $archive;
 			}
 
 			if (isset($_GET['media'])) {
-				if (!is_numeric($_GET['media']))
+				$media = filter_var($_GET['media'], FILTER_VALIDATE_INT);
+				if ($media === false)
 					$ok = false;
-				$params['media'] = $_GET['media'];
+				else
+					$params['media'] = $media;
 			}
 
 			if (isset($_GET['order_by'])) {
@@ -137,18 +146,18 @@
 				}
 			}
 
-			$limit = null;
 			if (isset($_GET['limit'])) {
-				if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-					$limit = intval($_GET['limit']);
+				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+				if ($limit !== false)
+					$params['limit'] = $limit;
 				else
 					$ok = false;
 			}
 
-			$offset = 0;
 			if (isset($_GET['offset'])) {
-				if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-					$offset = intval($_GET['offset']);
+				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+				if ($offset !== false)
+					$params['offset'] = $offset;
 				else
 					$ok = false;
 			}
@@ -159,8 +168,6 @@
 			$dbDriver->startTransaction();
 
 			$jobs = $dbDriver->getJobs($params);
-
-
 			if ($jobs['query_prepared'] === false) {
 				$dbDriver->cancelTransaction();
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/job/search => Query failure', $_SESSION['user']['id']);
@@ -170,8 +177,7 @@
 					'jobs_id' => array(),
 					'total_rows' => 0
 				));
-			}
-			if ($jobs['query_executed'] === false) {
+			} elseif ($jobs['query_executed'] === false) {
 				$dbDriver->cancelTransaction();
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/job/search => Query failure', $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getJobs(%s)', var_export($params, true)), $_SESSION['user']['id']);
@@ -231,5 +237,4 @@
 			httpUnsupportedMethod();
 			break;
 		}
-
 ?>

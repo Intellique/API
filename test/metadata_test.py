@@ -5,7 +5,7 @@ class MetadataTest(CommonTest):
 
     def test_01_get_metadata_pool_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%spool/metadata/?id=5" % (self.path), headers=headers)
+        conn.request('GET', "%spool/metadata/?id=6" % (self.path), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
@@ -40,7 +40,7 @@ class MetadataTest(CommonTest):
 
     def test_06_get_metadata_key_pool_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%spool/metadata/?id=5&key=NOMENCLATURE" % (self.path), headers=headers)
+        conn.request('GET', "%spool/metadata/?id=6&key=NOMENCLATURE" % (self.path), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
@@ -65,7 +65,6 @@ class MetadataTest(CommonTest):
         res = conn.getresponse()
         message = json.loads(res.read().decode("utf-8"))
         conn.close()
-        print(message)
         self.assertEqual(res.status, 200)
 
     def test_10_get_metadata_key_archivefile_success(self):
