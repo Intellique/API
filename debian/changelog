@@ -1,3 +1,11 @@
+storiqone-backend (0.2+jessie) polisher; urgency=low
+
+  * New release
+  * Add new package storiqone-client
+  * New build dependancy (dh-python)
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Wed, 06 Sep 2017 13:33:07 +0200
+
 storiqone-backend (0.1.0b4-1+jessie) polisher; urgency=low
 
   * New bug fix release

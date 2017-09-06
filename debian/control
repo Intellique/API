@@ -2,7 +2,7 @@ Source: storiqone-backend
 Section: utils
 Priority: extra
 Maintainer: Guillaume Clercin <gclercin@intellique.com>
-Build-Depends: debhelper (>= 8.0.0), doxygen, graphviz, texlive, texlive-latex-extra
+Build-Depends: debhelper (>= 8.0.0), dh-python, python3, doxygen, graphviz, texlive, texlive-latex-extra
 Standards-Version: 3.9.2
 Homepage: http://www.intellique.com
 
@@ -25,3 +25,10 @@ Section: libs
 Architecture: all
 Description: Documentation (pdf) for Storiq One (API)
  Documentation of API of Storiq One
+
+Package: storiqone-client
+Section: libs
+Architecture: all
+Depends: cron-daemon, ${python3:Depends}
+Description: Client for storiqone
+ A client trigered by cron in order to create archive

@@ -1,0 +1,17 @@
+#! /bin/sh
+
+ARCHIVE_NAME=$(date "+%F_%T")
+ARCHIVE_DIRECTORY=/mnt/raid/to_archive
+API_KEY=
+
+HOST=
+USER=
+PASSWORD=
+
+OPT=""
+test -n "$HOST" && OPT="$OPT $HOST"
+test -n "$USER" && OPT="$OPT $USER"
+test -n "$PASSWORD" && OPT="$OPT $PASSWORD"
+
+exec /usr/lib/storiqone/1.3/cron/clientArchiver.py -a "$ARCHIVE_NAME" -D "$ARCHIVE_DIRECTORY" "$OPT"
+
