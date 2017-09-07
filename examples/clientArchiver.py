@@ -67,9 +67,12 @@ if options.archiveId is not None and options.archiveName is not None:
 	ok = False
 
 options.files.extend(args)
-if len(options.files) == 0:
+if len(options.files) == 0 and options.directory == '~':
 	print("You should specify file(s) to be archived")
 	ok = False
+
+if len(options.files) == 0:
+	options.files.append(options.directory)
 
 if options.archiveId is not None and options.poolId is not None:
 	print("You should specify either an archive id or a pool id")
@@ -151,7 +154,7 @@ def FilePresence(directory,specialFile):
 			for file in files:
 				filename = os.path.basename( os.path.join(current, file) )
 				if filename == specialFile:
-					presence = True
+					return True
 		except:
 			pass
 	return presence
@@ -224,7 +227,7 @@ if verified:
 
 	credentials = json.dumps({'login': options.userName, 'password': options.password, 'apikey': options.api_key})
 	headers = {"Content-type": "application/json"}
-	conn.request('POST', '/storiqone-backend-paul/api/v1/auth/', credentials, headers)
+	conn.request('POST', '/storiqone-backend/api/v1/auth/', credentials, headers)
 	res = conn.getresponse()
 	contentType = res.getheader('Content-type').split(';', 1)[0]
 	if contentType is None or contentType != "application/json" or res.status != 201:
@@ -243,9 +246,9 @@ if verified:
 	else:
 		conn = http.client.HTTPSConnection(options.host)
 	if options.archiveName and options.poolId:
-		conn.request('POST', '/storiqone-backend-paul/api/v1/archive/', json.dumps(params), headers)
+		conn.request('POST', '/storiqone-backend/api/v1/archive/', json.dumps(params), headers)
 	else:
-		conn.request('POST', '/storiqone-backend-paul/api/v1/archive/add/', json.dumps(params), headers)
+		conn.request('POST', '/storiqone-backend/api/v1/archive/add/', json.dumps(params), headers)
 	res = conn.getresponse()
 	contentType = res.getheader('Content-type').split(';', 1)[0]
 	if contentType is None or contentType != "application/json" or res.status != 201:
@@ -277,7 +280,7 @@ if verified:
 
 		credentials = json.dumps({'login': options.userName, 'password': options.password, 'apikey': options.api_key})
 		headers = {"Content-type": "application/json"}
-		conn.request('POST', '/storiqone-backend-paul/api/v1/auth/', credentials, headers)
+		conn.request('POST', '/storiqone-backend/api/v1/auth/', credentials, headers)
 		res = conn.getresponse()
 		contentType = res.getheader('Content-type').split(';', 1)[0]
 		if contentType is None or contentType != "application/json" or res.status != 201:
@@ -295,7 +298,7 @@ if verified:
 			conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 		else:
 			conn = http.client.HTTPSConnection(options.host)
-		conn.request('GET', '/storiqone-backend-paul/api/v1/job/?id=%d'%idjob, json.dumps(params2), headers)
+		conn.request('GET', '/storiqone-backend/api/v1/job/?id=%d'%idjob, json.dumps(params2), headers)
 		res = conn.getresponse()
 		contentType = res.getheader('Content-type').split(';', 1)[0]
 		message1 = json.loads(res.read().decode("utf-8"))
