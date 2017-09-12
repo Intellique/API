@@ -113,11 +113,13 @@
 				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$medias = $dbDriver->getMediasByParams($params);
-			if ($medias === null) {
+			if (!$medias['query_executed']) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/media/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/media/search (%d) => getMediasByParams(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
-				httpResponse(500, array('message' => 'Query failure'));
-			} elseif ($medias === false)
+				httpResponse(500, array(
+					'message' => 'Query failure'
+				));
+			} elseif ($medias['total_rows'] == 0)
 				httpResponse(404, array(
 					'message' => 'Medias not found',
 					'medias' => array()
