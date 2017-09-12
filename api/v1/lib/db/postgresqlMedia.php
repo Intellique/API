@@ -218,9 +218,9 @@
 			if (isset($params['type'])) {
 				$query_params[] = $params['type'];
 				if (count($query_params) > 1)
-					$query_common .= ' AND type = $' . count($query_params);
+					$query_common .= ' AND type = $' . count($query_params) . ' ::mediatype';
 				else
-					$query_common .= ' WHERE type = $' . count($query_params);
+					$query_common .= ' WHERE type = $' . count($query_params) . ' ::mediatype';
 			}
 
 			if (isset($params['archiveformat'])) {

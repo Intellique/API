@@ -139,39 +139,43 @@
 			}
 
 			if (isset($params['isadmin'])) {
-				$query_params[] = $params['isadmin'] ? "TRUE" : "FALSE";
-				if (count($query_params) > 1)
+				if (count($query_params) > 0)
 					$query_common .= ' AND ';
 				else
 					$query_common .= ' WHERE ';
-				$query_common .= 'isadmin = $' . count($query_params);
+				if (!$params['isadmin'])
+					$query_common .= 'NOT ';
+				$query_common .= 'isadmin';
 			}
 
 			if (isset($params['canarchive'])) {
-				$query_params[] = $params['canarchive'];
-				if (count($query_params) > 1)
+				if (count($query_params) > 0)
 					$query_common .= ' AND ';
 				else
 					$query_common .= ' WHERE ';
-				$query_common .= 'canarchive = $' . count($query_params);
+				if (!$params['canarchive'])
+					$query_common .= 'NOT ';
+				$query_common .= 'canarchive';
 			}
 
 			if (isset($params['canrestore'])) {
-				$query_params[] = $params['canrestore'];
-				if (count($query_params) > 1)
+				if (count($query_params) > 0)
 					$query_common .= ' AND ';
 				else
 					$query_common .= ' WHERE ';
-				$query_common .= 'canrestore = $' . count($query_params);
+				if (!$params['canrestore'])
+					$query_common .= 'NOT ';
+				$query_common .= 'canrestore';
 			}
 
 			if (isset($params['disabled'])) {
-				$query_params[] = $params['disabled'] ? "TRUE" : "FALSE";
-				if (count($query_params) > 1)
+				if (count($query_params) > 0)
 					$query_common .= ' AND ';
 				else
 					$query_common .= ' WHERE ';
-				$query_common .= 'disabled = $' . count($query_params);
+				if (!$params['disabled'])
+					$query_common .= 'NOT ';
+				$query_common .= 'disabled';
 			}
 
 			$total_rows = 0;
