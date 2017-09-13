@@ -103,9 +103,6 @@
 			if ($result === false)
 				return null;
 
-			if (pg_num_rows($result) == 0)
-				return false;
-
 			$archive['volumes'] = array();
 			$archive['size'] = 0;
 
