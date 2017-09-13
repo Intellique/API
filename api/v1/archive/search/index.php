@@ -12,6 +12,7 @@
  * |    Name     |  Type             |                                  Description                                        |           Constraint            |
  * | :---------: | :---------------: | :---------------------------------------------------------------------------------: | :-----------------------------: |
  * | name        | string            | search an archive specifying its name                                               |                                 |
+ * | uuid        | string            | search an archive specifying its uuid                                               |                                 |
  * | owner       | string or integer | search an archive specifying its owner                                              |                                 |
  * | creator     | string or integer | search an archive specifying its creator                                            |                                 |
  * | archivefile | string or integer | search an archive specifying its file                                               |                                 |
@@ -117,6 +118,9 @@
 					httpResponse(403, array('message' => 'Permission denied'));
 			} elseif (!$_SESSION['user']['isadmin'])
 				$params['poolgroup'] = $_SESSION['user']['poolgroup'];
+
+			if (isset($_GET['uuid']))
+				$params['uuid'] = $_GET['uuid'];
 
 			if (isset($_GET['order_by'])) {
 				if (array_search($_GET['order_by'], array('id', 'uuid', 'name', 'creator', 'owner')) !== false)

@@ -205,6 +205,17 @@
 					$query_common .= ' owner = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
 			}
 
+			if (isset($params['uuid'])) {
+				$query_params[] = $params['uuid'];
+
+				if (count($query_params) > 1)
+					$query_common .= ' AND';
+				else
+					$query_common .= ' WHERE';
+
+				$query_common .= ' uuid = $' . count($query_params);
+			}
+
 			if (isset($params['deleted'])) {
 				if (count($query_params) > 0)
 					$query_common .= ' AND';
