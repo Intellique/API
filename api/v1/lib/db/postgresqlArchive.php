@@ -415,6 +415,12 @@
 				return false;
 
 			$archivefile = pg_fetch_assoc($result);
+			$archivefile['archive'] = intval($archivefile['archive']);
+			$archivefile['groupid'] = intval($archivefile['groupid']);
+			$archivefile['id'] = intval($archivefile['id']);
+			$archivefile['medias'] = json_decode($archivefile['medias'], false);
+			$archivefile['ownerid'] = intval($archivefile['ownerid']);
+			$archivefile['size'] = intval($archivefile['size']);
 
 			return $archivefile;
 		}
