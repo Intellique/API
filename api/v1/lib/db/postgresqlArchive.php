@@ -387,7 +387,7 @@
 			if (!is_numeric($id))
 				return false;
 
-			$query = "SELECT id, archivefile.name, milestones_files.archive, archivefile.mimetype, ownerid, owner, groupid, groups, ctime, mtime, size, medias FROM archivefile JOIN milestones_files ON archivefile.id = milestones_files.archivefile WHERE id = $1";
+			$query = "SELECT id, archivefile.name, json_object_agg(milestones_files.archive, medias::JSON) AS archives, archivefile.mimetype, ownerid, owner, groupid, groups, ctime, mtime, size FROM archivefile JOIN milestones_files ON archivefile.id = milestones_files.archivefile WHERE id = $1 GROUP BY id, archivefile.name, archivefile.mimetype, ownerid, owner, groupid, groups, ctime, mtime, size";
 
 			switch ($rowLock) {
 				case DB::DB_ROW_LOCK_SHARE:
@@ -412,10 +412,9 @@
 				return false;
 
 			$archivefile = pg_fetch_assoc($result);
-			$archivefile['archive'] = intval($archivefile['archive']);
+			$archivefile['archives'] = json_decode($archivefile['archives']);
 			$archivefile['groupid'] = intval($archivefile['groupid']);
 			$archivefile['id'] = intval($archivefile['id']);
-			$archivefile['medias'] = json_decode($archivefile['medias'], false);
 			$archivefile['ownerid'] = intval($archivefile['ownerid']);
 			$archivefile['size'] = intval($archivefile['size']);
 
