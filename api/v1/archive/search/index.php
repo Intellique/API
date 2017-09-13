@@ -15,7 +15,9 @@
  * | owner       | string or integer | search an archive specifying its owner                                              |                                 |
  * | creator     | string or integer | search an archive specifying its creator                                            |                                 |
  * | archivefile | string or integer | search an archive specifying its file                                               |                                 |
+ * | media       | integer           | search an archive specifying its media                                              |                                 |
  * | pool        | string or integer | search an archive specifying its pool                                               |                                 |
+ * | poolgroup   | integer           | search an archive specifying its poolgroup                                          |                                 |
  * | order_by    | enum              | order by column                                                                     | value in : 'id', 'uuid', 'name', 'creator', 'owner' |
  * | order_asc   | boolean           | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
  * | limit       | integer           | specifies the maximum number of rows to return.                                     | limit > 0                       |
@@ -50,15 +52,12 @@
 			$params = array();
 			$ok = true;
 
-			if (isset($_GET['name']))
-				$params['name'] = $_GET['name'];
-
-			if (isset($_GET['owner'])) {
-				$owner = filter_var($_GET['owner'], FILTER_VALIDATE_INT);
-				if ($owner !== false)
-					$params['owner'] = $owner;
+			if (isset($_GET['archivefile'])) {
+				$archivefile = filter_var($_GET['archivefile'], FILTER_VALIDATE_INT);
+				if ($archivefile !== false)
+					$params['archivefile'] = $archivefile;
 				else
-					$params['owner'] = $_GET['owner'];
+					$params['archivefile'] = $_GET['archivefile'];
 			}
 
 			if (isset($_GET['creator'])) {
@@ -67,22 +66,6 @@
 					$params['creator'] = $creator;
 				else
 					$params['creator'] = $_GET['creator'];
-			}
-
-			if (isset($_GET['pool'])) {
-				$pool = filter_var($_GET['pool'], FILTER_VALIDATE_INT);
-				if ($pool !== false)
-					$params['pool'] = $pool;
-				else
-					$params['pool'] = $_GET['pool'];
-			}
-
-			if (isset($_GET['archivefile'])) {
-				$archivefile = filter_var($_GET['archivefile'], FILTER_VALIDATE_INT);
-				if ($archivefile !== false)
-					$params['archivefile'] = $archivefile;
-				else
-					$params['archivefile'] = $_GET['archivefile'];
 			}
 
 			if (isset($_GET['deleted'])) {
@@ -95,6 +78,45 @@
 					httpResponse(403, array('message' => 'Permission denied'));
 			} else
 				$params['deleted'] = 'no';
+
+			if (isset($_GET['media'])) {
+				$media = filter_var($_GET['media'], FILTER_VALIDATE_INT);
+				if ($media !== false)
+					$params['media'] = $media;
+				else
+					$ok = false;
+			}
+
+			if (isset($_GET['name']))
+				$params['name'] = $_GET['name'];
+
+			if (isset($_GET['owner'])) {
+				$owner = filter_var($_GET['owner'], FILTER_VALIDATE_INT);
+				if ($owner !== false)
+					$params['owner'] = $owner;
+				else
+					$params['owner'] = $_GET['owner'];
+			}
+
+			if (isset($_GET['pool'])) {
+				$pool = filter_var($_GET['pool'], FILTER_VALIDATE_INT);
+				if ($pool !== false)
+					$params['pool'] = $pool;
+				else
+					$params['pool'] = $_GET['pool'];
+			}
+
+			if (isset($_GET['poolgroup'])) {
+				if ($_SESSION['user']['isadmin']) {
+					$poolgroup = filter_var($_GET['poolgroup'], FILTER_VALIDATE_INT);
+					if ($poolgroup !== false)
+						$params['poolgroup'] = $poolgroup;
+					else
+						$ok = false;
+				} else
+					httpResponse(403, array('message' => 'Permission denied'));
+			} elseif (!$_SESSION['user']['isadmin'])
+				$params['poolgroup'] = $_SESSION['user']['poolgroup'];
 
 			if (isset($_GET['order_by'])) {
 				if (array_search($_GET['order_by'], array('id', 'uuid', 'name', 'creator', 'owner')) !== false)
