@@ -57,6 +57,8 @@
 					break;
 			}
 
+			$query .= ' LIMIT 1';
+
 			$query_name = "select_archive_by_id_" . md5($query);
 
 			if (!$this->prepareQuery($query_name, $query))
@@ -101,9 +103,6 @@
 			if ($result === false)
 				return null;
 
-			if (pg_num_rows($result) == 0)
-				return false;
-
 			$archive['volumes'] = array();
 			$archive['size'] = 0;
 
@@ -128,50 +127,105 @@
 		}
 
 		public function getArchives(&$user, &$params) {
-			$query_common = " FROM archive WHERE (creator = $1 OR owner = $1 OR id IN (SELECT av.archive FROM archivevolume av INNER JOIN media m ON av.sequence = 0 AND av.media = m.id WHERE m.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup";
-			$query_params = array($user['id']);
+			$query_common = " FROM archive";
+			$query_params = array();
 
-			if (isset($params['pool'])) {
-				$query_params[] = $params['pool'];
-				if (is_integer($params['pool']))
-					$query_common .= ' AND ppg.pool = $' . count($query_params);
-				else
-					$query_common .= ' AND ppg.pool = (SELECT id FROM pool WHERE name ~* $' . count($query_params) . ')';
+			if (isset($params['archivefile']) or isset($params['media']) or isset($params['pool']) or isset($params['poolgroup'])) {
+				$query_common .= " WHERE id IN (SELECT av.archive FROM archivevolume av";
+
+				if (isset($params['archivefile'])) {
+					$query_params[] = $params['archivefile'];
+					$query_common .= " INNER JOIN archivefiletoarchivevolume af2av ON av.id = af2av.archivevolume AND af2av.archivefile = $" . count($query_params);
+				}
+
+				if (isset($params['pool']) or isset($params['poolgroup'])) {
+					$query_common .= " INNER JOIN media m ON av.media = m.id WHERE";
+
+					if (isset($params['pool']) and isset($params['poolgroup'])) {
+						$query_params[] = $params['pool'];
+						$query_common .= " m.pool = $" . count($query_params) . " AND EXISTS(SELECT * FROM pooltopoolgroup WHERE pool = $" . count($query_params);
+						$query_params[] = $params['poolgroup'];
+						$query_common .= " AND poolgroup = $" . count($query_params) . ")";
+					} elseif (isset($params['poolgroup'])) {
+						$query_params[] = $params['poolgroup'];
+						$query_common .= " m.pool IN (SELECT pool FROM pooltopoolgroup WHERE poolgroup = $" . count($query_params) . ")";
+					} else {
+						$query_params[] = $params['pool'];
+						$query_common .= " m.pool = $" . count($query_params);
+					}
+
+					if (isset($params['media'])) {
+						$query_params[] = $params['media'];
+						$query_common .= " AND m.id = $" . count($query_params);
+					}
+				} elseif (isset($params['media'])) {
+					$query_params[] = $params['media'];
+					$query_common .= " WHERE av.media = $" . count($query_params);
+				}
+
+				$query_common .= ")";
 			}
-
-			$query_common .= ')))';
 
 			if (isset($params['name'])) {
 				$query_params[] = $params['name'];
-				$query_common .= ' AND name ~* $' . count($query_params);
+
+				if (count($query_params) > 1)
+					$query_common .= ' AND';
+				else
+					$query_common .= ' WHERE';
+
+				$query_common .= ' name ~* $' . count($query_params);
 			}
 
 			if (isset($params['creator'])) {
 				$query_params[] = $params['creator'];
-				if (is_integer($params['creator']))
-					$query_common .= ' AND creator = $' . count($query_params);
+
+				if (count($query_params) > 1)
+					$query_common .= ' AND';
 				else
-					$query_common .= ' AND creator = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
+					$query_common .= ' WHERE';
+
+				if (is_integer($params['creator']))
+					$query_common .= ' creator = $' . count($query_params);
+				else
+					$query_common .= ' creator = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
 			}
 
 			if (isset($params['owner'])) {
 				$query_params[] = $params['owner'];
-				if (is_integer($params['owner']))
-					$query_common .= ' AND owner = $' . count($query_params);
+
+				if (count($query_params) > 1)
+					$query_common .= ' AND';
 				else
-					$query_common .= ' AND owner = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
+					$query_common .= ' WHERE';
+
+				if (is_integer($params['owner']))
+					$query_common .= ' owner = $' . count($query_params);
+				else
+					$query_common .= ' owner = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
 			}
 
-			if (isset($params['archivefile'])) {
-				$query_params[] = $params['archivefile'];
-				$query_common .= ' AND id IN (SELECT archive FROM milestones_files WHERE archivefile = $' . count($query_params) .')';
+			if (isset($params['uuid'])) {
+				$query_params[] = $params['uuid'];
+
+				if (count($query_params) > 1)
+					$query_common .= ' AND';
+				else
+					$query_common .= ' WHERE';
+
+				$query_common .= ' uuid = $' . count($query_params);
 			}
 
 			if (isset($params['deleted'])) {
+				if (count($query_params) > 0)
+					$query_common .= ' AND';
+				else
+					$query_common .= ' WHERE';
+
 				if ($params['deleted'] === 'no')
-					$query_common .= ' AND NOT deleted';
+					$query_common .= ' NOT deleted';
 				else if ($params['deleted'] === 'only')
-					$query_common .= ' AND deleted';
+					$query_common .= ' deleted';
 			}
 
 			$total_rows = 0;
@@ -344,7 +398,7 @@
 			if (!is_numeric($id))
 				return false;
 
-			$query = "SELECT id, archivefile.name, milestones_files.archive, archivefile.mimetype, ownerid, owner, groupid, groups, ctime, mtime, size, medias FROM archivefile JOIN milestones_files ON archivefile.id = milestones_files.archivefile WHERE id = $1";
+			$query = "SELECT id, archivefile.name, json_object_agg(milestones_files.archive, medias::JSON) AS archives, archivefile.mimetype, ownerid, owner, groupid, groups, ctime, mtime, size FROM archivefile JOIN milestones_files ON archivefile.id = milestones_files.archivefile WHERE id = $1 GROUP BY id, archivefile.name, archivefile.mimetype, ownerid, owner, groupid, groups, ctime, mtime, size";
 
 			switch ($rowLock) {
 				case DB::DB_ROW_LOCK_SHARE:
@@ -369,6 +423,11 @@
 				return false;
 
 			$archivefile = pg_fetch_assoc($result);
+			$archivefile['archives'] = json_decode($archivefile['archives']);
+			$archivefile['groupid'] = intval($archivefile['groupid']);
+			$archivefile['id'] = intval($archivefile['id']);
+			$archivefile['ownerid'] = intval($archivefile['ownerid']);
+			$archivefile['size'] = intval($archivefile['size']);
 
 			return $archivefile;
 		}

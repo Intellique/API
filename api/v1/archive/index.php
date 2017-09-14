@@ -182,18 +182,20 @@
 				if (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false)
 					httpResponse(400, array('message' => 'Archive id must be an integer'));
 
-				$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
-				if ($permission_granted === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archive/?id=%d (%d) => Query failure', $_GET['id'], __LINE__), $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/archive/?id=%d (%d) => checkArchivePermission(%s, %s)', $_GET['id'], __LINE__, $_GET['id'], $_SESSION['user']['id']), $_SESSION['user']['id']);
+				if (!$_SESSION['user']['isadmin']) {
+					$permission_granted = $dbDriver->checkArchivePermission($_GET['id'], $_SESSION['user']['id']);
+					if ($permission_granted === null) {
+						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archive/?id=%d (%d) => Query failure', $_GET['id'], __LINE__), $_SESSION['user']['id']);
+						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/archive/?id=%d (%d) => checkArchivePermission(%s, %s)', $_GET['id'], __LINE__, $_GET['id'], $_SESSION['user']['id']), $_SESSION['user']['id']);
 
-					httpResponse(500, array(
-						'message' => 'Query failure',
-						'archive' => array()
-					));
-				} elseif ($permission_granted === false) {
-					$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/archive/?id=%d (%d) => A user that cannot get archive informations tried to', $_GET['id'], __LINE__), $_SESSION['user']['id']);
-					httpResponse(403, array('message' => 'Permission denied'));
+						httpResponse(500, array(
+							'message' => 'Query failure',
+							'archive' => array()
+						));
+					} elseif ($permission_granted === false) {
+						$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/archive/?id=%d (%d) => A user that cannot get archive informations tried to', $_GET['id'], __LINE__), $_SESSION['user']['id']);
+						httpResponse(403, array('message' => 'Permission denied'));
+					}
 				}
 
 				$archive = $dbDriver->getArchive($_GET['id']);

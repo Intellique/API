@@ -209,7 +209,7 @@
 
 			if (isset($params['pool'])) {
 				$query_params[] = $params['pool'];
-				if (count($query_params) > 0)
+				if (count($query_params) > 1)
 					$query_common .= ' AND pool = $' . count($query_params);
 				else
 					$query_common .= ' WHERE pool = $' . count($query_params);
@@ -217,15 +217,15 @@
 
 			if (isset($params['type'])) {
 				$query_params[] = $params['type'];
-				if (count($query_params) > 0)
-					$query_common .= ' AND type = $' . count($query_params);
+				if (count($query_params) > 1)
+					$query_common .= ' AND type = $' . count($query_params) . ' ::mediatype';
 				else
-					$query_common .= ' WHERE type = $' . count($query_params);
+					$query_common .= ' WHERE type = $' . count($query_params) . ' ::mediatype';
 			}
 
 			if (isset($params['archiveformat'])) {
 				$query_params[] = $params['archiveformat'];
-				if (count($query_params) > 0)
+				if (count($query_params) > 1)
 					$query_common .= ' AND archiveformat = $' . count($query_params);
 				else
 					$query_common .= ' WHERE archiveformat = $' . count($query_params);
@@ -233,7 +233,7 @@
 
 			if (isset($params['mediaformat'])) {
 				$query_params[] = $params['mediaformat'];
-				if (count($query_params) > 0)
+				if (count($query_params) > 1)
 					$query_common .= ' AND mediaformat = $' . count($query_params);
 				else
 					$query_common .= ' WHERE mediaformat = $' . count($query_params);
@@ -250,6 +250,7 @@
 						'query_name' => $query_name,
 						'query_prepared' => false,
 						'query_executed' => false,
+						'query_params' => &$query_params,
 						'rows' => array(),
 						'total_rows' => 0
 					);
@@ -261,6 +262,7 @@
 						'query_name' => $query_name,
 						'query_prepared' => true,
 						'query_executed' => false,
+						'query_params' => &$query_params,
 						'rows' => array(),
 						'total_rows' => 0
 					);
@@ -290,14 +292,38 @@
 			$query_name = "select_medias_by_params_" . md5($query);
 
 			if (!$this->prepareQuery($query_name, $query))
-				return null;
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => false,
+					'query_executed' => false,
+					'query_params' => &$query_params,
+					'rows' => array(),
+					'total_rows' => 0
+				);
 
 			$result = pg_execute($query_name, $query_params);
 			if ($result === false)
-				return null;
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => false,
+					'query_params' => &$query_params,
+					'rows' => array(),
+					'total_rows' => 0
+				);
 
 			if (pg_num_rows($result) == 0)
-				return false;
+				return array(
+					'query' => $query,
+					'query_name' => $query_name,
+					'query_prepared' => true,
+					'query_executed' => true,
+					'query_params' => &$query_params,
+					'rows' => array(),
+					'total_rows' => 0
+				);
 
 			$rows = array();
 			while ($row = pg_fetch_assoc($result)) {
