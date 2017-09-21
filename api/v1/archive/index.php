@@ -324,7 +324,7 @@
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => files should be defined', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Incorrect input'));
 			} elseif (!is_array($files)) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => files should be an array of string', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => files should be an array', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'Incorrect input'));
 			} elseif (count($files) == 0) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => files should contain at least one file', __LINE__), $_SESSION['user']['id']);
@@ -341,7 +341,7 @@
 				}
 
 				if (!$ok)
-					httpResponse(400, array('message' => 'files should be an array of string'));
+					httpResponse(400, array('message' => 'files should be an array of strings'));
 			}
 
 			// pool id
