@@ -231,7 +231,7 @@
 			$total_rows = 0;
 			if (isset($params['limit']) or isset($params['offset'])) {
 				$query = "SELECT COUNT(*)" . $query_common;
-				$query_name = "select_total_archives_by_user_" + md5($query);
+				$query_name = "select_total_archives_by_user_" . md5($query);
 
 				if (!$this->prepareQuery($query_name, $query))
 					return array(
