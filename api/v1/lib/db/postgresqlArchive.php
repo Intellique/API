@@ -231,7 +231,7 @@
 			$total_rows = 0;
 			if (isset($params['limit']) or isset($params['offset'])) {
 				$query = "SELECT COUNT(*)" . $query_common;
-				$query_name = "select_total_archives_by_user_" + md5($query);
+				$query_name = "select_total_archives_by_user_" . md5($query);
 
 				if (!$this->prepareQuery($query_name, $query))
 					return array(
@@ -433,7 +433,7 @@
 		}
 
 		public function getArchiveFilesByParams(&$params, $userId) {
-			$query_common = ' FROM milestones_files mf INNER JOIN archive a ON mf.archive = a.id AND NOT a.deleted WHERE a.creator = $1 OR a.owner = $1 OR pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)';
+			$query_common = ' FROM milestones_files mf INNER JOIN archive a ON mf.archive = a.id AND NOT a.deleted WHERE pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)';
 			$query_params = array($userId);
 
 			if (isset($params['name'])) {
@@ -460,6 +460,9 @@
 				$query_params[] = $params['archive_name'];
 				$query_common .= ' AND archive_name = $' . count($query_params);
 			}
+
+			if (count($params) == 1)
+				$query_common .= ' OR a.creator = $1 OR a.owner = $1';
 
 			$total_rows = 0;
 			if (isset($params['limit']) || isset($params['offset'])) {
@@ -557,6 +560,7 @@
 				'query_name' => $query_name,
 				'query_prepared' => true,
 				'query_executed' => true,
+				'query_params' => &$query_params,
 				'rows' => $archivefiles,
 				'total_rows' => $total_rows
 			);

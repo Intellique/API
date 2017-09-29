@@ -11,8 +11,8 @@
  * \li \c archive id (integer) : archive id
  * \li \c name [optional] (string) : restoration task name, <em>default value : "restore_" + archive name</em>
  * \li \c nextstart [optional] (string) : restoration task nextstart date, <em>default value : now</em>
- * \param filesFound : archive files array
- * \li \c filesFound (string array) : files to be restored
+ * \param files : archive files array
+ * \li \c files (string array) : files to be restored
  * \param destination [optional] : restoration destination path
  * \li \c destination [optional] (string) : restoration destination path, <em>default value : original path</em>
  * \return HTTP status codes :
@@ -142,7 +142,6 @@
 				}
 
 				$iter = $result['iterator'];
-
 				while (count($files) > 0 && $iter->hasNext()) {
 					$row = $iter->next();
 					$fileName = $row->getValue('name');
