@@ -16,4 +16,9 @@ test -n "$HOST" && OPT="$OPT -H $HOST"
 test -n "$USER" && OPT="$OPT -U $USER"
 test -n "$PASSWORD" && OPT="$OPT -W $PASSWORD"
 
-exec /usr/lib/storiqone/1.3/cron/clientArchiver.py -k $API_KEY -a "$ARCHIVE_NAME" -D "$ARCHIVE_DIRECTORY" -F .create_archive $OPT
+/usr/lib/storiqone/1.3/cron/clientArchiver.py -k $API_KEY -a "$ARCHIVE_NAME" -D "$ARCHIVE_DIRECTORY" -F .create_archive $OPT
+
+if [ -d /usr/lib/storiqone-client/scripts ]; then
+	run-parts --arg "$ARCHIVE_DIRECTORY" -- /usr/lib/storiqone-client/scripts
+fi
+

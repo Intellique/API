@@ -30,5 +30,13 @@ Package: storiqone-client
 Section: libs
 Architecture: all
 Depends: cron-daemon, ${python3:Depends}
+Suggests: debianutils, storiqone-client-nextcloud-glue
 Description: Client for storiqone
  A client trigered by cron in order to create archive
+
+Package: storiqone-client-nextcloud-glue
+Section: libs
+Architecture: all
+Recommends: nextcloud-server (>= 12)
+Description: Glue for nextcloud
+ Glue to force nextcloud to synchronize user directory

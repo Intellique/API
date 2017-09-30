@@ -1,3 +1,10 @@
+storiqone-backend (0.2.3+jessie) polisher; urgency=low
+
+  * Add glue to nextcloud
+  * Enable backend configure
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Sat, 30 Sep 2017 16:01:15 +0200
+
 storiqone-backend (0.2.2+jessie) polisher; urgency=low
 
   * Bug fix release
