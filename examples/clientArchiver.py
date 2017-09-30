@@ -148,16 +148,16 @@ def sizeWithParam(path,directory_size):
 	return realSize
 
 def FilePresence(directory,specialFile):
-	presence = False
-	for (current, subDirectory, files) in os.walk(directory):
-		try:
+	try:
+		for (current, subDirectory, files) in os.walk(directory):
 			for file in files:
 				filename = os.path.basename( os.path.join(current, file) )
 				if filename == specialFile:
 					return True
-		except:
-			pass
-	return presence
+	except:
+		pass
+
+	return False
 
 if options.specialFile is not None:
 	specialFile = options.specialFile
