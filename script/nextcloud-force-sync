@@ -1,7 +1,8 @@
 #! /bin/dash
 
 COMMAND=/var/www/nextcloud/occ
-DIRECTORY="$1"
+NEXT_CLOUD_DATA_DIR=/var/www/nextcloud/data
+DIRECTORY=${1#$NEXT_CLOUD_DATA_DIR}
 
 if [ -x "$COMMAND" -a -x "$DIRECTORY" ]; then
 	su -s /bin/bash -c "$COMMAND files:scan --path=$DIRECTORY" -- www-data

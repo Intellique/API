@@ -1,1 +1,1 @@
-script/nextcloud-force-sync.sh usr/lib/storiqone-client/scripts
+script/nextcloud-force-sync usr/lib/storiqone-client/scripts
