@@ -2,9 +2,10 @@
 
 COMMAND=/var/www/nextcloud/occ
 NEXT_CLOUD_DATA_DIR=/var/www/nextcloud/data
-DIRECTORY=${1#$NEXT_CLOUD_DATA_DIR}
+DIRECTORY=$1
+SUBDIR=${1#$NEXT_CLOUD_DATA_DIR}
 
 if [ -x "$COMMAND" -a -x "$DIRECTORY" ]; then
-	su -s /bin/bash -c "$COMMAND files:scan --path=$DIRECTORY" -- www-data
+	su -s /bin/bash -c "$COMMAND files:scan --path=$SUBDIR" -- www-data
 fi
 
