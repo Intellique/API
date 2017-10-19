@@ -37,6 +37,6 @@ Description: Client for storiqone
 Package: storiqone-client-nextcloud-glue
 Section: libs
 Architecture: all
-Recommends: nextcloud-server (>= 12)
+Depends: nextcloud-server (>= 12)
 Description: Glue for nextcloud
  Glue to force nextcloud to synchronize user directory
