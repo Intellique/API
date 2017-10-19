@@ -48,10 +48,11 @@ group.add_option("-S", "--size", dest="size", type="string", help="Specify the s
 parser.add_option_group(group)
 
 group = OptionGroup(parser, "options for authenticate");
+group.add_option("--no-ssl", dest="noSSL", action="store_true", default=False, help="Use HTTP connection instead of HTTPS")
 group.add_option("-H", "--host", dest="host", default="localhost", help="Specify host name")
-group.add_option("-P", "--pwprompt", action="store_true", dest="promptPassword", default=False, help="If given, create-archive will issue a prompt for the password")
 group.add_option("-U", "--username", dest="userName", default=None, help="Connect to api as the user username")
 group.add_option("-W", "--password", dest="password", help="Specify user password")
+group.add_option("-P", "--pwprompt", action="store_true", dest="promptPassword", default=False, help="If given, create-archive will issue a prompt for the password")
 group.add_option("-k", "--api-key", dest="api_key", default=None, help="Specify API key")
 parser.add_option_group(group)
 
@@ -220,7 +221,9 @@ if verified:
 		options.password = getpass.getpass()
 
 	# authentication
-	if hasattr(ssl, '_create_unverified_context'):
+	if option.noSSL:
+		conn = http.client.HTTPConnection(options.host)
+	elif hasattr(ssl, '_create_unverified_context'):
 		conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 	else:
 		conn = http.client.HTTPSConnection(options.host)
@@ -241,7 +244,9 @@ if verified:
 	# create archive
 	cookie = {'Cookie': res.getheader('Set-Cookie').split(';')[0]}
 	headers.update(cookie)
-	if hasattr(ssl, '_create_unverified_context'):
+	if option.noSSL:
+		conn = http.client.HTTPConnection(options.host)
+	elif hasattr(ssl, '_create_unverified_context'):
 		conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 	else:
 		conn = http.client.HTTPSConnection(options.host)
@@ -273,7 +278,9 @@ if verified:
 	idjob = message['job_id']
 
 	def update():
-		if hasattr(ssl, '_create_unverified_context'):
+		if option.noSSL:
+			conn = http.client.HTTPConnection(options.host)
+		elif hasattr(ssl, '_create_unverified_context'):
 			conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 		else:
 			conn = http.client.HTTPSConnection(options.host)
@@ -294,7 +301,9 @@ if verified:
 		cookie = {'Cookie': res.getheader('Set-Cookie').split(';')[0]}
 		headers.update(cookie)
 
-		if hasattr(ssl, '_create_unverified_context'):
+		if option.noSSL:
+			conn = http.client.HTTPConnection(options.host)
+		elif hasattr(ssl, '_create_unverified_context'):
 			conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 		else:
 			conn = http.client.HTTPSConnection(options.host)
