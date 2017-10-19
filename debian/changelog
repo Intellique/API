@@ -1,3 +1,10 @@
+storiqone-backend (0.2.6+jessie) polisher; urgency=low
+
+  * Add script "nextcloud-sync-after-restore.pl" for nextcloud in order to
+    synchronize restore directory after a restoration of archive
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Thu, 19 Oct 2017 11:01:15 +0200
+
 storiqone-backend (0.2.5+jessie) polisher; urgency=low
 
   * Fix script "nextcloud-force-sync" again
