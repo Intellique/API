@@ -10,6 +10,7 @@
  * \param job : hash table
  * \li \c archive id (integer) : archive id
  * \li \c name [optional] (string) : check archive task name, <em>default value : "check_" + archive name</em>
+ * \li \c host [optional] (string) : hostname to run the task, <em>default value : hostname owned by current api</em>
  * \li \c nextstart [optional] (string) : check task nextstart date, <em>default value : now</em>
  * \li \c options [optional] (hash table) : check archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
  * \return HTTP status codes :
@@ -133,10 +134,11 @@
 
 			// host
 			if ($ok) {
-				$host = $dbDriver->getHost(posix_uname()['nodename']);
+				$hostname = isset($infoJob['host']) ? $infoJob['host'] : posix_uname()['nodename'];
+				$host = $dbDriver->getHost($hostname);
 				if ($host === null || $host === false) {
 					$dbDriver->cancelTransaction();
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/check (%d) => getHost(%s)', __LINE__, posix_uname()['nodename']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/check (%d) => getHost(%s)', __LINE__, $hostname), $_SESSION['user']['id']);
 					$failed = true;
 				} else
 					$job['host'] = $host;

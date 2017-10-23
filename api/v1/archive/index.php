@@ -72,6 +72,7 @@
  * \li \c pool id (integer) : pool id
  * \li \c files (string array) : files to be archived
  * \li \c name (string) : archive name
+ * \li \c host [optional] (string) : hostname to run the task, <em>default value : hostname owned by current api</em>
  * \li \c deleted (string) : indicator to show either no deleted archives, all deleted archives, or only deleted archives
  * \li \c metadata [optional] (object) : archive metadata, <em>default value : empty object</em>
  * \li \c nextstart [optional] (string) : archival task nextstart date, <em>default value : now</em>
@@ -435,10 +436,11 @@
 				$job['type'] = $jobType;
 
 			// host
-			$host = $dbDriver->getHost(posix_uname()['nodename']);
+			$hostname = isset($infoJob['host']) ? $infoJob['host'] : posix_uname()['nodename'];
+			$host = $dbDriver->getHost($hostname);
 			if ($host === null || $host === false) {
 				$dbDriver->cancelTransaction();
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => getHost(%s)', __LINE__, posix_uname()['nodename']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => getHost(%s)', __LINE__, $hostname), $_SESSION['user']['id']);
 				$failed = true;
 			} else
 				$job['host'] = $host;

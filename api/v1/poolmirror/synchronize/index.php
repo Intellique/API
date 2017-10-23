@@ -214,9 +214,10 @@
 			} else
 				$nextstart = new DateTime();
 
-			$host = $dbDriver->getHost(posix_uname()['nodename']);
+			$hostname = isset($infoJob['host']) ? $infoJob['host'] : posix_uname()['nodename'];
+			$host = $dbDriver->getHost($hostname);
 			if ($host === null || $host === false) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', posix_uname()['nodename']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getHost(%s)', $hostname), $_SESSION['user']['id']);
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'pool' => array(),

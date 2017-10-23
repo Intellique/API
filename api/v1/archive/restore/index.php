@@ -10,6 +10,7 @@
  * \param job : hash table
  * \li \c archive id (integer) : archive id
  * \li \c name [optional] (string) : restoration task name, <em>default value : "restore_" + archive name</em>
+ * \li \c host [optional] (string) : hostname to run the task, <em>default value : hostname owned by current api</em>
  * \li \c nextstart [optional] (string) : restoration task nextstart date, <em>default value : now</em>
  * \param files : archive files array
  * \li \c files (string array) : files to be restored
@@ -119,10 +120,11 @@
 
 			// host
 			if ($ok) {
-				$host = $dbDriver->getHost(posix_uname()['nodename']);
+				$hostname = isset($infoJob['host']) ? $infoJob['host'] : posix_uname()['nodename'];
+				$host = $dbDriver->getHost($hostname);
 				if ($host === null || $host === false) {
 					$dbDriver->cancelTransaction();
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/restore (%d) => getHost(%s)', __LINE__, posix_uname()['nodename']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/restore (%d) => getHost(%s)', __LINE__, $hostname), $_SESSION['user']['id']);
 					$failed = true;
 				} else
 					$job['host'] = $host;

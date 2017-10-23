@@ -11,6 +11,7 @@
  * \li \c archive id (integer) : archive id
  * \li \c pool id (integer) : pool id
  * \li \c name [optional] (string) : copy archive task name, <em>default value : "copy_of_" + archive name + "_in_pool_" + pool name</em>
+ * \li \c host [optional] (string) : hostname to run the task, <em>default value : hostname owned by current api</em>
  * \li \c nextstart [optional] (string) : copy task nextstart date, <em>default value : now</em>
  * \li \c options [optional] (hash table) : copy archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
  * \return HTTP status codes :
@@ -182,10 +183,11 @@
 
 			// host
 			if ($ok) {
-				$host = $dbDriver->getHost(posix_uname()['nodename']);
+				$hostname = isset($infoJob['host']) ? $infoJob['host'] : posix_uname()['nodename'];
+				$host = $dbDriver->getHost($hostname);
 				if ($host === null || $host === false) {
 					$dbDriver->cancelTransaction();
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/copy (%d) => getHost(%s)', __LINE__, posix_uname()['nodename']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive/copy (%d) => getHost(%s)', __LINE__, $hostname), $_SESSION['user']['id']);
 					$failed = true;
 				} else
 					$job['host'] = $host;
