@@ -54,6 +54,7 @@ group.add_option("-H", "--host", dest="host", default="localhost", help="Specify
 group.add_option("-U", "--username", dest="userName", default=None, help="Connect to api as the user username")
 group.add_option("-W", "--password", dest="password", help="Specify user password")
 group.add_option("-P", "--pwprompt", action="store_true", dest="promptPassword", default=False, help="If given, create-archive will issue a prompt for the password")
+group.add_option("--api-base", dest="apiBase", default="/storiqone-backend", help="Specify the api base url when it differs of \"/storiqone-backend\"")
 group.add_option("-k", "--api-key", dest="api_key", default=None, help="Specify API key")
 parser.add_option_group(group)
 
@@ -232,7 +233,7 @@ if verified:
 
 	credentials = json.dumps({'login': options.userName, 'password': options.password, 'apikey': options.api_key})
 	headers = {"Content-type": "application/json"}
-	conn.request('POST', '/storiqone-backend/api/v1/auth/', credentials, headers)
+	conn.request('POST', options.apiBase + '/api/v1/auth/', credentials, headers)
 	res = conn.getresponse()
 	contentType = res.getheader('Content-type').split(';', 1)[0]
 	if contentType is None or contentType != "application/json" or res.status != 201:
@@ -253,9 +254,9 @@ if verified:
 	else:
 		conn = http.client.HTTPSConnection(options.host)
 	if options.archiveName and options.poolId:
-		conn.request('POST', '/storiqone-backend/api/v1/archive/', json.dumps(params), headers)
+		conn.request('POST', options.apiBase + '/api/v1/archive/', json.dumps(params), headers)
 	else:
-		conn.request('POST', '/storiqone-backend/api/v1/archive/add/', json.dumps(params), headers)
+		conn.request('POST', options.apiBase + '/api/v1/archive/add/', json.dumps(params), headers)
 	res = conn.getresponse()
 	contentType = res.getheader('Content-type').split(';', 1)[0]
 	if contentType is None or contentType != "application/json" or res.status != 201:
@@ -289,7 +290,7 @@ if verified:
 
 		credentials = json.dumps({'login': options.userName, 'password': options.password, 'apikey': options.api_key})
 		headers = {"Content-type": "application/json"}
-		conn.request('POST', '/storiqone-backend/api/v1/auth/', credentials, headers)
+		conn.request('POST', options.apiBase + '/api/v1/auth/', credentials, headers)
 		res = conn.getresponse()
 		contentType = res.getheader('Content-type').split(';', 1)[0]
 		if contentType is None or contentType != "application/json" or res.status != 201:
@@ -309,7 +310,7 @@ if verified:
 			conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 		else:
 			conn = http.client.HTTPSConnection(options.host)
-		conn.request('GET', '/storiqone-backend/api/v1/job/?id=%d'%idjob, json.dumps(params2), headers)
+		conn.request('GET', options.apiBase + ('/api/v1/job/?id=%d' % idjob), json.dumps(params2), headers)
 		res = conn.getresponse()
 		contentType = res.getheader('Content-type').split(';', 1)[0]
 		message1 = json.loads(res.read().decode("utf-8"))
