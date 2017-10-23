@@ -175,9 +175,10 @@
 
 			// host
 			if ($ok) {
-				$host = $dbDriver->getHost(posix_uname()['nodename']);
+				$hostname = isset($infoJob['host']) ? $infoJob['host'] : posix_uname()['nodename'];
+				$host = $dbDriver->getHost($hostname);
 				if ($host === null || $host === false) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/vtl (%d) => getHost(%s)', __LINE__, posix_uname()['nodename']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/vtl (%d) => getHost(%s)', __LINE__, $hostname), $_SESSION['user']['id']);
 					$failed = true;
 				} else
 					$vtl['host'] = $host;
@@ -298,11 +299,12 @@
 
 			// host
 			if ($ok) {
-				$host = $dbDriver->getHost(posix_uname()['nodename']);
+				$hostname = isset($infoJob['host']) ? $infoJob['host'] : posix_uname()['nodename'];
+				$host = $dbDriver->getHost($hostname);
 				if ($host === null || $host === false) {
 					if ($host === null)
 						$dbDriver->cancelTransaction();
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/vtl (%d) => getHost(%s)', __LINE__, posix_uname()['nodename']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/vtl (%d) => getHost(%s)', __LINE__, $hostname), $_SESSION['user']['id']);
 					$failed = true;
 				} else
 					$vtl['host'] = $host;
