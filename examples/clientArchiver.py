@@ -38,6 +38,7 @@ group.add_option("-A", "--archive-id", dest="archiveId", type="int", help="Speci
 group.add_option("-c", "--quick-check", action="store_true", dest="quickCheck", default=False, help="Optionnal archive quick check mode")
 group.add_option("-C", "--thorough-check", action="store_true", dest="thoroughCheck", default=False, help="Optionnal archive thorough check mode")
 group.add_option("-d", "--next-start", dest="nextStart", help="Optionnal next start date")
+group.add_option("--task-host", dest="taskHost", default=None, type="string", help="Specify the host in order to run the task")
 group.add_option("-D", "--directory", dest="directory", default="~", type="string", help="Specify directory to archive")
 group.add_option("-f", "--file", action="append", dest="files", default=[], type="string", help="Specify file to archive")
 group.add_option("-F", "--special-file", dest="specialFile", default=None, type="string", help="Specify the special file that allow archive")
@@ -193,6 +194,7 @@ if verified:
 	params = {
 		'archive': options.archiveId,
 		'name': options.archiveName,
+		'host': options.taskHost,
 		'files': options.files,
 		'pool': options.poolId,
 		'nextstart': options.nextStart,
