@@ -221,7 +221,7 @@ if verified:
 		options.password = getpass.getpass()
 
 	# authentication
-	if option.noSSL:
+	if options.noSSL:
 		conn = http.client.HTTPConnection(options.host)
 	elif hasattr(ssl, '_create_unverified_context'):
 		conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
@@ -244,7 +244,7 @@ if verified:
 	# create archive
 	cookie = {'Cookie': res.getheader('Set-Cookie').split(';')[0]}
 	headers.update(cookie)
-	if option.noSSL:
+	if options.noSSL:
 		conn = http.client.HTTPConnection(options.host)
 	elif hasattr(ssl, '_create_unverified_context'):
 		conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
@@ -278,7 +278,7 @@ if verified:
 	idjob = message['job_id']
 
 	def update():
-		if option.noSSL:
+		if options.noSSL:
 			conn = http.client.HTTPConnection(options.host)
 		elif hasattr(ssl, '_create_unverified_context'):
 			conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
@@ -301,7 +301,7 @@ if verified:
 		cookie = {'Cookie': res.getheader('Set-Cookie').split(';')[0]}
 		headers.update(cookie)
 
-		if option.noSSL:
+		if options.noSSL:
 			conn = http.client.HTTPConnection(options.host)
 		elif hasattr(ssl, '_create_unverified_context'):
 			conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
