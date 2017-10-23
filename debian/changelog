@@ -1,3 +1,9 @@
+storiqone-backend (0.2.7+jessie) polisher; urgency=low
+
+  * Can specify "host" for executing task.
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Mon, 23 Oct 2017 12:55:45 +0200
+
 storiqone-backend (0.2.6+jessie) polisher; urgency=low
 
   * Add script "nextcloud-sync-after-restore.pl" for nextcloud in order to
