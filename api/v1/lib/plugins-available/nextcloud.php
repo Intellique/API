@@ -1,16 +1,16 @@
 <?php
 	function plugin_init_nextcloud($plugin_filename, $plugin_realpath) {
-		$config_file = dirname($plugin_filename) .'/' . basename($plugin_filename, '.php') . '.ini';
+		$config_file = dirname($plugin_filename) . '/' . basename($plugin_filename, '.php') . '.ini';
 		$config = parse_ini_file($config_file);
 
 		registerPlugin('post DELETE User', function($event, $user) use (&$config) {
-			$url = sprintf('%s%s:%d%s/user.php?login=', $config['scheme'], $config['host'], $config['port'], $config['base_path'], $user['login']);
+			$url = sprintf('%s%s:%d%s/user.php?login=%s', $config['scheme'], $config['host'], $config['port'], $config['base_path'], $user['login']);
 
 			$ctx = curl_init();
 			curl_setopt_array($ctx, array(
 				CURLOPT_CUSTOMREQUEST => 'DELETE',
 				CURLOPT_HEADER => false,
-				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_RETURNTRANSFER => false,
 				CURLOPT_URL => $url
 			));
 			$response = curl_exec($ctx);
@@ -20,7 +20,7 @@
 		});
 
 		registerPlugin('post POST User', function($event, $new_user, $password) use (&$config) {
-			$url = sprintf('%s%s:%d%s/user.php?login=', $config['scheme'], $config['host'], $config['port'], $config['base_path'], $new_user['login']);
+			$url = sprintf('%s%s:%d%s/user.php', $config['scheme'], $config['host'], $config['port'], $config['base_path']);
 
 			$data = json_encode(array(
 				'login' => $new_user['login'],
@@ -33,7 +33,7 @@
 				CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
 				CURLOPT_POST => true,
 				CURLOPT_POSTFIELDS => $data,
-				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_RETURNTRANSFER => false,
 				CURLOPT_URL => $url
 			));
 			$response = curl_exec($ctx);
@@ -43,7 +43,7 @@
 		});
 
 		registerPlugin('post PUT User', function($event, $current_user, $new_user, $current_password) use (&$config) {
-			$url = sprintf('%s%s:%d%s/user.php?login=', $config['scheme'], $config['host'], $config['port'], $config['base_path'], $user['login']);
+			$url = sprintf('%s%s:%d%s/user.php', $config['scheme'], $config['host'], $config['port'], $config['base_path']);
 
 			$data = json_encode(array(
 				'login' => $new_user['login'],
@@ -58,7 +58,7 @@
 				CURLOPT_HEADER => false,
 				CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
 				CURLOPT_POSTFIELDS => $data,
-				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_RETURNTRANSFER => false,
 				CURLOPT_URL => $url
 			));
 			$response = curl_exec($ctx);
