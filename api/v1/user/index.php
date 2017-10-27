@@ -102,6 +102,7 @@
 	require_once("http.php");
 	require_once("session.php");
 	require_once("db.php");
+	require_once("plugins.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
@@ -119,7 +120,7 @@
 				httpResponse(400, array('message' => 'Suicide forbidden'));
 
 			if (!$dbDriver->startTransaction()) {
-				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('DELETE api/v1/user (%d) => Failed to finish transaction', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('DELETE api/v1/user (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Transaction failure'));
 			}
 
@@ -133,6 +134,12 @@
 			} elseif ($check_user === false)
 				httpResponse(404, array('message' => 'User not found'));
 
+			$returns = triggerEvent('pre DELETE User', $check_user);
+			if (!checkEventValues($returns)) {
+				$dbDriver->cancelTransaction();
+				httpResponse(403, array('message' => 'deletion abord by script request'));
+			}
+
 			$delete_status = $dbDriver->deleteUser($_GET['id']);
 			if ($delete_status === null) {
 				$dbDriver->cancelTransaction();
@@ -142,7 +149,15 @@
 			} elseif ($delete_status === false) {
 				$dbDriver->cancelTransaction();
 				httpResponse(404, array('message' => 'User not found'));
-			} elseif (!$dbDriver->finishTransaction()) {
+			}
+
+			$returns = triggerEvent('post DELETE User', $check_user);
+			if (!checkEventValues($returns)) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'script failed to delete user'));
+			}
+
+			if (!$dbDriver->finishTransaction()) {
 				$dbDriver->cancelTransaction();
 				httpResponse(500, array('message' => 'Transaction failure'));
 			} else {
@@ -255,6 +270,10 @@
 			$ok = (bool) $user;
 			$failed = false;
 
+			$returns = triggerEvent('pre POST User', $user);
+			if (!checkEventValues($returns))
+				httpResponse(403, array('message' => 'creation abord by script request'));
+
 			// login
 			if ($ok)
 				$ok = isset($user['login']) && is_string($user['login']);
@@ -268,12 +287,14 @@
 			}
 
 			// password
+			$password = null;
 			if ($ok)
 				$ok = isset($user['password']) && is_string($user['password']);
 			if ($ok) {
 				if (strlen($user['password']) < 6)
 					$ok = false;
 
+				$password = $user['password'];
 				$half_length = strlen($user['password']) >> 1;
 				$handle = fopen("/dev/urandom", "r");
 				$data = str_split(fread($handle, 8));
@@ -354,8 +375,22 @@
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
+			if (!$dbDriver->startTransaction()) {
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/user (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
+
 			$result = $dbDriver->createUser($user);
 			if ($result) {
+				$returns = triggerEvent('post POST User', $user, $password);
+				if (!checkEventValues($returns)) {
+					$dbDriver->cancelTransaction();
+					httpResponse(400, array('message' => 'creation abord by script failure'));
+				} elseif (!$dbDriver->finishTransaction()) {
+					$dbDriver->cancelTransaction();
+					httpResponse(500, array('message' => 'Transaction failure'));
+				}
+
 				httpAddLocation('/user/?id=' . $result);
 				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/user (%d) => User %s created', __LINE__, $result), $_SESSION['user']['id']);
 				httpResponse(201, array(
@@ -411,6 +446,7 @@
 			}
 
 			// password
+			$new_password = null;
 			if (isset($user['password'])) {
 				$ok = is_string($user['password']);
 				if ($ok) {
@@ -425,6 +461,8 @@
 				if ($ok && !$failed && $user['password'] != $check_user['password']) {
 					if (strlen($user['password']) < 6)
 						$ok = false;
+
+					$new_password = $user['password'];
 
 					$half_length = strlen($user['password']) >> 1;
 					$handle = fopen("/dev/urandom", "r");
@@ -501,8 +539,23 @@
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
+			$returns = triggerEvent('pre PUT User', $check_user, $user, $new_password);
+			if (!checkEventValues($returns))
+				httpResponse(403, array('message' => 'update abord by script request'));
+
+			if (!$dbDriver->startTransaction()) {
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('PUT api/v1/user (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
+
 			$result = $dbDriver->updateUser($user);
 			if ($result) {
+				$returns = triggerEvent('post PUT User', $check_user, $user, $new_password);
+				if (!checkEventValues($returns)) {
+					$dbDriver->cancelTransaction();
+					httpResponse(403, array('message' => 'update abord due by script failure'));
+				}
+
 				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('PUT api/v1/archive (%d) => User %s updated', __LINE__, $user['id']), $_SESSION['user']['id']);
 				httpResponse(200, array('message' => 'User updated successfully'));
 			} else {
