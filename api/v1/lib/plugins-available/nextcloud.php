@@ -13,8 +13,8 @@
 				CURLOPT_RETURNTRANSFER => true,
 				CURLOPT_URL => $url
 			));
-			$response = curl_exec($ch);
-			curl_close($ch);
+			$response = curl_exec($ctx);
+			curl_close($ctx);
 
 			return $response == true;
 		});
@@ -36,8 +36,8 @@
 				CURLOPT_RETURNTRANSFER => true,
 				CURLOPT_URL => $url
 			));
-			$response = curl_exec($ch);
-			curl_close($ch);
+			$response = curl_exec($ctx);
+			curl_close($ctx);
 
 			return $response == true;
 		});
@@ -61,8 +61,8 @@
 				CURLOPT_RETURNTRANSFER => true,
 				CURLOPT_URL => $url
 			));
-			$response = curl_exec($ch);
-			curl_close($ch);
+			$response = curl_exec($ctx);
+			curl_close($ctx);
 
 			return $response == true;
 		});
