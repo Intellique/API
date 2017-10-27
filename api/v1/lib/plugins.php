@@ -12,12 +12,10 @@
 	function triggerEvent($event, ...$args) {
 		global $plugins;
 
-		if (!array_key_exists($event, $plugins))
-			return;
-
 		$returns = array();
-		foreach ($plugins[$event] as $evt)
-			array_push($returns, $evt($event, ...$args));
+		if (array_key_exists($event, $plugins))
+			foreach ($plugins[$event] as $evt)
+				array_push($returns, $evt($event, ...$args));
 
 		return $returns;
 	}
