@@ -25,7 +25,7 @@
 
 			putenv('OC_PASS=' . $user['password']);
 			$return = exec(sprintf('%s user:add --password-from-env %s', $occ_path, escapeshellarg($user['login'])));
-			if ($return == sprintf('The user "%s" was created successfully', $user['login']) {
+			if ($return == sprintf('The user "%s" was created successfully', $user['login'])) {
 				http_response_code(204);
 				echo $return;
 			} else {
