@@ -1,7 +1,7 @@
 <?php
 	function plugin_init_nextcloud($plugin_filename, $plugin_realpath) {
-		$config_file = basename($plugin_filename, '.php') . '.config';
-		$config = read_ini_file($config_file);
+		$config_file = dirname($plugin_filename) .'/' . basename($plugin_filename, '.php') . '.ini';
+		$config = parse_ini_file($config_file);
 
 		registerPlugin('post DELETE User', function($event, $user) use (&$config) {
 			$url = sprintf('%s%s:%d%s/user.php?login=', $config['scheme'], $config['host'], $config['port'], $config['base_path'], $user['login']);
@@ -20,7 +20,7 @@
 		});
 
 		registerPlugin('post POST User', function($event, $new_user, $password) use (&$config) {
-			$url = sprintf('%s%s:%d%s/user.php?login=', $config['scheme'], $config['host'], $config['port'], $config['base_path'], $user['login']);
+			$url = sprintf('%s%s:%d%s/user.php?login=', $config['scheme'], $config['host'], $config['port'], $config['base_path'], $new_user['login']);
 
 			$data = json_encode(array(
 				'login' => $new_user['login'],
@@ -47,7 +47,8 @@
 
 			$data = json_encode(array(
 				'login' => $new_user['login'],
-				'enable' => !$new_user['disabled'],
+				'enable' => !$current_user['disabled'],
+				'should enable' => !$new_user['disabled'],
 				'new password' => $current_password
 			));
 

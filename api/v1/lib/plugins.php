@@ -3,10 +3,10 @@
 	function registerPlugin($event, $callback) {
 		global $plugins;
 
-		if (!array_key_exists($event, $plugins))
-			$plugins[$event] = array($callback);
-		else
+		if (array_key_exists($event, $plugins))
 			array_push($plugins[$event], $callback);
+		else
+			$plugins[$event] = array($callback);
 	}
 
 	function triggerEvent($event, ...$args) {
@@ -29,8 +29,8 @@
 	foreach (glob(dirname(__FILE__) . '/plugins-enabled/*.php') as $plugin) {
 		require_once($plugin);
 		$init_function = 'plugin_init_' . basename(realpath($plugin), '.php');
-		$plugin_filename = basename($plugin);
-		$plugin_realpath = basename(realpath($plugin));
+		$plugin_filename = $plugin;
+		$plugin_realpath = realpath($plugin);
 		$init_function($plugin_filename, $plugin_realpath);
 	}
 ?>
