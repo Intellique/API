@@ -38,6 +38,7 @@ group.add_option("-A", "--archive-id", dest="archiveId", type="int", help="Speci
 group.add_option("-c", "--quick-check", action="store_true", dest="quickCheck", default=False, help="Optionnal archive quick check mode")
 group.add_option("-C", "--thorough-check", action="store_true", dest="thoroughCheck", default=False, help="Optionnal archive thorough check mode")
 group.add_option("-d", "--next-start", dest="nextStart", help="Optionnal next start date")
+group.add_option("--task-host", dest="taskHost", default=None, type="string", help="Specify the host in order to run the task")
 group.add_option("-D", "--directory", dest="directory", default="~", type="string", help="Specify directory to archive")
 group.add_option("-f", "--file", action="append", dest="files", default=[], type="string", help="Specify file to archive")
 group.add_option("-F", "--special-file", dest="specialFile", default=None, type="string", help="Specify the special file that allow archive")
@@ -53,6 +54,7 @@ group.add_option("-H", "--host", dest="host", default="localhost", help="Specify
 group.add_option("-U", "--username", dest="userName", default=None, help="Connect to api as the user username")
 group.add_option("-W", "--password", dest="password", help="Specify user password")
 group.add_option("-P", "--pwprompt", action="store_true", dest="promptPassword", default=False, help="If given, create-archive will issue a prompt for the password")
+group.add_option("--api-base", dest="apiBase", default="/storiqone-backend", help="Specify the api base url when it differs of \"/storiqone-backend\"")
 group.add_option("-k", "--api-key", dest="api_key", default=None, help="Specify API key")
 parser.add_option_group(group)
 
@@ -193,6 +195,7 @@ if verified:
 	params = {
 		'archive': options.archiveId,
 		'name': options.archiveName,
+		'host': options.taskHost,
 		'files': options.files,
 		'pool': options.poolId,
 		'nextstart': options.nextStart,
@@ -221,7 +224,7 @@ if verified:
 		options.password = getpass.getpass()
 
 	# authentication
-	if option.noSSL:
+	if options.noSSL:
 		conn = http.client.HTTPConnection(options.host)
 	elif hasattr(ssl, '_create_unverified_context'):
 		conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
@@ -230,7 +233,7 @@ if verified:
 
 	credentials = json.dumps({'login': options.userName, 'password': options.password, 'apikey': options.api_key})
 	headers = {"Content-type": "application/json"}
-	conn.request('POST', '/storiqone-backend/api/v1/auth/', credentials, headers)
+	conn.request('POST', options.apiBase + '/api/v1/auth/', credentials, headers)
 	res = conn.getresponse()
 	contentType = res.getheader('Content-type').split(';', 1)[0]
 	if contentType is None or contentType != "application/json" or res.status != 201:
@@ -244,16 +247,16 @@ if verified:
 	# create archive
 	cookie = {'Cookie': res.getheader('Set-Cookie').split(';')[0]}
 	headers.update(cookie)
-	if option.noSSL:
+	if options.noSSL:
 		conn = http.client.HTTPConnection(options.host)
 	elif hasattr(ssl, '_create_unverified_context'):
 		conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 	else:
 		conn = http.client.HTTPSConnection(options.host)
 	if options.archiveName and options.poolId:
-		conn.request('POST', '/storiqone-backend/api/v1/archive/', json.dumps(params), headers)
+		conn.request('POST', options.apiBase + '/api/v1/archive/', json.dumps(params), headers)
 	else:
-		conn.request('POST', '/storiqone-backend/api/v1/archive/add/', json.dumps(params), headers)
+		conn.request('POST', options.apiBase + '/api/v1/archive/add/', json.dumps(params), headers)
 	res = conn.getresponse()
 	contentType = res.getheader('Content-type').split(';', 1)[0]
 	if contentType is None or contentType != "application/json" or res.status != 201:
@@ -278,7 +281,7 @@ if verified:
 	idjob = message['job_id']
 
 	def update():
-		if option.noSSL:
+		if options.noSSL:
 			conn = http.client.HTTPConnection(options.host)
 		elif hasattr(ssl, '_create_unverified_context'):
 			conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
@@ -287,7 +290,7 @@ if verified:
 
 		credentials = json.dumps({'login': options.userName, 'password': options.password, 'apikey': options.api_key})
 		headers = {"Content-type": "application/json"}
-		conn.request('POST', '/storiqone-backend/api/v1/auth/', credentials, headers)
+		conn.request('POST', options.apiBase + '/api/v1/auth/', credentials, headers)
 		res = conn.getresponse()
 		contentType = res.getheader('Content-type').split(';', 1)[0]
 		if contentType is None or contentType != "application/json" or res.status != 201:
@@ -301,13 +304,13 @@ if verified:
 		cookie = {'Cookie': res.getheader('Set-Cookie').split(';')[0]}
 		headers.update(cookie)
 
-		if option.noSSL:
+		if options.noSSL:
 			conn = http.client.HTTPConnection(options.host)
 		elif hasattr(ssl, '_create_unverified_context'):
 			conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 		else:
 			conn = http.client.HTTPSConnection(options.host)
-		conn.request('GET', '/storiqone-backend/api/v1/job/?id=%d'%idjob, json.dumps(params2), headers)
+		conn.request('GET', options.apiBase + ('/api/v1/job/?id=%d' % idjob), json.dumps(params2), headers)
 		res = conn.getresponse()
 		contentType = res.getheader('Content-type').split(';', 1)[0]
 		message1 = json.loads(res.read().decode("utf-8"))
