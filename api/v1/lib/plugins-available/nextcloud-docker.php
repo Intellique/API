@@ -1,5 +1,5 @@
 <?php
-	function plugin_init_nextcloud($plugin_filename, $plugin_realpath) {
+	function plugin_init_nextcloud_docker($plugin_filename, $plugin_realpath) {
 		$config_file = dirname($plugin_filename) . '/' . basename($plugin_filename, '.php') . '.ini';
 		$config = parse_ini_file($config_file);
 

@@ -45,7 +45,6 @@
 				putenv('OC_PASS=' . $user['new password']);
 
 				$return = exec(sprintf('%s user:resetpassword --password-from-env %s', $occ_path, $user['login']));
-				error_log($return);
 				if (rtrim($return) != sprintf('Successfully reset password for %s', $user['login'])) {
 					http_response_code(400);
 					echo $return;
@@ -56,7 +55,6 @@
 				$action = $user['should enable'] ? 'enable' : 'disable';
 
 				$return = exec(sprintf('%s user:%s %s', $occ_path, $action, $user['login']));
-				error_log($return);
 				if (rtrim($return) != sprintf('The specified user is %sd', $action)) {
 					http_response_code(400);
 					echo $return;

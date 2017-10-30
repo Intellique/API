@@ -26,7 +26,7 @@
 
 	foreach (glob(dirname(__FILE__) . '/plugins-enabled/*.php') as $plugin) {
 		require_once($plugin);
-		$init_function = 'plugin_init_' . basename(realpath($plugin), '.php');
+		$init_function = 'plugin_init_' . str_replace('-', '_', basename(realpath($plugin), '.php'));
 		$plugin_filename = $plugin;
 		$plugin_realpath = realpath($plugin);
 		$init_function($plugin_filename, $plugin_realpath);
