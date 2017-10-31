@@ -27,6 +27,9 @@
 			if (fwrite($fd, $new_db) === false)
 				return false;
 
+			if (fflush($fd) === false)
+				return false;
+
 			if (fclose($fd) === false)
 				return false;
 
