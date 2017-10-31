@@ -9,22 +9,22 @@
 		});
 
 		registerPlugin('post POST User', function($event, $new_user, $password) use (&$config) {
-			putenv('OC_PASS=' . $user['password']);
+			putenv('OC_PASS=' . $new_user['password']);
 			$return = exec(sprintf('%s user:add --password-from-env %s', $config['occ_path'], escapeshellarg($new_user['login'])));
-			return (rtrim($return) == sprintf('The user "%s" was created successfully', $user['login']));
+			return (rtrim($return) == sprintf('The user "%s" was created successfully', $new_user['login']));
 		});
 
 		registerPlugin('post PUT User', function($event, $current_user, $new_user, $current_password) use (&$config) {
 			if ($current_password) {
 				putenv('OC_PASS=' . $current_password);
 
-				$return = exec(sprintf('%s user:resetpassword --password-from-env %s', $config['occ_path'], $user['login']));
-				if (rtrim($return) != sprintf('Successfully reset password for %s', $user['login']))
+				$return = exec(sprintf('%s user:resetpassword --password-from-env %s', $config['occ_path'], $current_user['login']));
+				if (rtrim($return) != sprintf('Successfully reset password for %s', $current_user['login']))
 					return false;
 			}
 
 			if ($current_user['disabled'] != $new_user['disabled']) {
-				$action = $user['should enable'] ? 'enable' : 'disable';
+				$action = $new_user['disabled'] ? 'disable' : 'enable';
 
 				$return = exec(sprintf('%s user:%s %s', $config['occ_path'], $action, $user['login']));
 				if (rtrim($return) != sprintf('The specified user is %sd', $action))
