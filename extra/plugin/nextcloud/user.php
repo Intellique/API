@@ -8,8 +8,9 @@
 				exit;
 			}
 
-			$return = exec(sprintf('%s user:disable %s', $occ_path, escapeshellarg($_GET['login'])));
-			if ($return == 'The specified user is disabled') {
+			$return = exec(sprintf('%s user:delete %s', $occ_path, escapeshellarg($_GET['login'])));
+
+			if (rtrim($return) == 'The specified user was deleted') {
 				http_response_code(204);
 				echo $return;
 			} else {
@@ -25,7 +26,8 @@
 
 			putenv('OC_PASS=' . $user['password']);
 			$return = exec(sprintf('%s user:add --password-from-env %s', $occ_path, escapeshellarg($user['login'])));
-			if ($return == sprintf('The user "%s" was created successfully', $user['login']) {
+
+			if (rtrim($return) == sprintf('The user "%s" was created successfully', $user['login'])) {
 				http_response_code(204);
 				echo $return;
 			} else {
@@ -43,7 +45,7 @@
 				putenv('OC_PASS=' . $user['new password']);
 
 				$return = exec(sprintf('%s user:resetpassword --password-from-env %s', $occ_path, $user['login']));
-				if ($return != sprintf('Successfully reset password for %s', $user['login'])) {
+				if (rtrim($return) != sprintf('Successfully reset password for %s', $user['login'])) {
 					http_response_code(400);
 					echo $return;
 				}
@@ -53,7 +55,7 @@
 				$action = $user['should enable'] ? 'enable' : 'disable';
 
 				$return = exec(sprintf('%s user:%s %s', $occ_path, $action, $user['login']));
-				if ($return != sprintf('The specified user is %sd', $action)) {
+				if (rtrim($return) != sprintf('The specified user is %sd', $action)) {
 					http_response_code(400);
 					echo $return;
 				}

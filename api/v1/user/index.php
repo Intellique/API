@@ -554,6 +554,9 @@
 				if (!checkEventValues($returns)) {
 					$dbDriver->cancelTransaction();
 					httpResponse(403, array('message' => 'update abord due by script failure'));
+				} elseif (!$dbDriver->finishTransaction()) {
+					$dbDriver->cancelTransaction();
+					httpResponse(500, array('message' => 'Transaction failure'));
 				}
 
 				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('PUT api/v1/archive (%d) => User %s updated', __LINE__, $user['id']), $_SESSION['user']['id']);
