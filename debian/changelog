@@ -1,3 +1,10 @@
+storiqone-backend (0.2.9+jessie) polisher; urgency=low
+
+  * New feature: new plugin for nextcloud
+  * various bug fixes
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Tue, 31 Oct 2017 10:03:18 +0100
+
 storiqone-backend (0.2.8+jessie) polisher; urgency=low
 
   * New feature: plugin
