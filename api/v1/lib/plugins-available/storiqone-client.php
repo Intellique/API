@@ -41,8 +41,8 @@
 			if ($db === false)
 				return false;
 
-			if (array_key_exists($user['login'], $db))
-				unset($db[$user['login']]);
+			if (array_key_exists($user['login'], $db['user']))
+				unset($db['user'][$user['login']]);
 
 			return saveDb($db, $config['db_path']);
 		});
@@ -53,7 +53,7 @@
 				return false;
 
 			$new_user['password'] = $password;
-			$db[$new_user['login']] = $new_user;
+			$db['user'][$new_user['login']] = $new_user;
 
 			return saveDb($db, $config['db_path']);
 		});
@@ -63,9 +63,9 @@
 			if ($db === false)
 				return false;
 
-			$old_password = $db[$current_user['login']]['password'];
-			$db[$current_user['login']] = array_merge($db[$current_user['login']], $new_user);
-			$db[$current_user['login']]['password'] = $current_password !== null ? $current_password : $old_password;
+			$old_password = $db['user'][$current_user['login']]['password'];
+			$db['user'][$current_user['login']] = array_merge($db['user'][$current_user['login']], $new_user);
+			$db['user'][$current_user['login']]['password'] = $current_password !== null ? $current_password : $old_password;
 
 			return saveDb($db, $config['db_path']);
 		});
