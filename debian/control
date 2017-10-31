@@ -9,7 +9,7 @@ Homepage: http://www.intellique.com
 Package: storiqone-backend
 Section: libs
 Architecture: all
-Depends: apache2, php5
+Depends: apache2, php5, php5-pgsql, php5-curl
 Recommends: ${misc:Recommends}
 Description: Storiq One (API)
  API of Storiq One
