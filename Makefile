@@ -1,7 +1,7 @@
 MAKEFLAGS       += -rR --no-print-directory
 SHELL=/bin/bash
 
-GIT_ARCHIVE=storiqone-backend_$(shell git describe | perl -pe 's/^v([^-]+).*$/$1/').tar
+GIT_ARCHIVE=storiqone-backend_$(shell git describe | perl -pe 's/^v([^-]+).*$$/$$1/').tar
 
 .DEFAULT_GOAL := all
 
