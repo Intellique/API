@@ -116,7 +116,7 @@
 						$ok = false;
 				} else
 					httpResponse(403, array('message' => 'Permission denied'));
-			} elseif (!$_SESSION['user']['isadmin'])
+			} else
 				$params['poolgroup'] = $_SESSION['user']['poolgroup'];
 
 			if (isset($_GET['uuid']))
