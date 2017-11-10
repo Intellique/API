@@ -1,0 +1,35 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+use JSON::PP;
+use POSIX qw(strftime);
+
+my $api_key = '';
+my $db_path = '/var/lib/storiqone-backend/plugin/storiqone-client.json';
+my $next_cloud_data_dir = '/var/www/nextcloud/data';
+my $occ_path = '/var/www/nextcloud/occ';
+my $storiqone_client = '/usr/lib/storiqone/1.3/cron/clientArchiver.py';
+
+open(my $fd, '<', $db_path) or die "Failed to open \"$db_path\"";
+my $data = do { local $/; <$fd> };
+close($fd);
+
+my $db = decode_json $data;
+foreach my $login (keys %{$db->{user}}) {
+	my $user = $db->{user}->{$login};
+
+	my $archive_name = strftime "%F_%T", localtime;
+	my $archive_directory = $user->{'homedirectory'} . '/to_archive';
+
+	next unless -d $archive_directory;
+
+	my ($pool) = sort @{$db->{'poolgroup'}->{$user->{'poolgroup'}}};
+
+	my $return = system $storiqone_client, "--pool-id=$pool", '-k', $api_key, '-a', $archive_name, '-D', $archive_directory, '-F', '.create_archive', '-U', $login, '-W', $user->{'password'};
+	next if $return ne 0;
+
+	my $sub_dir = substr $archive_directory, length($next_cloud_data_dir);
+	system $occ_path, 'files:scan', "--path=$sub_dir";
+}

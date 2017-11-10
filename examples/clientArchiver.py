@@ -337,7 +337,7 @@ if verified:
 					return statusError
 
 	is_finish = False
-	while  not is_finish:
+	while not is_finish:
 		status = update()
 		if status == 'finished':
 			is_finish = True
