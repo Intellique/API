@@ -424,8 +424,10 @@
 
 			$archivefile = pg_fetch_assoc($result);
 			$archivefile['archives'] = json_decode($archivefile['archives']);
+			$archivefile['ctime'] = dateTimeParse($archivefile['ctime']);
 			$archivefile['groupid'] = intval($archivefile['groupid']);
 			$archivefile['id'] = intval($archivefile['id']);
+			$archivefile['mtime'] = dateTimeParse($archivefile['mtime']);
 			$archivefile['ownerid'] = intval($archivefile['ownerid']);
 			$archivefile['size'] = intval($archivefile['size']);
 
