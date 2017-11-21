@@ -392,7 +392,7 @@
 
 
 			if (!$dbDriver->startTransaction()) {
-				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/archive (%d) => Failed to finish transaction', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('POST api/v1/archive (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Transaction failure'));
 			}
 
