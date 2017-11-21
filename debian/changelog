@@ -1,3 +1,11 @@
+storiqone-backend (0.2.11+jessie) polisher; urgency=low
+
+  * Bug fix release
+  * various bug fixes
+  * version required for storiqone-simple-ui (>= v0.1.6)
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Tue, 21 Nov 2017 17:02:08 +0100
+
 storiqone-backend (0.2.10+jessie) polisher; urgency=low
 
   * Bug fix release
