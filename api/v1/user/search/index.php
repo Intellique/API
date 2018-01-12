@@ -54,7 +54,9 @@
 			if (isset($_GET['login']))
 				$params['login'] = $_GET['login'];
 
-			if (isset($_GET['poolgroup'])) {
+			if (!$_SESSION['user']['isadmin']) {
+				$params['poolgroup'] = $_SESSION['user']['poolgroup'];
+			} else if (isset($_GET['poolgroup'])) {
 				$poolgroup = filter_var($_GET['poolgroup'], FILTER_VALIDATE_INT);
 				if ($poolgroup !== false)
 					$params['poolgroup'] = $poolgroup;
