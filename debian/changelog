@@ -1,3 +1,11 @@
+storiqone-backend (0.2.12+jessie) polisher; urgency=low
+
+  * Add licence GNU AFFERO GENERAL PUBLIC LICENCE
+  * Fix #383: search user by non-admin user:
+    non-admin user cannot search user outside their poolgroup
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 26 Jan 2018 20:18:31 +0100
+
 storiqone-backend (0.2.11+jessie) polisher; urgency=low
 
   * Bug fix release
