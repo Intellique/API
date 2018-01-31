@@ -23,13 +23,13 @@
 				httpResponse(403, array('message' => 'Permission denied'));
 
 			$archivefile = $dbDriver->getArchiveFile($_GET['id']);
-			if ($checkArchiveFilePermission === null)
+			if ($archivefile === null)
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($checkArchiveFilePermission === false)
+			elseif ($archivefile === false)
 				httpResponse(404, array('message' => 'Not found'));
 
 			if (isset($_GET['type'])) {
-				$mimetype = array("video/mp4" => ".mp4", "video/ogg" => ".ogv");
+				$mimetype = array("image/jpeg" => ".jpg", "video/mp4" => ".mp4", "video/ogg" => ".ogv");
 
 				if (!isset($mimetype[$_GET['type']]))
 					httpResponse(400, array('message' => 'type must be in "' . implode('", "', array_keys($mimetype)) . '"'));
