@@ -34,8 +34,17 @@
 				if (!isset($mimetype[$_GET['type']]))
 					httpResponse(400, array('message' => 'type must be in "' . implode('", "', array_keys($mimetype)) . '"'));
 
-				$filename = $proxy_config['path'] . md5($archivefile['name']) . $mimetype[$_GET['type']];
-				if (!posix_access($filename))
+				$found = false;
+				$paths = array($proxy_config['movie path'], $proxy_config['picture path']);
+				foreach ($paths as &$path) {
+					$filename = $path . md5($archivefile['name']) . $mimetype[$_GET['type']];
+					if (posix_access($filename)) {
+						$found = true;
+						break;
+					}
+				}
+
+				if (!$found)
 					httpResponse(404, array('message' => 'Not found'));
 
 				$file_info = stat($filename);
