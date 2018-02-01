@@ -49,6 +49,7 @@
 
 				$file_info = stat($filename);
 
+				header('Content-Type: ' . $_GET['type']);
 				header('Content-Length: ' . $file_info['size']);
 			} elseif (posix_access($archivefile['name'])) {
 				$filename = $archivefile['name'];
