@@ -1,3 +1,9 @@
+storiqone-backend (0.2.13+jessie) polisher; urgency=low
+
+  * Improve preview of proxy
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 02 Feb 2018 18:44:18 +0100
+
 storiqone-backend (0.2.12+jessie) polisher; urgency=low
 
   * Add licence GNU AFFERO GENERAL PUBLIC LICENCE
