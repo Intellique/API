@@ -23,23 +23,33 @@
 				httpResponse(403, array('message' => 'Permission denied'));
 
 			$archivefile = $dbDriver->getArchiveFile($_GET['id']);
-			if ($checkArchiveFilePermission === null)
+			if ($archivefile === null)
 				httpResponse(500, array('message' => 'Query failure'));
-			elseif ($checkArchiveFilePermission === false)
+			elseif ($archivefile === false)
 				httpResponse(404, array('message' => 'Not found'));
 
 			if (isset($_GET['type'])) {
-				$mimetype = array("video/mp4" => ".mp4", "video/ogg" => ".ogv");
+				$mimetype = array("image/jpeg" => ".jpg", "video/mp4" => ".mp4", "video/ogg" => ".ogv");
 
 				if (!isset($mimetype[$_GET['type']]))
 					httpResponse(400, array('message' => 'type must be in "' . implode('", "', array_keys($mimetype)) . '"'));
 
-				$filename = $proxy_config['path'] . md5($archivefile['name']) . $mimetype[$_GET['type']];
-				if (!posix_access($filename))
+				$found = false;
+				$paths = array($proxy_config['movie path'], $proxy_config['picture path']);
+				foreach ($paths as &$path) {
+					$filename = $path . md5($archivefile['name']) . $mimetype[$_GET['type']];
+					if (posix_access($filename)) {
+						$found = true;
+						break;
+					}
+				}
+
+				if (!$found)
 					httpResponse(404, array('message' => 'Not found'));
 
 				$file_info = stat($filename);
 
+				header('Content-Type: ' . $_GET['type']);
 				header('Content-Length: ' . $file_info['size']);
 			} elseif (posix_access($archivefile['name'])) {
 				$filename = $archivefile['name'];
