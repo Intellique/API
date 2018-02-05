@@ -34,7 +34,7 @@ class ArchiveFileTest(CommonTest):
         
     def test_05_get_archivefiles_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sarchivefile/?archive=%d" % (self.path, 1), headers=headers)
+        conn.request('GET', "%sarchivefile/?archive=%d" % (self.path, 2), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)

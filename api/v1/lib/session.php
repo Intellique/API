@@ -1,7 +1,7 @@
 <?php
 	require_once("http.php");
 
-	session_set_cookie_params(0, '/api/v1/');
+	// session_set_cookie_params(0, '/api/v1/');
 	if (session_id() == NULL)
 		session_start();
 
@@ -12,6 +12,7 @@
 	function checkConnected() {
 		if (!isset($_SESSION["user"]))
 			httpResponse(401, array('message' => 'Not logged in'));
+		$_SESSION['LASTACTION'] = time();
 		return true;
 	}
 

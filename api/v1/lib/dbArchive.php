@@ -1,50 +1,48 @@
 <?php
-	require_once('db.php');
-	require_once("dbJob.php");
-	require_once("dbMetadata.php");
-	require_once("dbPermission.php");
-
 	/**
 	 * \brief Specific interface for archive object
 	 */
-	interface DB_Archive extends DB, DB_Job, DB_Metadata, DB_Permission {
+	interface DB_Archive {
 		/**
-		 * \brief Create a pool
-		 * \param $pool : a pool
-		 * \return pool id or NULL on failure
+		 * \brief Check if \i archiveA and \i archiveB have a common archive mirror
+		 * \param $archiveA : id of the first archive
+		 * \param $archiveB : id of the second archive
+		 * \return true if there is a common archive mirror, false otherwise, or null if error
 		 */
-		public function createPool(&$pool);
+		public function checkArchiveMirrorInCommon($archiveA, $archiveB);
 
 		/**
 		 * \brief Get an archive by its id
 		 * \param $id : archive id
+		 * \param $rowLock : put a lock on archive with id $id
 		 * \return archive information
 		 * \note No permission check will be performed
 		 */
-		public function getArchive($id);
+		public function getArchive($id, $rowLock = DB::DB_ROW_LOCK_NONE);
 
 		/**
 		 * \brief Get archives ids list for user \em $user_id
-		 * \param $user_id : a user
+		 * \param $user : a user information
 		 * \param $params : optional parameters
 		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
 		 */
-		public function getArchives($user_id, &$params);
+		public function getArchives(&$user, &$params);
 
 		/**
 		 * \brief Get a list of archive ids by media id
 		 * \param $id : media id
 		 * \return an array of archive ids or NULL on query failure
 		 */
-		public function getArchivesByMedia($id);
+		public function getArchivesByMedia($id, $rowLock = DB::DB_ROW_LOCK_NONE);
 
 		/**
 		 * \brief Get an archive file by its id
 		 * \param $id : archive file id
+		 * \param $rowLock : put a lock on archive with id $id
 		 * \return archive file information
 		 * \note No permission check will be performed
 		 */
-		public function getArchiveFile($id);
+		public function getArchiveFile($id, $rowLock = DB::DB_ROW_LOCK_NONE);
 
 		/**
 		 * \brief Get an archive files ids list by an array of parameters
@@ -52,7 +50,14 @@
 		 * \return array of archive file ids
 		 * \note No permission check will be performed
 		 */
-		public function getArchiveFilesByParams(&$params);
+		public function getArchiveFilesByParams(&$params, $userId);
+
+		/**
+		 * \brief Get a list of archive ids by pool id
+		 * \param $id : pool id
+		 * \return an array of archive ids or NULL on query failure
+		 */
+		public function getArchivesByPool($id);
 
 		/**
 		 * \brief Get an archive format by its id
@@ -63,6 +68,13 @@
 		public function getArchiveFormat($id);
 
 		/**
+		 *\brief Get an archive format id by its name
+		 *\param $name : archive format name
+		 *\return archive format id or false if not found
+		 */
+		public function getArchiveFormatByName($name);
+
+		/**
 		 * \brief Get list of archive format ids
 		 * \param $params : optional parameters
 		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
@@ -70,11 +82,11 @@
 		public function getArchiveFormats(&$params);
 
 		/**
-		 *\brief Get an archive format id by its name
-		 *\param $name : archive format name
-		 *\return archive format id or false if not found.
+		 * \brief Get list of tuple of archive and archive mirror
+		 * \param $pool : pool id
+		 * \return list of tuple
 		 */
-		public function getArchiveFormatByName($name);
+		public function getArchiveMirrorsByPool($pool, $poolMirror);
 
 		/**
 		 * \brief Get iterator on files list for a specific archive
@@ -85,89 +97,11 @@
 		public function getFilesFromArchive($id, &$params);
 
 		/**
-		 * \brief Get a media by its id
-		 * \param $id : media id
-		 * \return media information
-		 * \note No permission check will be performed
+		 * \brief check if an archive is synchronized in its archive mirror
+		 * \param $id : the archive's id
+		 * \return an object which contains a boolean status : true if synchronized, else false
 		 */
-		public function getMedia($id);
-
-		/**
-		 * \brief Get a medias ids list by its pool
-		 * \param $pool : medias pool id
-		 * \param $params : optional parameters
-		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
-		 */
-		public function getMediasByPool($pool, &$params);
-
-		/**
-		 * \brief Get a medias ids list by its user poolgroup
-		 * \param $user_poolgroup : user poolgroup id
-		 * \param $params : optional parameters
-		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
-		 */
-		public function getMediasByPoolgroup($user_poolgroup, &$params);
-
-		/**
-		 * \brief Get a medias ids list without pool
-		 * \param $mediaformat : mediaformat id [optional]
-		 * \param $params : optional parameters
-		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
-		 */
-		public function getMediasWithoutPool($mediaformat, &$params);
-
-		/**
-		 * \brief Get a media format by its id
-		 * \param $id : media id
-		 * \return media format information
-		 * \note No permission check will be performed
-		 */
-		public function getMediaFormat($id);
-
-		/**
-		 * \brief Get iterator on files list for a specific media
-		 * \param $id : a media
-		 * \param $params : optional parameters
-		 * \return an iterator which allow to browse on a files list
-		 */
-		public function getMediaFormatByName($id);
-
-		/**
-		 * \brief Get list of media format ids
-		 * \param $params : optional parameters
-		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
-		 */
-		public function getMediaFormats(&$params);
-
-		/**
-		 * \brief Get a pool by its id
-		 * \param $id : pool id
-		 * \return media format information
-		 * \note No permission check will be performed
-		 */
-		public function getPool($id);
-
-		/**
-		 * \brief Get a pool by its name
-		 * \param $name : pool name
-		 * \return pool id or false if not found
-		 */
-		public function getPoolByName($name);
-
-		/**
-		 * \brief Get a pools ids list by an array of parameters
-		 * \param $params : optional parameters
-		 * \return an array of pool ids or false if not found
-		 */
-		public function getPoolsByParams(&$params);
-
-		/**
-		 * \brief Get a pools ids list by its user poolgroup
-		 * \param $user_poolgroup : user poolgroup id
-		 * \param $params : optional parameters
-		 * \return an object which contains 'rows', 'total_rows', 'query', 'query_name', 'query_prepared', 'query_executed'
-		 */
-		public function getPoolsByPoolgroup($user_poolgroup, &$params);
+		public function isArchiveSynchronized($id);
 
 		/**
 		 * \brief Update an archive
@@ -175,24 +109,5 @@
 		 * \return \b NULL on failure, \b FALSE if no archive was updated or \b TRUE on success
 		 */
 		public function updateArchive(&$archive);
-
-		/**
-		 * \brief Update a media
-		 * \param $media : a media
-		 * \return \b NULL on failure, \b False if no media was updated or \b TRUE on success
-		 */
-		public function updateMedia(&$media);
-
-		/**
-		 * \brief Update a pool
-		 * \param $media : a pool
-		 * \return \b NULL on failure, \b False if no pool was updated or \b TRUE on success
-		 */
-		public function updatePool(&$pool);
 	}
-
-	require_once("db/${db_config['driver']}Archive.php");
-
-	$className = ucfirst($db_config['driver']) . 'DBArchive';
-	$dbDriver = new $className($db_config);
 ?>

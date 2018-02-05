@@ -2,6 +2,7 @@
 
 /**
  * \addtogroup ArchiveFormat Archive Format
+ * \page archiveformat
  * \section ArchiveFormat Archive Format
  * \subsection ArchiveFormatBrief How does it work?
  * If the user inputs an \e id, the function returns information concerning the corresponding archive format, regardless of the other parameters.
@@ -72,24 +73,23 @@
  *   - \b 401 Not logged in
  *   - \b 500 Query failure
  */
-
 	require_once("../lib/env.php");
 
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
 			if (isset($_GET['id'])) {
-				if (!is_numeric($_GET['id']))
+				if (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false)
 					httpResponse(400, array('message' => 'Archiveformat id must be an integer'));
 
 				$archiveformat = $dbDriver->getArchiveFormat($_GET['id']);
 				if ($archiveformat === NULL) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archiveformat => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchiveFormat(%s)', $_GET['id']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archiveformat (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/archiveformat (%d) => getArchiveFormat(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query Failure',
 						'archiveformat' => null
@@ -108,8 +108,8 @@
 				$archiveformat = $dbDriver->getArchiveFormatByName($_GET['name']);
 
 				if ($archiveformat === NULL) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archiveformat => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchiveFormatByName(%s)', $_GET['name']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archiveformat (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/archiveformat (%d) => getArchiveFormatByName(%s)', __LINE__, $_GET['name']), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query Failure',
 						'archiveformat id' => null
@@ -142,15 +142,19 @@
 							$ok = false;
 					}
 				}
+
 				if (isset($_GET['limit'])) {
-					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-						$params['limit'] = intval($_GET['limit']);
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+					if ($limit !== false)
+						$params['limit'] = $limit;
 					else
 						$ok = false;
 				}
+
 				if (isset($_GET['offset'])) {
-					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-						$params['offset'] = intval($_GET['offset']);
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+					if ($offset !== false)
+						$params['offset'] = $offset;
 					else
 						$ok = false;
 				}
@@ -160,8 +164,8 @@
 
 				$result = $dbDriver->getArchiveFormats($params);
 				if ($result['query_executed'] == false) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archiveformat => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getArchiveFormats(%s)', $params), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/archiveformat (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/archiveformat (%d) => getArchiveFormats(%s)', __LINE__, $params), $_SESSION['user']['id']);
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'archive formats' => array(),

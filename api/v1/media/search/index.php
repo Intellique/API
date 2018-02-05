@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage searchmedia Search Media
  * \section Search_medias Searching medias
  * To search medias and then to get medias ids list,
  * use \b GET method :
@@ -41,7 +43,7 @@
 	require_once("dateTime.php");
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
@@ -49,47 +51,32 @@
 
 			$params = array();
 			$ok = true;
-			if (isset($_GET['name'])) {
-				if (is_string($_GET['name']))
-					$params['name'] = $_GET['name'];
-				else
-					$ok = false;
-			}
+			if (isset($_GET['name']))
+				$params['name'] = $_GET['name'];
 
 			if (isset($_GET['pool'])) {
-				if (is_numeric($_GET['pool']))
+				if (filter_var($_GET['pool'], FILTER_VALIDATE_INT) !== false)
 					$params['pool'] = $_GET['pool'];
 				else
 					$ok = false;
 			}
 
-			if (isset($_GET['nbfiles'])) {
-				if (is_numeric($_GET['nbfiles']))
-					$params['nbfiles'] = $_GET['nbfiles'];
-				else
-					$ok = false;
-			}
-
 			if (isset($_GET['archiveformat'])) {
-				if (is_numeric($_GET['archiveformat']))
+				if (filter_var($_GET['archiveformat'], FILTER_VALIDATE_INT) !== false)
 					$params['archiveformat'] = $_GET['archiveformat'];
 				else
 					$ok = false;
 			}
 
 			if (isset($_GET['mediaformat'])) {
-				if (is_numeric($_GET['mediaformat']))
+				if (filter_var($_GET['mediaformat'], FILTER_VALIDATE_INT) !== false)
 					$params['mediaformat'] = $_GET['mediaformat'];
 				else
 					$ok = false;
 			}
 
-			if (isset($_GET['type'])) {
-				if (is_string($_GET['type']))
-					$params['type'] = $_GET['type'];
-				else
-					$ok = false;
-			}
+			if (isset($_GET['type']))
+				$params['type'] = $_GET['type'];
 
 			if (isset($_GET['order_by'])) {
 				if (array_search($_GET['order_by'], array('id', 'pool', 'nbfiles', 'poolgroup')) !== false)
@@ -107,14 +94,17 @@
 			}
 
 			if (isset($_GET['limit'])) {
-				if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-					$params['limit'] = intval($_GET['limit']);
+				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+				if ($limit !== false)
+					$params['limit'] = $limit;
 				else
 					$ok = false;
 			}
+
 			if (isset($_GET['offset'])) {
-				if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-					$params['offset'] = intval($_GET['offset']);
+				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+				if ($offset !== false)
+					$params['offset'] = $offset;
 				else
 					$ok = false;
 			}
@@ -123,45 +113,48 @@
 				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$medias = $dbDriver->getMediasByParams($params);
-
-			if ($medias === null) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMediasByParams(%s)', var_export($params, true)), $_SESSION['user']['id']);
-				httpResponse(500, array('message' => 'Query failure'));
-			}
-			if ($medias === false)
-				httpResponse(404, array('message' => 'Medias not found',
-							'medias' => array()
+			if (!$medias['query_executed']) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/media/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/media/search (%d) => getMediasByParams(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
+				httpResponse(500, array(
+					'message' => 'Query failure'
+				));
+			} elseif ($medias['total_rows'] == 0)
+				httpResponse(404, array(
+					'message' => 'Medias not found',
+					'medias' => array()
 				));
 
 			$result = array();
 			$permission = $_SESSION['user']['isadmin'] || $_SESSION['user']['canarchive'];
-			foreach ($medias as $list) {
-				if ($list['pool'] ==! null) {
-					$permission_pool = $dbDriver->checkPoolPermission($list['pool'], $_SESSION['user']['id']);
+			foreach ($medias['rows'] as $media) {
+				if ($media['pool'] ==! null) {
+					$permission_pool = $dbDriver->checkPoolPermission($media['pool'], $_SESSION['user']['id']);
 					if ($permission_pool === null) {
-						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/media/serach => Query failure', $_SESSION['user']['id']);
-						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $list['pool'], $_SESSION['user']['id']), $_SESSION['user']['id']);
+						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/media/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/media/search (%d) => checkPoolPermission(%s, %s)', __LINE__, $media['pool'], $_SESSION['user']['id']), $_SESSION['user']['id']);
 						httpResponse(500, array(
 							'message' => 'Query failure',
 							'medias' => array()
 						));
 					}
+
 					$permission_granted = ($permission_pool || $permission);
 					if ($permission_granted === true)
-						$result[] = $list['id'];
-				} else
-					if ($permission)
-						$result[] = $list['id'];
+						$result[] = $media['id'];
+				} else if ($permission)
+					$result[] = $media['id'];
 			}
 
 			if (count($result) == 0) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'GET api/v1/media/search => A user that cannot get media informations tried to', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('GET api/v1/media/search (%d) => A user that cannot get media informations tried to', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
+
 			httpResponse(200, array(
-					'message' => 'Query succeeded',
-					'medias' => $result
+				'message' => 'Query succeeded',
+				'medias' => &$result,
+				'total_rows' => $medias['total_rows']
 			));
 
 			break;

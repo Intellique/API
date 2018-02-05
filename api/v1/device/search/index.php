@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage devicesearch
  * \section Search_device Searching devices
  * To search devices and then to get devices ids list,
  * use \b GET method :
@@ -38,10 +40,9 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
-
 		case 'GET':
 			checkConnected();
 
@@ -49,32 +50,26 @@
 			$ok = true;
 
 			if (isset($_GET['isonline'])) {
-				if (is_string($_GET['isonline']) && ($_GET['isonline'] === 't' || $_GET['isonline'] === 'f'))
-					$params['isonline'] = $_GET['isonline'];
+				$isonline = filter_var($_GET['isonline'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+				if ($isonline !== null)
+					$params['isonline'] = $isonline;
 				else
 					$ok = false;
 			}
 
 			if (isset($_GET['enable'])) {
-				if (is_string($_GET['enable']) && ($_GET['enable'] === 't' || $_GET['enable'] === 'f'))
-					$params['enable'] = $_GET['enable'];
+				$enable = filter_var($_GET['enable'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+				if ($enable !== null)
+					$params['enable'] = $enable;
 				else
 					$ok = false;
 			}
 
-			if (isset($_GET['model'])) {
-				if (is_string($_GET['model']))
-					$params['model'] = $_GET['model'];
-				else
-					$ok = false;
-			}
+			if (isset($_GET['model']))
+				$params['model'] = $_GET['model'];
 
-			if (isset($_GET['vendor'])) {
-				if (is_string($_GET['vendor']))
-					$params['vendor'] = $_GET['vendor'];
-				else
-					$ok = false;
-			}
+			if (isset($_GET['vendor']))
+				$params['vendor'] = $_GET['vendor'];
 
 			if (isset($_GET['order_by'])) {
 				if (array_search($_GET['order_by'], array('id', 'model', 'vendor')) !== false)
@@ -90,15 +85,19 @@
 						$ok = false;
 				}
 			}
+
 			if (isset($_GET['limit'])) {
-				if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-					$params['limit'] = intval($_GET['limit']);
+				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+				if ($limit !== false)
+					$params['limit'] = $limit;
 				else
 					$ok = false;
 			}
+
 			if (isset($_GET['offset'])) {
-				if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-					$params['offset'] = intval($_GET['offset']);
+				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+				if ($offset !== false)
+					$params['offset'] = $offset;
 				else
 					$ok = false;
 			}
@@ -108,23 +107,25 @@
 
 			$result = $dbDriver->getDevicesByParams($params);
 			if ($result['query_prepared'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/device/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getDevicesByParams(%s)', var_export($params, true)), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/device/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/device/search (%d) => getDevicesByParams(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
+
+				httpResponse(500, array(
+					'message' => 'Query failure',
+					'devices' => array(),
+					'total_rows' => 0
+				));
+			} elseif ($result['query_executed'] === false) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/device/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/device/search (%d) => getDevicesByParams(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
+
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'devices' => array(),
 					'total_rows' => 0
 				));
 			}
-			if ($result['query_executed'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/device/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getDevicesByParams(%s)', var_export($params, true)), $_SESSION['user']['id']);
-				httpResponse(500, array(
-					'message' => 'Query failure',
-					'devices' => array(),
-					'total_rows' => 0
-				));
-			}
+
 			if ($result['total_rows'] == 0)
 				httpResponse(404, array(
 					'message' => 'Devices not found',

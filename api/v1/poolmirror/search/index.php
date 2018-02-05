@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage searchpoolmirror
  * \section Search_poolmirror Searching pool mirrors
  * To search pool mirrorss and then to get pool mirrors ids list,
  * use \b GET method :
@@ -36,21 +38,17 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
-
 		case 'GET':
 			checkConnected();
 
 			$params = array();
 			$ok = true;
-			if (isset($_GET['name'])) {
-				if (is_string($_GET['name']))
+
+			if (isset($_GET['name']))
 					$params['name'] = $_GET['name'];
-				else
-					$ok = false;
-			}
 
 			if (isset($_GET['synchronized'])) {
 				if (is_string($_GET['synchronized']) && ($_GET['synchronized'] === 't' || $_GET['synchronized'] === 'f'))
@@ -75,14 +73,17 @@
 			}
 
 			if (isset($_GET['limit'])) {
-				if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-					$params['limit'] = intval($_GET['limit']);
+				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+				if ($limit !== false)
+					$params['limit'] = $limit;
 				else
 					$ok = false;
 			}
+
 			if (isset($_GET['offset'])) {
-				if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-					$params['offset'] = intval($_GET['offset']);
+				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+				if ($offset !== false)
+					$params['offset'] = $offset;
 				else
 					$ok = false;
 			}
@@ -91,15 +92,13 @@
 				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$result = $dbDriver->getPoolMirrors($params);
-
 			if ($result['query_prepared'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/poolmirror/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolMirrors(%s)', var_export($params, true)), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/poolmirror/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolmirror/search (%d) => getPoolMirrors(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			}
-			if ($result['query_executed'] === false) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/poolmirror/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolMirrors(%s)', var_export($params, true)), $_SESSION['user']['id']);
+			} elseif ($result['query_executed'] === false) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/poolmirror/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolmirror/search (%d) => getPoolMirrors(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 

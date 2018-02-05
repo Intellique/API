@@ -1,6 +1,8 @@
 <?php
 /**
  * \addtogroup search
+ * \page search
+ * \subpage poolsearch
  * \section Search_pool Searching pools
  * To search pools and then to get pools ids list,
  * use \b GET method :
@@ -37,33 +39,34 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
-	require_once("dbPermission.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
-
 		case 'GET':
 			checkConnected();
 
 			$params = array();
 			$ok = true;
 
-			if (isset($_GET['name'])) {
-				if (!is_string($_GET['name']))
-					$ok = false;
+			if (isset($_GET['name']))
 				$params['name'] = $_GET['name'];
-			}
 
-			if (isset($_GET['poolgroup'])) {
-				if (!is_numeric($_GET['poolgroup']))
+			if (!$_SESSION['user']['isadmin'])
+				$params['poolgroup'] = $_SESSION['user']['poolgroup'];
+			elseif (isset($_GET['poolgroup'])) {
+				$poolgroup = filter_var($_GET['poolgroup'], FILTER_VALIDATE_INT);
+				if ($poolgroup === false)
 					$ok = false;
-				$params['poolgroup'] = $_GET['poolgroup'];
+				else
+					$params['poolgroup'] = $poolgroup;
 			}
 
 			if (isset($_GET['mediaformat'])) {
-				if (!is_numeric($_GET['mediaformat']))
+				$mediaformat = filter_var($_GET['mediaformat'], FILTER_VALIDATE_INT);
+				if ($mediaformat === false)
 					$ok = false;
-				$params['mediaformat'] = $_GET['mediaformat'];
+				else
+					$params['mediaformat'] = $mediaformat;
 			}
 
 			if (isset($_GET['order_by'])) {
@@ -80,15 +83,19 @@
 						$ok = false;
 				}
 			}
+
 			if (isset($_GET['limit'])) {
-				if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-					$params['limit'] = intval($_GET['limit']);
+				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+				if ($limit !== false)
+					$params['limit'] = $limit;
 				else
 					$ok = false;
 			}
+
 			if (isset($_GET['offset'])) {
-				if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-					$params['offset'] = intval($_GET['offset']);
+				$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+				if ($offset !== false)
+					$params['offset'] = $offset;
 				else
 					$ok = false;
 			}
@@ -97,38 +104,21 @@
 				httpResponse(400, array('message' => 'Incorrect input'));
 
 			$pools = $dbDriver->getPoolsByParams($params);
-			if ($pools === null) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool/search => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolByParams(%s)', var_export($params, true)), $_SESSION['user']['id']);
+			if ($pools['query executed'] === false) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/pool/search (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/pool/search (%d) => getPoolByParams(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			}
-			if ($pools === false)
-				httpResponse(404, array('message' => 'Pools not found',
-							'pools' => array()
+			} elseif ($pools['total rows'] === 0)
+				httpResponse(404, array(
+					'message' => 'Pools not found',
+					'pools' => array(),
+					"debug" => &$params
 				));
 
-			$result = array();
-
-			foreach ($pools as $id) {
-				$permission_granted = $dbDriver->checkPoolPermission($id, $_SESSION['user']['id']);
-				if ($permission_granted === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/pool/serach => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPoolPermission(%s, %s)', $id, $_SESSION['user']['id']), $_SESSION['user']['id']);
-					httpResponse(500, array(
-						'message' => 'Query failure',
-						'pools' => array()
-					));
-				} elseif ($permission_granted === true)
-					$result[] = $id;
-			}
-
-			if (count($result) == 0) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'GET api/v1/pool/search => A user that cannot get pool informations tried to', $_SESSION['user']['id']);
-				httpResponse(403, array('message' => 'Permission denied'));
-			}
 			httpResponse(200, array(
-					'message' => 'Query succeeded',
-					'pools' => $result
+				'message' => 'Query succeeded',
+				'pools' => $pools['rows'],
+				'total_rows' => $pools['total rows']
 			));
 
 			break;

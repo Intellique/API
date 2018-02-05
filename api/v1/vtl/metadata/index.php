@@ -21,80 +21,74 @@
 
 	require_once("http.php");
 	require_once("session.php");
-	require_once("dbArchive.php");
-	require_once("dbMetadata.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
-
 		case 'GET':
 			checkConnected();
 
-			$key = null;
-			if (isset($_GET['id'])) {
-				if (!is_numeric($_GET['id']))
-					httpResponse(400, array('message' => 'id must be an integer'));
+			if (!isset($_GET['id']))
+				httpResponse(400, array('message' => 'VTL ID required'));
 
-				$exists = $dbDriver->getVTL($_GET['id']);
-				if ($exists === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/vtl/metadata => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getVTL(%s)', $_GET['id']), $_SESSION['user']['id']);
-					httpResponse(500, array('message' => 'Query failure'));
+			if (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false)
+				httpResponse(400, array('message' => 'id must be an integer'));
+
+			$exists = $dbDriver->getVTL($_GET['id']);
+			if ($exists === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/vtl/metadata (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/vtl/metadata (%d) => getVTL(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($exists === false)
+				httpResponse(404, array('message' => 'This vtl does not exist'));
+
+			if (isset($_GET['key'])) {
+				$metadata = $dbDriver->getMetadata($_GET['id'], $_GET['key'], 'vtl');
+				if ($metadata['error'] === true) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/vtl/metadata (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/vtl/metadata (%d) => getMetadata(%s, vtl)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+					httpResponse(500, array(
+						'message' => 'Query failure',
+						'metadata' => array()
+					));
 				}
-				if ($exists === false)
-					httpResponse(404, array('message' => 'This vtl does not exist'));
 
-				if (isset($_GET['key'])) {
-					if (!is_string($_GET['key']))
-						httpResponse(400, array('message' => 'key must be a string'));
-					$key = $_GET['key'];
+				if ($metadata['found'] === false)
+					httpResponse(404, array(
+						'message' => 'No metadata found for this object',
+						'metadata' => array()
+					));
 
-					$metadata = $dbDriver->getMetadata($_GET['id'], $key, 'vtl');
-					if ($metadata['error'] === true) {
-						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/vtl/metadata => Query failure', $_SESSION['user']['id']);
-						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMetadata(%s, vtl)', $_GET['id']), $_SESSION['user']['id']);
-						httpResponse(500, array(
-							'message' => 'Query failure',
-							'metadata' => array()
-						));
-					}
-					if ($metadata['founded'] === false)
-						httpResponse(404, array(
-								'message' => 'No metadata found for this object',
-								'metadata' => array()
-							));
+				httpResponse(200, array(
+					'message' => 'Query succeeded',
+					'metadata' => $metadata['value']
+				));
+			} else {
+				$metadata = $dbDriver->getMetadatas($_GET['id'], 'vtl');
+				if ($metadata === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/vtl/metadata (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/vtl/metadata (%d) => getMetadatas(%s, vtl)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+					httpResponse(500, array(
+						'message' => 'Query failure',
+						'metadata' => array()
+					));
+				} elseif ($metadata === false)
+					httpResponse(404, array(
+						'message' => 'No metadata found for this object',
+						'metadata' => array()
+					));
 
-					httpResponse(200, array(
-							'message' => 'Query succeeded',
-							'metadata' => $metadata['value']
-						));
-				} else {
+				if (count($metadata) === 0)
+					httpResponse(404, array(
+						'message' => 'No metadata found for this object',
+						'metadata' => $metadata
+					));
 
-					$metadata = $dbDriver->getMetadatas($_GET['id'], 'vtl');
-					if ($metadata === null) {
-						$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/vtl/metadata => Query failure', $_SESSION['user']['id']);
-						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMetadatas(%s, vtl)', $_GET['id']), $_SESSION['user']['id']);
-						httpResponse(500, array(
-							'message' => 'Query failure',
-							'metadata' => array()
-						));
-					}
-					if ($metadata === false)
-						httpResponse(404, array(
-								'message' => 'No metadata found for this object',
-								'metadata' => array()
-							));
-					if (count($metadata) === 0)
-						httpResponse(404, array(
-								'message' => 'No metadata found for this object',
-								'metadata' => $metadata
-							));
-
-					httpResponse(200, array(
-							'message' => 'Query succeeded',
-							'metadata' => $metadata
-						));
-				}
+				httpResponse(200, array(
+					'message' => 'Query succeeded',
+					'metadata' => $metadata
+				));
 			}
+
 			break;
 
 		case 'OPTIONS':

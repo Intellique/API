@@ -35,13 +35,13 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
-    def test_05_get_basic_user_not_allowed(self):
+    def test_05_get_basic_user_partially_allowed(self):
         conn, headers, message = self.newLoggedConnection('basic')
         userId = self.users['admin']['id']
         conn.request('GET', "%suser/?id=%d" % (self.path, userId), headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 403)
+        self.assertEqual(res.status, 200)
 
     def test_06_get_list_of_users_not_logged(self):
         conn = self.newConnection()
@@ -57,7 +57,7 @@ class UserTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['users_id']), message['total_rows'])
+        self.assertLessEqual(len(message['users']), message['total_rows'])
 
     def test_08_get_list_of_users_basic_user_not_allowed(self):
         conn, headers, message = self.newLoggedConnection('basic')
@@ -87,7 +87,7 @@ class UserTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['users_id']), message['total_rows'])
+        self.assertLessEqual(len(message['users']), message['total_rows'])
 
     def test_12_get_list_of_users_logged_as_admin_with_right_limit_and_right_offset(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -96,7 +96,7 @@ class UserTest(CommonTest):
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
-        self.assertLessEqual(len(message['users_id']), message['total_rows'])
+        self.assertLessEqual(len(message['users']), message['total_rows'])
 
     def test_13_get_list_of_users_logged_as_admin_with_wrong_limit(self):
         conn, headers, message = self.newLoggedConnection('admin')

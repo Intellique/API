@@ -1,6 +1,7 @@
 <?php
 /**
  * \addtogroup poolmirror
+ * \page poolmirror
  * \section PoolMirror_ID Pool mirror information
  * To get a pool mirror by its id
  * use \b GET method
@@ -53,26 +54,74 @@
 	require_once("http.php");
 	require_once("session.php");
 	require_once("uuid.php");
-	require_once("dbArchive.php");
+	require_once("db.php");
 
 	switch ($_SERVER['REQUEST_METHOD']) {
-		case 'GET':
+		case 'DELETE':
+			checkConnected();
 
+			if (!$_SESSION['user']['isadmin']) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('DELETE api/v1/poolmirror (%d) => A non-admin user tried to delete a poolmirror', __LINE__), $_SESSION['user']['id']);
+				httpResponse(403, array('message' => 'Permission denied'));
+			}
+
+			if (!isset($_GET['id']))
+				httpResponse(400, array('message' => 'Pool mirror ID required'));
+			elseif (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/poolmirror (%d) => id must be an integer and not "%s"', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(400, array('message' => 'poolmirror ID must be an integer'));
+			}
+
+			if (!$dbDriver->startTransaction()) {
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('DELETE api/v1/poolmirror (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
+
+			$poolmirror = $dbDriver->getPoolMirror($_GET['id'], DB::DB_ROW_LOCK_UPDATE);
+			if (!$poolmirror)
+				$dbDriver->cancelTransaction();
+			if ($poolmirror === null) {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('DELETE api/v1/poolmirror (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/poolmirror (%d) => getPoolMirror(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($poolmirror === false)
+				httpResponse(404, array('message' => 'Pool mirror not found'));
+
+			$result = $dbDriver->deletePoolMirror($_GET['id']);
+			if ($result === null) {
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('DELETE api/v1/poolmirror (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/poolmirror (%d) => deletePoolMirror(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif (!$dbDriver->finishTransaction()) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'Transaction failure'));
+			} else {
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('DELETE api/v1/poolmirror (%d) => poolmirror %s deleted', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(200, array('message' => 'Pool mirror deleted'));
+			}
+
+			break;
+
+		case 'GET':
 			checkConnected();
 
 			if (!$_SESSION['user']['isadmin']) {
 				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'GET api/v1/poolmirror => A non-admin user tried to get informations from poolmirrors', $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
+
 			if (isset($_GET['id'])) {
-				if (!is_numeric($_GET['id'])) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolmirror => id must be an integer and not "%s"', $_GET['id']), $_SESSION['user']['id']);
+				if (filter_var($_GET['id'], FILTER_VALIDATE_INT) === false) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolmirror (%d) => id must be an integer and not "%s"', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'Pool mirror ID must be an integer'));
 				}
+
 				$poolmirror = $dbDriver->getPoolMirror($_GET['id']);
 				if ($poolmirror === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/poolmirror => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolMirror(%s)', $_GET['id']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/poolmirror (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolmirror (%d) => getPoolMirror(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'poolmirror' => array()
@@ -82,23 +131,27 @@
 						'message' => 'Pool mirror not found',
 						'poolmirror' => array()
 					));
+
 				httpResponse(200, array(
-						'message' => 'Query succeeded',
-						'poolmirror' => $poolmirror
+					'message' => 'Query succeeded',
+					'poolmirror' => $poolmirror
 				));
 			} else {
 				$params = array();
 				$ok = true;
 
 				if (isset($_GET['limit'])) {
-					if (is_numeric($_GET['limit']) && $_GET['limit'] > 0)
-						$params['limit'] = intval($_GET['limit']);
+					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+					if ($limit !== false)
+						$params['limit'] = $limit;
 					else
 						$ok = false;
 				}
+
 				if (isset($_GET['offset'])) {
-					if (is_numeric($_GET['offset']) && $_GET['offset'] >= 0)
-						$params['offset'] = intval($_GET['offset']);
+					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+					if ($offset !== false)
+						$params['offset'] = $offset;
 					else
 						$ok = false;
 				}
@@ -108,8 +161,9 @@
 
 				$poolmirrors = $dbDriver->getPoolMirrors($params);
 				if ($poolmirrors['query_executed'] === false) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/poolmirror => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolMirrors(%s)', var_export($params, true)), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('GET api/v1/poolmirror (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('GET api/v1/poolmirror (%d) => getPoolMirrors(%s)', __LINE__, var_export($params, true)), $_SESSION['user']['id']);
+
 					httpResponse(500, array(
 						'message' => 'Query failure',
 						'poolmirrors' => array()
@@ -119,42 +173,41 @@
 						'message' => 'Pool mirrors not found',
 						'poolmirrors' => array()
 					));
+
 				httpResponse(200, array(
-						'message' => 'Query succeeded',
-						'poolmirrors' => $poolmirrors['rows']
+					'message' => 'Query succeeded',
+					'poolmirrors' => $poolmirrors['rows']
 				));
 			}
+
 			break;
 
 		case 'POST':
-
 			checkConnected();
+
+			if (!$_SESSION['user']['isadmin']) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/poolmirror (%d) => A non-admin user tried to create a poolmirror', __LINE__), $_SESSION['user']['id']);
+				httpResponse(403, array('message' => 'Permission denied'));
+			}
 
 			$poolmirror = httpParseInput();
 
 			if (!isset($poolmirror))
 				httpResponse(400, array('message' => 'Poolmirror information is required'));
 
-			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/poolmirror => A non-admin user tried to create a poolmirror', $_SESSION['user']['id']);
-				httpResponse(403, array('message' => 'Permission denied'));
-			}
-
 			//uuid
 			if (isset($poolmirror['uuid'])) {
 				if (!is_string($poolmirror['uuid'])) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolmirror => uuid must be a string and not "%s"', $poolmirror['uuid']), $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolmirror (%d) => uuid must be a string and not "%s"', __LINE__, $poolmirror['uuid']), $_SESSION['user']['id']);
 					httpResponse(400, array('message' => 'uuid must be a string'));
-				}
-
-				if (!uuid_is_valid($poolmirror['uuid']))
+				} elseif (!uuid_is_valid($poolmirror['uuid']))
 					httpResponse(400, array('message' => 'uuid is not valid'));
 			} else
 				$poolmirror['uuid'] = uuid_generate();
 
 			//name
 			if (!isset($poolmirror['name'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'POST api/v1/poolmirror => Trying to create a poolmirror without specifying poolmirror name', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/poolmirror (%d) => Trying to create a poolmirror without specifying poolmirror name', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'pool mirror name is required'));
 			}
 
@@ -162,61 +215,76 @@
 			if (!isset($poolmirror['synchronized']))
 				httpResponse(400, array('message' => 'synchronized is required'));
 			elseif (!is_bool($poolmirror['synchronized'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolmirror => synchronized must be a boolean and not "%s"', $poolmirror['synchronized']), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolmirror (%d) => synchronized must be a boolean and not "%s"', __LINE__, $poolmirror['synchronized']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'synchronized must be a boolean'));
 			}
 
 			$poolmirrorId = $dbDriver->createPoolMirror($poolmirror);
-
 			if ($poolmirrorId === NULL) {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'POST api/v1/poolmirror => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('createPoolMirror(%s)', var_export($poolmirror, true)), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/poolmirror (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolmirror (%d) => createPoolMirror(%s)', __LINE__, var_export($poolmirror, true)), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query Failure'));
 			}
 
 			httpAddLocation('/poolmirror/?id=' . $poolmirrorId);
-			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Pool mirror %s created', $poolmirrorId), $_SESSION['user']['id']);
+			$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/poolmirror (%d) => Pool mirror %s created', __LINE__, $poolmirrorId), $_SESSION['user']['id']);
 			httpResponse(201, array(
 				'message' => 'Pool mirror created successfully',
-				'pool_id' => $poolmirrorId
+				'poolmirror id' => $poolmirrorId
 			));
 			break;
 
 		case 'PUT':
 			checkConnected();
+
 			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/poolmirror => A non-user admin tried to update a poolmirror', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/poolmirror (%d) => A non-user admin tried to update a poolmirror', __LINE__), $_SESSION['user']['id']);
 				httpResponse(403, array('message' => 'Permission denied'));
 			}
 
-
 			$poolmirror = httpParseInput();
 			if ($poolmirror === NULL) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/poolmirror => Trying to update a poolmirror without specifying it', $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/poolmirror (%d) => Trying to update a poolmirror without specifying it', __LINE__), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'poolmirror is required'));
 			}
-			if (!isset($poolmirror['id'])) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'PUT api/v1/poolmirror => Trying to update a poolmirror without specifying its id', $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'poolmirror id is required'));
-			}
 
-			if (!is_int($poolmirror['id'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolmirror => id must be an integer and not "%s"', $poolmirror['id']), $_SESSION['user']['id']);
+			if (!isset($poolmirror['id'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('PUT api/v1/poolmirror (%d) => Trying to update a poolmirror without specifying its id', __LINE__), $_SESSION['user']['id']);
+				httpResponse(400, array('message' => 'poolmirror id is required'));
+			} elseif (!is_integer($poolmirror['id'])) {
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolmirror (%d) => id must be an integer and not "%s"', __LINE__, $poolmirror['id']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'poolmirror id must be an integer'));
 			}
 
-			$poolmirror_base = $dbDriver->getPoolMirror($poolmirror['id']);
+			if (!$dbDriver->startTransaction()) {
+				$dbDriver->writeLog(DB::DB_LOG_EMERGENCY, sprintf('PUT api/v1/poolmirror (%d) => Failed to start transaction', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			}
+
+			$poolmirror_base = $dbDriver->getPoolMirror($poolmirror['id'], DB::DB_ROW_LOCK_UPDATE);
+			if ($poolmirror_base === null) {
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/poolmirror (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolmirror (%d) => getPoolMirror(%s)', __LINE__, $poolmirror['id']), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($poolmirror_base === false) {
+				$dbDriver->cancelTransaction();
+				httpResponse(404, array('message' => 'PoolMirror not found'));
+			}
 
 			//uuid
-			if (isset($poolmirror['uuid']))
+			if (isset($poolmirror['uuid'])) {
+				$dbDriver->cancelTransaction();
 				httpResponse(400, array('message' => 'uuid cannot be modified'));
-			$poolmirror['uuid'] = $poolmirror_base['uuid'];
+			} else
+				$poolmirror['uuid'] = $poolmirror_base['uuid'];
 
 			//name
 			if (!isset($poolmirror['name']))
 				$poolmirror['name'] = $poolmirror_base['name'];
 			elseif (!is_string($poolmirror['name'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolmirror => name must be a string and not "%s"', $poolmirror['name']), $_SESSION['user']['id']);
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolmirror (%d) => name must be a string and not "%s"', __LINE__, $poolmirror['name']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'name must be a string'));
 			}
 
@@ -224,59 +292,34 @@
 			if (!isset($poolmirror['synchronized']))
 				$poolmirror['synchronized'] = $poolmirror_base['synchronized'];
 			elseif (!is_bool($poolmirror['synchronized'])) {
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolmirror => synchronized must be a boolean and not "%s"', $poolmirror['synchronized']), $_SESSION['user']['id']);
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolmirror (%d) => synchronized must be a boolean and not "%s"', __LINE__, $poolmirror['synchronized']), $_SESSION['user']['id']);
 				httpResponse(400, array('message' => 'synchronized must be a boolean'));
 			}
 
 			$result = $dbDriver->updatePoolMirror($poolmirror);
-			if ($result) {
-				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('Poolmirror %s updated', $poolmirror['id']), $_SESSION['user']['id']);
+			if (!$result) {
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/poolmirror (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/poolmirror (%d) => Query updatePoolMirror(%s)', __LINE__, var_export($poolmirror, true)), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif (!$dbDriver->finishTransaction()) {
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/poolmirror (%d) => Transaction failure', __LINE__), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Transaction failure'));
+			} else {
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('PUT api/v1/poolmirror (%d) => Poolmirror %s updated', __LINE__, $poolmirror['id']), $_SESSION['user']['id']);
 				httpResponse(200, array('message' => 'Pool mirror updated successfully'));
 			}
-			else {
-				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'PUT api/v1/poolmirror => Query failure', $_SESSION['user']['id']);
-				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('updatePoolMirror(%s)', var_export($poolmirror, true)), $_SESSION['user']['id']);
-				httpResponse(500, array('message' => 'Query failure'));
-			}
-
 
 			break;
 
-		case 'DELETE':
-			checkConnected();
+		case 'OPTIONS':
+			httpOptionsMethod(HTTP_ALL_METHODS);
+			break;
 
-			if (!$_SESSION['user']['isadmin']) {
-				$dbDriver->writeLog(DB::DB_LOG_WARNING, 'DELETE api/v1/poolmirror => A non-admin user tried to delete a poolmirror', $_SESSION['user']['id']);
-				httpResponse(403, array('message' => 'Permission denied'));
-			}
-
-			if (isset($_GET['id'])) {
-				if (!is_numeric($_GET['id'])) {
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/poolmirror => id must be an integer and not "%s"', $_GET['id']), $_SESSION['user']['id']);
-					httpResponse(400, array('message' => 'poolmirror ID must be an integer'));
-				}
-
-				$poolmirror = $dbDriver->getPoolMirror($_GET['id']);
-				if ($poolmirror === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/poolmirror => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getPoolMirror(%s)', $_GET['id']), $_SESSION['user']['id']);
-					httpResponse(500, array('message' => 'Query failure'));
-				} elseif ($poolmirror === false)
-					httpResponse(404, array('message' => 'Pool mirror not found'));
-
-				$result = $dbDriver->deletePoolMirror($_GET['id']);
-				if ($result === null) {
-					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/poolmirror => Query failure', $_SESSION['user']['id']);
-					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('deletePoolMirror(%s)', $_GET['id']), $_SESSION['user']['id']);
-					httpResponse(500, array('message' => 'Query failure'));
-				}
-
-				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('poolmirror %s deleted', $_GET['id']), $_SESSION['user']['id']);
-				httpResponse(200, array('message' => 'Pool mirror deleted'));
-
-			} else
-				httpResponse(400, array('message' => 'Pool mirror ID required'));
-
-		break;
+		default:
+			httpUnsupportedMethod();
+			break;
 	}
 ?>

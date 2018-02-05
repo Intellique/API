@@ -47,7 +47,7 @@ class ArchiveCopyTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('basic')
         copy = json.dumps({
             'archive': 2,
-            'pool': 5
+            'pool': 6
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
