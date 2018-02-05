@@ -2,14 +2,14 @@ Source: storiqone-backend
 Section: utils
 Priority: extra
 Maintainer: Guillaume Clercin <gclercin@intellique.com>
-Build-Depends: debhelper (>= 8.0.0), doxygen, graphviz, texlive, texlive-latex-extra
+Build-Depends: apache2-dev, debhelper (>= 8.0.0), dh-python, python3, doxygen, graphviz, texlive, texlive-latex-extra
 Standards-Version: 3.9.2
 Homepage: http://www.intellique.com
 
 Package: storiqone-backend
 Section: libs
 Architecture: all
-Depends: apache2, php
+Depends: apache2, php, php-pgsql, php-curl
 Recommends: ${misc:Recommends}
 Description: Storiq One (API)
  API of Storiq One
@@ -25,3 +25,18 @@ Section: libs
 Architecture: all
 Description: Documentation (pdf) for Storiq One (API)
  Documentation of API of Storiq One
+
+Package: storiqone-client
+Section: libs
+Architecture: all
+Depends: cron-daemon, ${python3:Depends}
+Suggests: debianutils, storiqone-client-nextcloud-glue
+Description: Client for storiqone
+ A client trigered by cron in order to create archive
+
+Package: storiqone-client-nextcloud-glue
+Section: libs
+Architecture: all
+Depends: nextcloud-server (>= 12)
+Description: Glue for nextcloud
+ Glue to force nextcloud to synchronize user directory
