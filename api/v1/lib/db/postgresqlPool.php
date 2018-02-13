@@ -19,6 +19,31 @@
 			return intval($row[0]);
 		}
 
+		public function createPoolGroup(&$poolgroup) {
+			if (!$this->prepareQuery('create_poolgroup', "INSERT INTO poolgroup(uuid, name) VALUES ($1, $2) RETURNING id"))
+				return NULL;
+
+			$result = pg_execute('create_poolgroup', array($poolgroup['uuid'], $poolgroup['name']));
+			if ($result === false)
+				return null;
+
+			$row = pg_fetch_array($result);
+			$poolgroup_id = intval($row[0]);
+
+			if (count($poolgroup['pools']) > 0) {
+				if (!$this->prepareQuery('link_pool_to_poolgroup', "INSERT INTO pooltopoolgroup VALUES ($1, $2)"))
+					return NULL;
+
+				foreach ($poolgroup['pools'] as &$pool_id) {
+					$result = pg_execute('link_pool_to_poolgroup', array($pool_id, $poolgroup_id));
+					if ($result === false)
+						return null;
+				}
+			}
+
+			return $poolgroup_id;
+		}
+
 		public function createPoolMirror(&$poolmirror) {
 			if (!$this->prepareQuery("create_poolmirror", "INSERT INTO poolmirror(uuid, name, synchronized) VALUES ($1, $2, $3) RETURNING id"))
 				return NULL;

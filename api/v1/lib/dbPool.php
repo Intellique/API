@@ -8,6 +8,13 @@
 		public function createPool(&$pool);
 
 		/**
+		 * \brief Create a poolgroup
+		 * \param $poolgroup : a pool
+		 * \return poolgroup id or NULL on failure
+		 */
+		public function createPoolGroup(&$poolgroup);
+
+		/**
 		 * \brief Create a pool mirror
 		 * \param $poolmirror : a pool mirror
 		 * \return pool mirror id or NULL on failure
