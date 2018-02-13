@@ -215,6 +215,14 @@
 					$query_common .= ' WHERE pool = $' . count($query_params);
 			}
 
+			if (isset($params['status'])) {
+				$query_params[] = $params['status'];
+				if (count($query_params) > 1)
+					$query_common .= ' AND status = $' . count($query_params) . ' ::mediastatus';
+				else
+					$query_common .= ' WHERE status = $' . count($query_params) . ' ::mediastatus';
+			}
+
 			if (isset($params['type'])) {
 				$query_params[] = $params['type'];
 				if (count($query_params) > 1)
