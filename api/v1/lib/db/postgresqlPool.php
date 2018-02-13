@@ -20,7 +20,7 @@
 		}
 
 		public function createPoolGroup(&$poolgroup) {
-			if (!this->prepareQuery('create_poolgroup', "INSERT INTO poolgroup(uuid, name) VALUES ($1, $2) RETURNING id"))
+			if (!$this->prepareQuery('create_poolgroup', "INSERT INTO poolgroup(uuid, name) VALUES ($1, $2) RETURNING id"))
 				return NULL;
 
 			$result = pg_execute('create_poolgroup', array($poolgroup['uuid'], $poolgroup['name']));
@@ -31,7 +31,7 @@
 			$poolgroup_id = intval($row[0]);
 
 			if (count($poolgroup['pools']) > 0) {
-				if (!this->prepareQuery('link_pool_to_poolgroup', "INSERT INTO pooltopoolgroup VALUES ($1, $2)"))
+				if (!$this->prepareQuery('link_pool_to_poolgroup', "INSERT INTO pooltopoolgroup VALUES ($1, $2)"))
 					return NULL;
 
 				foreach ($poolgroup['pools'] as &$pool_id) {

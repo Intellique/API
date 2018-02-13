@@ -143,7 +143,7 @@
 			$poolgroup_id = $dbDriver->createPoolGroup($poolgroup);
 			if (is_integer($poolgroup_id)) {
 				httpAddLocation('/poolgroup/?id=' . $poolgroup_id);
-				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/poolgroup (%d) => PoolGroup %s created', __LINE__, $poolId), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/poolgroup (%d) => PoolGroup %s created', __LINE__, $poolgroup_id), $_SESSION['user']['id']);
 				httpResponse(201, array(
 					'message' => 'PoolGroup created successfully',
 					'poolgroup_id' => $poolgroup_id
