@@ -103,6 +103,60 @@
 			));
 			break;
 
+		case 'POST':
+			checkConnected();
+
+			if (!$_SESSION['user']['isadmin']) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/poolgroup (%d) => A non-admin user tried to create a poolgroup', __LINE__), $_SESSION['user']['id']);
+				httpResponse(403, array('message' => 'Permission denied'));
+			}
+
+			$poolgroup = httpParseInput();
+			if (!isset($poolgroup['name'])) {
+				$dbDriver->writeLog(DB::DB_LOG_WARNING, sprintf('POST api/v1/poolgroup (%d) => Trying to create a poolgroup without specifying poolgroup name', __LINE__), $_SESSION['user']['id']);
+				httpResponse(400, array('message' => 'poolgroup name is required'));
+			}
+
+			if (isset($poolgroup['uuid'])) {
+				if (!is_string($poolgroup['uuid'])) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolgroup (%d) => uuid must be a string and not "%s"', __LINE__, $poolgroup['uuid']), $_SESSION['user']['id']);
+					httpResponse(400, array('message' => 'uuid must be a string'));
+				} elseif (!uuid_is_valid($poolgroup['uuid']))
+					httpResponse(400, array('message' => 'uuid is not valid'));
+			} else
+				$poolgroup['uuid'] = uuid_generate();
+
+			if (isset($poolgroup['pools'])) {
+				if (!is_array($poolgroup['pools'])) {
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolgroup (%d) => pools must be an array of integers', __LINE__), $_SESSION['user']['id']);
+					httpResponse(400, array('message' => 'pools must be an array of integers'));
+				} else {
+					foreach ($poolgroup['pools'] as &$pool)
+						if (!is_integer($pool)) {
+							$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolgroup (%d) => pools must be an array of integers', __LINE__), $_SESSION['user']['id']);
+							httpResponse(400, array('message' => 'pools must be an array of integers'));
+						}
+				}
+			} else
+				$poolgroup['pools'] = array();
+
+			$poolgroup_id = $dbDriver->createPoolGroup($poolgroup);
+			if (is_integer($poolgroup_id)) {
+				httpAddLocation('/poolgroup/?id=' . $poolgroup_id);
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/poolgroup (%d) => PoolGroup %s created', __LINE__, $poolId), $_SESSION['user']['id']);
+				httpResponse(201, array(
+					'message' => 'PoolGroup created successfully',
+					'poolgroup_id' => $poolgroup_id
+				));
+			} else {
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/poolgroup (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/poolgroup (%d) => createPoolGroup(%s)', __LINE__, var_export($poolgroup, true)), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query Failure'));
+			}
+
+			break;
+
+
 		case 'PUT':
 			checkConnected();
 
@@ -177,7 +231,7 @@
 			break;
 
 		case 'OPTIONS':
-			httpOptionsMethod(HTTP_GET | HTTP_PUT);
+			httpOptionsMethod(HTTP_GET | HTTP_POST | HTTP_PUT);
 			break;
 
 		default:
