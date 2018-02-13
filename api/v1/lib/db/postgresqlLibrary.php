@@ -421,6 +421,7 @@
 
 			$vtl = pg_fetch_assoc($result);
 			$vtl['id'] = intval($vtl['id']);
+			$vtl['mediaformat'] = intval($vtl['mediaformat']);
 			$vtl['nbslots'] = intval($vtl['nbslots']);
 			$vtl['nbdrives'] = intval($vtl['nbdrives']);
 			$vtl['host'] = intval($vtl['host']);
@@ -431,7 +432,7 @@
 
 		public function getVTLs() {
 			$query_name = 'get_VTLs';
-			if (!$this->prepareQuery($query_name, "SELECT DISTINCT c.id AS changerid, SUBSTRING(v.path FROM CHAR_LENGTH(SUBSTRING(v.path FROM '(.+/)[^/]+')) + 1) AS name, c.model, c.vendor, c.serialnumber AS changerserialnumber, c.status, c.isonline, c.action FROM changer c INNER JOIN vtl v ON c.serialnumber = v.uuid::TEXT AND c.enable"))
+			if (!$this->prepareQuery($query_name, "SELECT DISTINCT v.id AS vtlid, c.id AS changerid, SUBSTRING(v.path FROM CHAR_LENGTH(SUBSTRING(v.path FROM '(.+/)[^/]+')) + 1) AS name, c.model, c.vendor, c.serialnumber AS changerserialnumber, c.status, c.isonline, c.action FROM changer c INNER JOIN vtl v ON c.serialnumber = v.uuid::TEXT AND c.enable"))
 				return false;
 
 			$query_result = pg_execute($this->connect, $query_name, array());
@@ -439,8 +440,11 @@
 				return false;
 
 			$result = array();
-			while ($row = pg_fetch_assoc($query_result))
+			while ($row = pg_fetch_assoc($query_result)) {
+				$row['changerid'] = intval($row['changerid']);
+				$row['vtlid'] = intval($row['vtlid']);
 				$result[] = $row;
+			}
 
 			return $result;
 		}
