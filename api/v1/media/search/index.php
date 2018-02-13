@@ -75,6 +75,9 @@
 					$ok = false;
 			}
 
+			if (isset($_GET['status']))
+				$params['status'] = $_GET['status'];
+
 			if (isset($_GET['type']))
 				$params['type'] = $_GET['type'];
 
