@@ -40,7 +40,7 @@ parser_lp = sub_parser.add_parser('list_pool', aliases=['lp'], help='List pools'
 parser_lp.set_defaults(action='list_pool')
 
 # sub parser for list_user command
-parser_lu = sub_parser.add_parser('list_user', aliases=['lp'], help='List users')
+parser_lu = sub_parser.add_parser('list_user', aliases=['lu'], help='List users')
 parser_lu.set_defaults(action='list_user')
 
 args = parser.parse_args()
