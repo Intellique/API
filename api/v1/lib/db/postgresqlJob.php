@@ -61,7 +61,6 @@
 				return null;
 
 			$result = pg_execute($this->connect, 'select_job_by_id', array($id));
-
 			if ($result === false)
 				return null;
 
@@ -69,7 +68,6 @@
 				return false;
 
 			$row = pg_fetch_assoc($result);
-
 			$row['id'] = intval($row['id']);
 			$row['nextstart'] = dateTimeParse($row['nextstart']);
 			$row['interval'] = PostgresqlDB::getInteger($row['interval']);
@@ -83,6 +81,25 @@
 			$row['login'] = intval($row['login']);
 			$row['metadata'] = json_decode($row['metadata']);
 			$row['options'] = json_decode($row['options']);
+
+			if (!this->prepareQuery('select_job_run_by_job', 'SELECT id, numrun, starttime, endtime, status, step, done, exitcode, stoppedbyuser FROM jobrun WHERE job = $1 ORDER BY id'))
+				return $row;
+
+			$result = pg_execute($this->connect, 'select_job_run_by_job', array($id));
+			if ($result === false)
+				return $row;
+
+			$row['runs'] = array();
+			while ($jr = pg_fetch_assoc($result)) {
+				$jr['id'] = intval($jr['id']);
+				$jr['numrun'] = intval($jr['numrun']);
+				$jr['starttime'] = dateTimeParse($jr['starttime']);
+				$jr['endtime'] = dateTimeParse($jr['endtime']);
+				$jr['done'] = floatval($jr['done']);
+				$jr['exitcode'] = intval($jr['exitcode']);
+				$jr['stoppedbyuser'] = PostgresqlDB::getBoolean($jr['stoppedbyuser']);
+				$row['runs'][] = $jr;
+			}
 
 			return $row;
 		}
