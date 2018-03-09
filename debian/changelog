@@ -1,3 +1,9 @@
+storiqone-backend (0.2.15+stretch) polisher; urgency=low
+
+  * Bug fix release
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 09 Mar 2018 16:33:08 +0100
+
 storiqone-backend (0.2.14+stretch) polisher; urgency=low
 
   * Find media by status
