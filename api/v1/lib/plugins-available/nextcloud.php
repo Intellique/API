@@ -9,7 +9,7 @@
 		});
 
 		registerPlugin('post POST User', function($event, $new_user, $password) use (&$config) {
-			putenv('OC_PASS=' . $new_user['password']);
+			putenv('OC_PASS=' . $password);
 			$return = exec(sprintf('%s user:add --password-from-env %s', $config['occ_path'], escapeshellarg($new_user['login'])));
 			return (rtrim($return) == sprintf('The user "%s" was created successfully', $new_user['login']));
 		});
