@@ -398,7 +398,7 @@
 			if (!is_numeric($id))
 				return false;
 
-			$query = "SELECT id, archivefile.name, json_object_agg(milestones_files.archive, medias::JSON) AS archives, archivefile.mimetype, ownerid, owner, groupid, groups, ctime, mtime, size FROM archivefile JOIN milestones_files ON archivefile.id = milestones_files.archivefile WHERE id = $1 GROUP BY id, archivefile.name, archivefile.mimetype, ownerid, owner, groupid, groups, ctime, mtime, size";
+			$query = "SELECT af.id, af.name, json_object_agg(mf.archive, mf.medias::JSON) AS archives, af.mimetype, af.ownerid, af.owner, af.groupid, af.groups, af.ctime, af.mtime, af.size, sl.path AS parent FROM archivefile af JOIN milestones_files mf ON af.id = mf.archivefile INNER JOIN selectedfile sl ON af.parent = sl.id WHERE af.id = $1 GROUP BY af.id, af.name, af.mimetype, af.ownerid, af.owner, af.groupid, af.groups, af.ctime, af.mtime, af.size, sl.path";
 
 			switch ($rowLock) {
 				case DB::DB_ROW_LOCK_SHARE:
