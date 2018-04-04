@@ -82,7 +82,7 @@
 			$row['metadata'] = json_decode($row['metadata']);
 			$row['options'] = json_decode($row['options']);
 
-			if (!this->prepareQuery('select_job_run_by_job', 'SELECT id, numrun, starttime, endtime, status, step, done, exitcode, stoppedbyuser FROM jobrun WHERE job = $1 ORDER BY id'))
+			if (!$this->prepareQuery('select_job_run_by_job', 'SELECT id, numrun, starttime, endtime, status, step, done, exitcode, stoppedbyuser FROM jobrun WHERE job = $1 ORDER BY id'))
 				return $row;
 
 			$result = pg_execute($this->connect, 'select_job_run_by_job', array($id));
