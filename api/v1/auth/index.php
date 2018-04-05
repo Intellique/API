@@ -15,6 +15,17 @@
  *   - \b 400 Bad request - Either ; login and/or password and/or apikey missing
  *   - \b 401 Log in failed
  *
+ * \section Authentifaction with a token
+ * To authenficate a user using a JSON Web Token,
+ * use \b POST method
+ * \verbatim path : /storiqone-backend/api/v1/auth/ \endverbatim
+ * \param token : token containing an header, a payload and a signature
+ * \return HTTP status codes :
+ *   - \b 201 Logged in
+ *     \verbatim User id is returned \endverbatim
+ *   - \b 400 Bad request token is invalid (expired or missing informations)
+ *   - \b 401 Log in failed (wrong id user or wrong signature)
+ *
  * \section Connection_status Connection status
  * To check user's connection status,
  * use \b GET method
@@ -36,6 +47,12 @@
 	require_once("uuid.php");
 	require_once("session.php");
 	require_once("db.php");
+	require_once("jwt.php");
+
+	use Lcobucci\JWT\Parser;
+	use Lcobucci\JWT\ValidationData;
+	use Lcobucci\JWT\Signer;
+	use Lcobucci\JWT\Signer\Hmac\Sha256;
 
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'DELETE':
@@ -57,6 +74,41 @@
 			break;
 
 		case 'POST':
+			$headers = apache_request_headers();
+			if(array_key_exists('Authorization', $headers)) {
+				$authJWTs=explode(' ',$headers['Authorization'],2);
+				$testJwt=array_filter(explode('.',$authJWTs[1]));
+				if(count($authJWTs) < 2 || $authJWTs[0] != 'Bearer' || count($testJwt) != 3)
+					httpResponse(400, array('message' => 'token is not valid'));
+
+				$vToken = (new Parser())->parse((string) $authJWTs[1]);
+				$vData = new ValidationData();
+				$vData->setIssuer('StoriqOneBE');
+
+				if(!$vToken->validate($vData))
+					httpResponse(400, array('message' => 'token is not valid'));
+				
+				$id = $vToken->getClaim('login');
+				$user = $dbDriver->getUserById($id);
+				if ($user === null)
+					httpResponse(500, array('message' => 'Query failure'));
+				elseif ($user === false)
+					httpResponse(401, array('message' => 'Log in failed'));
+
+				$signer = new Sha256();
+				if (!$vToken->verify($signer, $user['password']))
+					httpResponse(401, array('message' => 'Log in failed'));
+				
+				$_SESSION['user'] = $user;
+
+				httpAddLocation('/auth/');
+				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/auth (%d) => User %s logged in', __LINE__, $_SESSION['user']['login']), $_SESSION['user']['id']);
+				httpResponse(201, array(
+					'message' => 'Logged in',
+					'user_id' => $user['id']
+				));
+			}
+
 			$credential = httpParseInput();
 
 			if (!$credential || !isset($credential['login']) || !isset($credential['password']) || !isset($credential['apikey']))
