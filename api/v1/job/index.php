@@ -236,6 +236,7 @@
 						$ok = false;
 				}
 
+				$offset = 0;
 				if (isset($_GET['offset'])) {
 					$offset = filter_var($_GET['offset'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
 					if ($offset !== false)
