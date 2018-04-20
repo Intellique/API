@@ -1,13 +1,13 @@
 {
-	"scheme": "http",
-	"host": "taiko",
+	"scheme": "https",
+	"host": "d104",
 	"path": "/storiqone-backend/api/v1/",
-	"apikey": "d017552c-e005-4bc7-86bc-5e3e8b3ade2b",
+	"apikey": "c7d315eb-2be1-4b8c-a934-571045652ea5",
 	"users": {
-		"admin": {
+		"storiq": {
 			"id": 1,
-			"login": "admin",
-			"password": "<password>"
+			"login": "storiq",
+			"password": "spider77"
 		},
 		"basic": {
 			"id": 2,

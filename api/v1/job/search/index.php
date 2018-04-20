@@ -160,7 +160,8 @@
 					$params['offset'] = $offset;
 				else
 					$ok = false;
-			}
+			} else
+				$offset = 0;
 
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));

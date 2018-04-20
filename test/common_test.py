@@ -1,5 +1,6 @@
 import json, unittest
 import http.client
+import ssl
 
 class CommonTest(unittest.TestCase):
     scheme = 'http'
@@ -13,10 +14,16 @@ class CommonTest(unittest.TestCase):
     }
     parsed = False
     apikey = "d017552c-e005-4bc7-86bc-5e3e8b3ade2b"
+    allowAutoSigned = True
 
     def newConnection(self):
         if (self.scheme == 'http'):
             return http.client.HTTPConnection(self.host)
+        elif (self.allowAutoSigned):
+            ssl_context = ssl.SSLContext()
+            ssl_context.verify_mode = False
+            ssl_context.check_hostname = False
+            return http.client.HTTPSConnection(self.host, context = ssl_context)
         else:
             return http.client.HTTPSConnection(self.host)
 
