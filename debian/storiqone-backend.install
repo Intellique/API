@@ -1,3 +1,4 @@
+api/v1/api/* usr/share/storiqone-backend/api/v1/api
 api/v1/archive/* usr/share/storiqone-backend/api/v1/archive
 api/v1/archivefile/* usr/share/storiqone-backend/api/v1/archivefile
 api/v1/archiveformat/* usr/share/storiqone-backend/api/v1/archiveformat

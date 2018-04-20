@@ -1,3 +1,9 @@
+storiqone-backend (0.2.16.1+jessie) polisher; urgency=low
+
+  * Add missing files
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 20 Apr 2018 20:00:33 +0200
+
 storiqone-backend (0.2.16+jessie) polisher; urgency=low
 
   * Authentication with Json Web Token
