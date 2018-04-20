@@ -75,38 +75,44 @@
 
 		case 'POST':
 			$headers = apache_request_headers();
-			if(array_key_exists('Authorization', $headers)) {
-				$authJWTs=explode(' ',$headers['Authorization'],2);
-				$testJwt=array_filter(explode('.',$authJWTs[1]));
-				if(count($authJWTs) < 2 || $authJWTs[0] != 'Bearer' || count($testJwt) != 3)
-					httpResponse(400, array('message' => 'token is not valid'));
+			if (array_key_exists('Authorization', $headers)) {
+				$authJWTs = explode(' ', $headers['Authorization'], 2);
+				if (count($authJWTs) < 2)
+					httpResponse(400, array('message' => 'token is not valid', 'debug' => array($authJWTs)));
 
-				$vToken = (new Parser())->parse((string) $authJWTs[1]);
-				$vData = new ValidationData();
-				$vData->setIssuer('StoriqOneBE');
+				error_log($authJWTs[0]);
+				if ($authJWTs[0] != 'Basic') {
+					$testJwt = array_filter(explode('.', $authJWTs[1]));
+					if ($authJWTs[0] != 'Bearer' || count($testJwt) != 3)
+						httpResponse(400, array('message' => 'token is not valid'));
 
-				if(!$vToken->validate($vData))
-					httpResponse(400, array('message' => 'token is not valid'));
-				
-				$id = $vToken->getClaim('login');
-				$user = $dbDriver->getUserById($id);
-				if ($user === null)
-					httpResponse(500, array('message' => 'Query failure'));
-				elseif ($user === false)
-					httpResponse(401, array('message' => 'Log in failed'));
+					$vToken = (new Parser())->parse((string) $authJWTs[1]);
+					$vData = new ValidationData();
+					$vData->setIssuer('StoriqOneBE');
 
-				$signer = new Sha256();
-				if (!$vToken->verify($signer, $user['password']))
-					httpResponse(401, array('message' => 'Log in failed'));
-				
-				$_SESSION['user'] = $user;
+					if (!$vToken->validate($vData))
+						httpResponse(400, array('message' => 'token is not valid'));
 
-				httpAddLocation('/auth/');
-				$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/auth (%d) => User %s logged in', __LINE__, $_SESSION['user']['login']), $_SESSION['user']['id']);
-				httpResponse(201, array(
-					'message' => 'Logged in',
-					'user_id' => $user['id']
-				));
+					$id = $vToken->getClaim('login');
+					$user = $dbDriver->getUserById($id);
+					if ($user === null)
+						httpResponse(500, array('message' => 'Query failure'));
+					elseif ($user === false)
+						httpResponse(401, array('message' => 'Log in failed'));
+
+					$signer = new Sha256();
+					if (!$vToken->verify($signer, $user['password']))
+						httpResponse(401, array('message' => 'Log in failed'));
+
+					$_SESSION['user'] = $user;
+
+					httpAddLocation('/auth/');
+					$dbDriver->writeLog(DB::DB_LOG_INFO, sprintf('POST api/v1/auth (%d) => User %s logged in', __LINE__, $_SESSION['user']['login']), $_SESSION['user']['id']);
+					httpResponse(201, array(
+						'message' => 'Logged in',
+						'user_id' => $user['id']
+					));
+				}
 			}
 
 			$credential = httpParseInput();
