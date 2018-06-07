@@ -15,6 +15,7 @@
  * | pool      | integer | search a job specifying its pool                                                    |                                 |
  * | login     | integer | search a job specifying the login number of the user which planned it               |                                 |
  * | type      | integer | search a job specifying its type                                                    |                                 |
+ * | status    | csv     | search a job specifying its status, allow comma separated values                    |                                 |
  * | archive   | integer | search a job specifying its archive                                                 |                                 |
  * | media     | integer | search a job specifying its media                                                   |                                 |
  * | order_by  | enum    | order by column                                                                     | value in : 'id', 'size', 'name', 'type', 'owner', 'groups' |
@@ -113,6 +114,20 @@
 					$ok = false;
 				else
 					$params['type'] = $type;
+			}
+
+			if (isset($_GET['status'])) {
+				$statuses = array('disable', 'error', 'finished', 'pause', 'running', 'scheduled', 'stopped', 'waiting');
+				$params['status'] = array();
+
+				foreach (explode(',', $_GET['status']) as $status) {
+					if (in_array($status, $statuses))
+						$params['status'][] = $status;
+					else {
+						$ok = false;
+						break;
+					}
+				}
 			}
 
 			if (isset($_GET['archive'])) {

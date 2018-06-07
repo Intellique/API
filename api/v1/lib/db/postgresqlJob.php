@@ -145,6 +145,24 @@
 				}
 			}
 
+			if (isset($params['status'])) {
+				if ($clause_where)
+					$query .= ' AND status IN (';
+				else {
+					$query .= ' WHERE status IN (';
+					$clause_where = true;
+				}
+
+				for ($i = 0; $i < count($params['status']); $i++) {
+					$query_params[] = $params['status'][$i];
+					$query .= '$' . count($query_params);
+					if ($i + 1 < count($params['status']))
+						$query .= ',';
+				}
+
+				$query .= ')';
+			}
+
 			if (isset($params['archive'])) {
 				$query_params[] = $params['archive'];
 				if ($clause_where)
