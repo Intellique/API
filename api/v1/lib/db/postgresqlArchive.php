@@ -216,7 +216,7 @@
 				$query_common .= ' uuid = $' . count($query_params);
 			}
 
-			if (isset($params['deleted'])) {
+			if (isset($params['deleted']) && $params['deleted'] !== 'yes') {
 				if (count($query_params) > 0)
 					$query_common .= ' AND';
 				else

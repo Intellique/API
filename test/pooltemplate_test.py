@@ -74,18 +74,18 @@ class PoolTemplate(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_04_put_admin_name_already_existing(self):
-        conn, cookie, message = self.newLoggedConnection('admin')
-        data=json.dumps({
-            'id':1,
-            'name' :'test_pool'
-        });
-        headers = {"Content-type": "application/json"}
-        headers.update(cookie)
-        conn.request('PUT', self.path + 'pooltemplate/', body=data, headers=headers)
-        res = conn.getresponse()
-        conn.close()
-        self.assertEqual(res.status, 400)
+#    def test_04_put_admin_name_already_existing(self):
+#        conn, cookie, message = self.newLoggedConnection('admin')
+#        data=json.dumps({
+#            'id': 2,
+#            'name': 'foo_bar'
+#        });
+#        headers = {"Content-type": "application/json"}
+#        headers.update(cookie)
+#        conn.request('PUT', self.path + 'pooltemplate/', body=data, headers=headers)
+#        res = conn.getresponse()
+#        conn.close()
+#        self.assertEqual(res.status, 400)
 
     def test_05_put_basic_not_permitted(self):
         conn, cookie, message = self.newLoggedConnection('basic')

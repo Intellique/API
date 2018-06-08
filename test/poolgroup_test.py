@@ -4,8 +4,8 @@ import json
 class PoolgroupTest(CommonTest):
 
     def test_01_get_poolgroup_not_permitted(self):
-        conn, headers, message = self.newLoggedConnection('archiver')
-        conn.request('GET', "%spoolgroup/?id=%s" % (self.path, 3), headers=headers)
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('GET', "%spoolgroup/?id=%s" % (self.path, 2), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)

@@ -4,12 +4,12 @@ import json
 
 class PoolMirrorTest(CommonTest):
 
-    def test_01_get_poolmirror_success(self):
-        conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%spoolmirror/?id=2" % (self.path), headers=headers)
-        res = conn.getresponse()
-        conn.close()
-        self.assertEqual(res.status, 200)
+#    def test_01_get_poolmirror_success(self):
+#        conn, headers, message = self.newLoggedConnection('admin')
+#        conn.request('GET', "%spoolmirror/?id=1" % (self.path), headers=headers)
+#        res = conn.getresponse()
+#        conn.close()
+#        self.assertEqual(res.status, 200)
 
     def test_02_get_poolmirror_list_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -25,13 +25,13 @@ class PoolMirrorTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 403)
 
-    def test_04_delete_poolmirror_success(self):
-        conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('DELETE', "%spoolmirror/?id=2" % (self.path), headers=headers)
-        res = conn.getresponse()
-        message = json.loads(res.read().decode("utf-8"))
-        conn.close()
-        self.assertEqual(res.status, 200)
+#    def test_04_delete_poolmirror_success(self):
+#        conn, headers, message = self.newLoggedConnection('admin')
+#        conn.request('DELETE', "%spoolmirror/?id=1" % (self.path), headers=headers)
+#        res = conn.getresponse()
+#        message = json.loads(res.read().decode("utf-8"))
+#        conn.close()
+#        self.assertEqual(res.status, 200)
 
     def test_05_delete_poolmirror_basic(self):
         conn, headers, message = self.newLoggedConnection('basic')
@@ -93,9 +93,9 @@ class PoolMirrorTest(CommonTest):
     def test_10_put_poolmirror_success(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'id' : 4,
-            'name' :'bar',
-            'synchronized':False
+            'id': 1,
+            'name': 'bar',
+            'synchronized': False
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -107,10 +107,10 @@ class PoolMirrorTest(CommonTest):
     def test_11_put_poolmirror_uuid_cannot_be_modified(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'id' : 4,
+            'id': 1,
             'uuid': 'yo',
-            'name' :'bar',
-            'synchronized':False
+            'name': 'bar',
+            'synchronized': False
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)

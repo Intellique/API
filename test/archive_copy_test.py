@@ -60,8 +60,8 @@ class ArchiveCopyTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         copy = json.dumps({
             'name': '',
-            'archive': 3,
-            'pool': 1
+            'archive': 57,
+            'pool': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -74,8 +74,8 @@ class ArchiveCopyTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         copy = json.dumps({
             'name': 'ArchiveCopyTest',
-            'archive': 2,
-            'pool': 3
+            'archive': 57,
+            'pool': 4
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -96,15 +96,15 @@ class ArchiveCopyTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveCopyTest')
-        self.assertEqual(job['job']['archive'], 2)
-        self.assertEqual(job['job']['pool'], 3)
+        self.assertEqual(job['job']['archive'], 57)
+        self.assertEqual(job['job']['pool'], 4)
 
     def test_08_post_admin_user_with_right_params2(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         copy = json.dumps({
             'name': 'ArchiveCopyTest2',
-            'archive': 2,
-            'pool': 7,
+            'archive': 57,
+            'pool': 4,
             'nextstart': '2016-06-06 06:06:06+02',
             'options': {'quick_mode': True}
         });
@@ -127,7 +127,7 @@ class ArchiveCopyTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveCopyTest2')
-        self.assertEqual(job['job']['archive'], 2)
-        self.assertEqual(job['job']['pool'], 7)
+        self.assertEqual(job['job']['archive'], 57)
+        self.assertEqual(job['job']['pool'], 4)
         self.assertEqual(job['job']['nextstart'], '2016-06-06T04:06:06+0000')
         self.assertEqual(job['job']['options'], {'quick_mode': True})

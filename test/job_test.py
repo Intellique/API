@@ -25,8 +25,8 @@ class JobTest(CommonTest):
         self.assertEqual(res.status, 200)
 
     def test_04_get_job_logged_as_archiver(self):
-        conn, headers, message = self.newLoggedConnection('archiver')
-        conn.request('GET', "%sjob/?id=%d" % (self.path, 4), headers=headers)
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('GET', "%sjob/?id=%d" % (self.path, 67), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
@@ -149,8 +149,8 @@ class JobTest(CommonTest):
         self.assertEqual(res.status, 401)
 
     def test_20_delete_job_archiver_user_not_allowed(self):
-        conn, headers, message = self.newLoggedConnection('archiver')
-        conn.request('DELETE', "%sjob/?id=%d" % (self.path, 4), headers=headers)
+        conn, headers, message = self.newLoggedConnection('basic')
+        conn.request('DELETE', "%sjob/?id=%d" % (self.path, 66), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
@@ -198,10 +198,10 @@ class JobTest(CommonTest):
         self.assertEqual(res.status, 400)
 
     def test_26_put_job_user_archiver_not_allowed_crafted_message(self):
-        conn, cookie, message = self.newLoggedConnection('archiver')
+        conn, cookie, message = self.newLoggedConnection('basic')
         io = StringIO()
         json.dump({
-            'id': 5,
+            'id': 66,
             'login': 3
         }, io);
         headers = {"Content-type": "application/json"}
