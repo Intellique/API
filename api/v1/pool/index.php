@@ -394,6 +394,41 @@
 				httpResponse(400, array('message' => 'poolmirror must be an integer'));
 			}
 
+			if (!isset($pool['scripts']))
+				$pool['scripts'] = array();
+			elseif (!is_array($pool['scripts']))
+				httpResponse(400, array('message' => 'Specified script is invalid'));
+			else {
+				foreach ($pool['scripts'] as $script) {
+					if (!isset($script['scripttype']))
+						httpResponse(400, array('message' => 'Scripttype is required'));
+					elseif (!in_array($script['scripttype'], array('on error', 'pre job', 'post job')))
+						httpResponse(400, array('message', 'Invalid script type'));
+					elseif (!is_int($script['sequence']) || $script['sequence'] < 0)
+						httpResponse(400, array('message' => 'Sequence must be an integer and superior or equal to zero'));
+					elseif (!isset($script['jobtype']))
+						httpResponse(400, array('message' => 'Jobtype is required'));
+					elseif (!isset($script['script']))
+						httpResponse(400, array('message' => 'Script is required'));
+
+					$jobtype = $dbDriver->getJobTypeId($script['jobtype']);
+					if ($jobtype === NULL)
+						httpResponse(500, array(
+							'message' => 'Query Failure',
+							'pool' => array()));
+					elseif ($jobtype === false)
+						httpResponse(404, array('message' => 'jobtype not found'));
+
+					$script = $dbDriver->getScripts($script['script']);
+					if ($script === NULL) {
+						httpResponse(500, array(
+							'message' => 'Query Failure',
+							'pool' => array()));
+					} elseif ($script === False)
+						httpResponse(400, array('message' => 'This pool script id does not exist'));
+				}
+			}
+
 			$poolId = $dbDriver->createPool($pool);
 			if ($poolId === NULL) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/pool (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
@@ -433,11 +468,11 @@
 			}
 
 			$pool_base = $dbDriver->getPool($pool['id']);
-			if ($pool['archiveformat'] === NULL) {
+			if ($pool_base === NULL) {
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('PUT api/v1/pool (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('PUT api/v1/pool (%d) => getPool(%s)', __LINE__, $pool['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query Failure'));
-			} elseif ($pool['archiveformat'] === False)
+			} elseif ($pool_base === False)
 				httpResponse(400, array('message' => 'id does not exist'));
 
 			if (isset($pool['uuid']))
@@ -613,6 +648,41 @@
 				httpResponse(400, array('message' => 'poolmirror must be an integer'));
 			}
 
+			if (!isset($pool['scripts']))
+				$pool['scripts'] = $pool_base['scripts'];
+			elseif (!is_array($pool['scripts']))
+				httpResponse(400, array('message' => 'Specified script is invalid'));
+			else {
+				foreach ($pool['scripts'] as $script) {
+					if (!isset($script['scripttype']))
+						httpResponse(400, array('message' => 'Scripttype is required'));
+					elseif (!in_array($script['scripttype'], array('on error', 'pre job', 'post job')))
+						httpResponse(400, array('message', 'Invalid script type'));
+					elseif (!is_int($script['sequence']) || $script['sequence'] < 0)
+						httpResponse(400, array('message' => 'Sequence must be an integer and superior or equal to zero'));
+					elseif (!isset($script['jobtype']))
+						httpResponse(400, array('message' => 'Jobtype is required'));
+					elseif (!isset($script['script']))
+						httpResponse(400, array('message' => 'Script is required'));
+
+					$jobtype = $dbDriver->getJobTypeId($script['jobtype']);
+					if ($jobtype === NULL)
+						httpResponse(500, array(
+							'message' => 'Query Failure',
+							'pool' => array()));
+					elseif ($jobtype === false)
+						httpResponse(404, array('message' => 'jobtype not found'));
+
+					$script = $dbDriver->getScripts($script['script']);
+					if ($script === NULL) {
+						httpResponse(500, array(
+							'message' => 'Query Failure',
+							'pool' => array()));
+					} elseif ($script === False)
+						httpResponse(400, array('message' => 'This pool script id does not exist'));
+				}
+			}
+
 			$pool['deleted'] = $pool_base['deleted'];
 
 			$result = $dbDriver->updatePool($pool);
@@ -625,7 +695,6 @@
 				httpResponse(500, array('message' => 'Query failure'));
 			}
 			break;
-
 
 		case 'OPTIONS':
 			httpOptionsMethod(HTTP_GET);

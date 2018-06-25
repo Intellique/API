@@ -129,9 +129,9 @@ class PoolTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('basic')
         data = json.dumps({
             'uuid': 'b2719811-bad0-466a-8c00-7e7a51c7f475',
-            'name' :'EXPORT_PROVISOIRE_RUS',
-            'archiveformat':1,
-            'mediaformat' :2
+            'name': 'EXPORT_PROVISOIRE_RUS',
+            'archiveformat': 1,
+            'mediaformat': 2
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -144,9 +144,9 @@ class PoolTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'uuid': '42',
-            'name' :'foo',
-            'archiveformat':2,
-            'mediaformat' :3
+            'name': 'foo',
+            'archiveformat': 2,
+            'mediaformat': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -159,9 +159,9 @@ class PoolTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'uuid': '42',
-            'name' : None,
-            'archiveformat':2,
-            'mediaformat' :3
+            'name': None,
+            'archiveformat': 2,
+            'mediaformat': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -174,9 +174,9 @@ class PoolTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'uuid': '42',
-            'name' : 50,
-            'archiveformat':2,
-            'mediaformat' :3
+            'name': 50,
+            'archiveformat': 2,
+            'mediaformat': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -189,9 +189,9 @@ class PoolTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'uuid': '42',
-            'name' :'foo',
-            'archiveformat':2,
-            'mediaformat' :3
+            'name': 'foo',
+            'archiveformat': None,
+            'mediaformat': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -204,9 +204,9 @@ class PoolTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'uuid': '42',
-            'name' :'foo',
-            'archiveformat':2,
-            'mediaformat' :3
+            'name': 'foo',
+            'archiveformat': 'foo',
+            'mediaformat': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -219,9 +219,9 @@ class PoolTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'uuid': '42',
-            'name' :'foo',
-            'archiveformat':2,
-            'mediaformat' : None
+            'name': 'foo',
+            'archiveformat': 2,
+            'mediaformat': None
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -234,9 +234,9 @@ class PoolTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'uuid': '42',
-            'name' :'foo',
-            'archiveformat':2,
-            'mediaformat' :'foo'
+            'name': 'foo',
+            'archiveformat': 2,
+            'mediaformat': 'foo'
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -273,7 +273,7 @@ class PoolTest(CommonTest):
 #        data=json.dumps({
 #            'pooltemplate': 2,
 #            'name': 'foo',
-#            'archiveformat':1,
+#            'archiveformat': 1,
 #            'mediaformat': 2,
 #            'backuppool': False,
 #            'deleted': True
@@ -288,12 +288,12 @@ class PoolTest(CommonTest):
     def test_28_post_pool_admin_using_pooltemplate_not_found(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'pooltemplate' : 100,
-            'name' :'foo',
-            'archiveformat':1,
-            'mediaformat' :2,
-            'backuppool' : False,
-            'deleted' : True
+            'pooltemplate': 100,
+            'name': 'foo',
+            'archiveformat': 1,
+            'mediaformat': 2,
+            'backuppool': False,
+            'deleted': True
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -313,11 +313,11 @@ class PoolTest(CommonTest):
     def test_30_put_basic_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         data = json.dumps({
-            'id':5,
+            'id': 5,
             'uuid': 'b2719811-bad0-466a-8c00-7e7a51c7f475',
-            'name' :'EXPORT_PROVISOIRE_RUSHS',
-            'archiveformat':1,
-            'mediaformat' :2
+            'name': 'EXPORT_PROVISOIRE_RUSHS',
+            'archiveformat': 1,
+            'mediaformat': 2
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -329,11 +329,11 @@ class PoolTest(CommonTest):
     def test_31_put_admin_user_with_wrong_uuid(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'id':5,
+            'id': 5,
             'uuid': '42',
-            'name' :'foo',
-            'archiveformat':2,
-            'mediaformat' :3
+            'name': 'foo',
+            'archiveformat': 2,
+            'mediaformat': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -345,11 +345,11 @@ class PoolTest(CommonTest):
     def test_32_put_admin_user_with_no_name(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'id':5,
+            'id': 5,
             'uuid': '42',
-            'name' : None,
-            'archiveformat':2,
-            'mediaformat' :3
+            'name': None,
+            'archiveformat': 2,
+            'mediaformat': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -361,11 +361,11 @@ class PoolTest(CommonTest):
     def test_33_put_admin_user_with_wrong_name(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'id':5,
+            'id': 5,
             'uuid': '42',
-            'name' : 50,
-            'archiveformat':2,
-            'mediaformat' :3
+            'name': 50,
+            'archiveformat': 2,
+            'mediaformat': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -377,11 +377,9 @@ class PoolTest(CommonTest):
     def test_34_put_admin_user_with_no_archiveformat(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'id':5,
-            'uuid': '42',
-            'name' :'foo',
-            'archiveformat':2,
-            'mediaformat' :3
+            'id': 5,
+            'name': 'foo',
+            'mediaformat': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -393,11 +391,11 @@ class PoolTest(CommonTest):
     def test_35_put_admin_user_with_wrong_archiveformat(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'id':5,
+            'id': 5,
             'uuid': '42',
-            'name' :'foo',
-            'archiveformat':2,
-            'mediaformat' :3
+            'name': 'foo',
+            'archiveformat': 'foo',
+            'mediaformat': 3
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -409,11 +407,11 @@ class PoolTest(CommonTest):
     def test_36_put_admin_user_with_no_mediaformat(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'id':5,
+            'id': 5,
             'uuid': '42',
-            'name' :'foo',
-            'archiveformat':2,
-            'mediaformat' : None
+            'name': 'foo',
+            'archiveformat': 2,
+            'mediaformat': None
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -425,11 +423,11 @@ class PoolTest(CommonTest):
     def test_37_put_admin_user_with_wrong_mediaformat(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'id':5,
+            'id': 5,
             'uuid': '42',
-            'name' :'foo',
-            'archiveformat':2,
-            'mediaformat' :'foo'
+            'name': 'foo',
+            'archiveformat': 2,
+            'mediaformat': 'foo'
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -480,3 +478,273 @@ class PoolTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
+
+    def test_43_post_admin_user_with_wrong_script(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'name': 'foo',
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': 'foo'
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_44_post_admin_user_with_no_script_scripttype(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'name': 'foo',
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 4,
+                'jobtype': 5,
+                'script': 2,
+                'scripttype': None
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_45_post_admin_user_with_wrong_script_scripttype(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'name': 'foo',
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 4,
+                'jobtype': 5,
+                'script': 2,
+                'scripttype': 50
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_46_post_admin_user_with_wrong_script_sequence(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'name': 'foo',
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 'aaa',
+                'jobtype': 5,
+                'script': 2,
+                'scripttype': 'post job'
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_47_post_admin_user_with_no_script_jobtype(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'name': 'foo',
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 4,
+                'jobtype': None,
+                'script': 2,
+                'scripttype': 'post job'
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_48_post_admin_user_with_no_script_script(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'name': 'foo',
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 4,
+                'jobtype': 5,
+                'script': None,
+                'scripttype': 'post job'
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_49_post_admin_user_with_script_jobtype_not_found(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'name': 'foo',
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 4,
+                'jobtype': 123,
+                'script': 2,
+                'scripttype': 'post job'
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)
+
+    def test_51_put_admin_user_with_wrong_script(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'id': 5,
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': 'foo'
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_52_put_admin_user_with_no_script_scripttype(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'id': 5,
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 4,
+                'jobtype': 5,
+                'script': 2,
+                'scripttype': None
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_53_put_admin_user_with_wrong_script_scripttype(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'id': 5,
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 4,
+                'jobtype': 5,
+                'script': 2,
+                'scripttype': 50
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_54_put_admin_user_with_wrong_script_sequence(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'id': 5,
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 'aaa',
+                'jobtype': 5,
+                'script': 2,
+                'scripttype': 'post job'
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_55_put_admin_user_with_no_script_jobtype(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'id': 5,
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 4,
+                'jobtype': None,
+                'script': 2,
+                'scripttype': 'post job'
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_56_put_admin_user_with_no_script_script(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'id': 5,
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 4,
+                'jobtype': 5,
+                'script': None,
+                'scripttype': 'post job'
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)
+
+    def test_57_put_admin_user_with_script_jobtype_not_found(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data=json.dumps({
+            'id': 5,
+            'archiveformat': 1,
+            'mediaformat': 3,
+            'scripts': [{
+                'sequence': 4,
+                'jobtype': 123,
+                'script': 2,
+                'scripttype': 'post job'
+            }]
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('PUT', self.path + 'pool/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)

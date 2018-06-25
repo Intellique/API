@@ -4,7 +4,7 @@
 	trait PostgresqlDBPool {
 		public function createPool(&$pool) {
 			if (!$this->prepareQuery("create_pool", "INSERT INTO pool(uuid, name, archiveformat, mediaformat, autocheck, lockcheck, growable, unbreakablelevel, metadata, backuppool, poolmirror) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id"))
-			return NULL;
+				return NULL;
 
 			$lockcheck = $pool['lockcheck'] ? "TRUE" : "FALSE";
 			$growable = $pool['growable'] ? "TRUE" : "FALSE";
@@ -16,7 +16,12 @@
 				return null;
 
 			$row = pg_fetch_array($result);
-			return intval($row[0]);
+			$pool_id = intval($row[0]);
+
+			if ($this->createScripts($pool_id, $pool['scripts']))
+				return $pool_id;
+			else
+				return null;
 		}
 
 		public function createPoolGroup(&$poolgroup) {
@@ -75,6 +80,19 @@
 
 			$row = pg_fetch_array($result);
 			return intval($row[0]);
+		}
+
+		private function createScripts($pool_id, &$scripts) {
+			if (!$this->prepareQuery("create_scripts", "INSERT INTO scripts(sequence, jobtype, script, scripttype, pool) VALUES ($1, $2, $3, $4, $5)"))
+				return NULL;
+
+			foreach ($scripts as $script) {
+				$result = pg_execute("create_scripts", array($script['sequence'], $script['jobtype'], $script['script'], $script['scripttype'], $pool_id));
+				if ($result === false)
+					return NULL;
+			}
+
+			return true;
 		}
 
 		public function deletePoolMirror($id) {
@@ -140,6 +158,21 @@
 			$pool['pooloriginal'] = isset($pool['pooloriginal']) ? intval($pool['pooloriginal']) : null;
 			$pool['poolmirror'] = isset($pool['poolmirror']) ? intval($pool['poolmirror']) : null;
 			$pool['deleted'] = $pool['deleted'] == 't' ? true : false;
+			$pool['scripts'] = array();
+
+			if (!$this->prepareQuery("get_script_by_pool", "SELECT sequence, jobtype, script, scripttype FROM scripts WHERE pool = $1 ORDER BY jobtype, sequence"))
+				return NULL;
+
+			$result = pg_execute('get_script_by_pool', array($id));
+			if ($result === false)
+				return null;
+
+			while ($row = pg_fetch_assoc($result)) {
+				$row['sequence'] = intval($row['sequence']);
+				$row['jobtype'] = intval($row['jobtype']);
+				$row['script'] = intval($row['script']);
+				$pool['scripts'][] = $row;
+			}
 
 			return $pool;
 		}
@@ -885,7 +918,19 @@
 			if ($result === false)
 				return null;
 
-			return pg_affected_rows($result) > 0;
+			$result = pg_affected_rows($result) > 0;
+
+			if (!$this->prepareQuery("delete_script_by_pool", "DELETE FROM scripts WHERE pool = $1"))
+				return null;
+
+			$result = pg_execute("delete_script_by_pool", array($pool['id']));
+			if ($result === false)
+				return null;
+
+			if ($this->createScripts($pool['id'], $pool['scripts']))
+				return $result;
+			else
+				return null;
 		}
 
 		public function updatePoolMirror($poolmirror) {
