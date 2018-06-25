@@ -32,13 +32,13 @@
  * use \b DELETE method : <i>with pool id</i>
  * \section Pool-creation Pool creation
  * To create a pool,
- * use \b POST method <i>with pool parameters (uuid, name, archiveformat, mediaformat)</i>
+ * use \b POST method <i>with pool parameters (uuid, name, archiveformat, mediaformat, \ref PoolScripts)</i>
  * \section Pool-creation_Pooltemplate Pool creation using a pool template
  * To create a pool based on a pool template,
- * use \b POST method <i>with the id of the pool template to use to create the pool, \b plus pool parameters (uuid, name, archiveformat, mediaformat)</i>
+ * use \b POST method <i>with the id of the pool template to use to create the pool, \b plus pool parameters (uuid, name, archiveformat, mediaformat, \ref PoolScripts)</i>
  * \section Pool-update Pool update
  * To update a pool,
- * use \b PUT method <i>with pool parameters (id, uuid, name, archiveformat, mediaformat) </i>
+ * use \b PUT method <i>with pool parameters (id, uuid, name, archiveformat, mediaformat, \ref PoolScripts) </i>
  * \verbatim path : /storiqone-backend/api/v1/pool/ \endverbatim
  *        Name          |         Type             |                     Value
  * | :----------------: | :---------------------:  | :---------------------------------------------------------:
@@ -55,12 +55,31 @@
  * |  metadata          |  json                    | non NULL Default value, '{}'::json
  * |  backuppool        |  boolean                 | non NULL Default value, false
  * |  poolmirror        |  integer                 |                           _
+ * |  scripts           |  array of script         |                           _
  * |  deleted           |  boolean                 | non NULL Default value, false
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
  *   - \b 400 Incorrect input
  *   - \b 401 Not logged in
  *   - \b 500 Query failure
+ *
+ * \section PoolScripts Pool Scripts
+ * |        Name        |         Type             |                     Value
+ * | :----------------: | :---------------------:  | :---------------------------------------------------------:
+ * |  sequence          |  integer                 | non NULL
+ * |  jobtype           |  integer                 | non NULL
+ * |  script            |  integer                 |                           _
+ * |  scripttype        |  scripttype              | non NULL
+ *
+ *
+ * <b>Parameters</b>
+ *
+ * |   Name      |  Type   |                                  Description                                        |           Constraint            |
+ * | :---------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------: |
+ * | sequence    | integer | sequence number of the script                                                       | sequence >= 0                   |
+ * | jobtype     | integer | jobtype of the script                                                               |                                 |
+ * | script      | integer | script number of the script                                                         |                                 |
+ * | scripttype  | integer | type of the script (one of "on error", "pre job" or "post job")                     |                                 |
  */
 	require_once("../lib/env.php");
 
