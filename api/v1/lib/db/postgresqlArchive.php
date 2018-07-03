@@ -435,7 +435,7 @@
 		}
 
 		public function getArchiveFilesByParams(&$params, $userId) {
-			$query_common = ' FROM milestones_files mf INNER JOIN archive a ON mf.archive = a.id AND NOT a.deleted WHERE pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)';
+			$query_common = ' FROM milestones_files mf INNER JOIN archive a ON mf.archive = a.id AND NOT a.deleted WHERE a.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)';
 			$query_params = array($userId);
 
 			if (isset($params['name'])) {
