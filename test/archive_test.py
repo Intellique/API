@@ -318,3 +318,16 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
+    def test_35_get_archive_by_pool(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'archive/?pool=4', headers=cookie)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
+
+    def test_36_get_archive_by_poolgroup(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        conn.request('GET', self.path + 'archive/?poolgroup=4', headers=cookie)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)        
