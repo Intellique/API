@@ -1,3 +1,11 @@
+storiqone-backend (0.2.17+stretch) polisher; urgency=low
+
+  * Add suggestion to storiqone-backend
+  * Can manage scripts (for pool)
+  * improve sql queries (which use archive table, remove unwanted join)
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Wed, 04 Jul 2018 12:05:11 +0200
+
 storiqone-backend (0.2.16.1+stretch) polisher; urgency=low
 
   * Add missing files
