@@ -134,10 +134,18 @@
 			} elseif ($check_user === false)
 				httpResponse(404, array('message' => 'User not found'));
 
+			$params = array("creator" => (int) $_GET['id'], "owner" => (int) $_GET['id']);
+			$result = $dbDriver->getArchives($_SESSION['user'], $params);
+			if ($result === null) {
+				$dbDriver->cancelTransaction();
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($result['total_rows'] > 0)
+				httpResponse(403, array('message' => 'Deletion denied because it is forbidden to delete an user who had created an archive'));
+
 			$returns = triggerEvent('pre DELETE User', $check_user);
 			if (!checkEventValues($returns)) {
 				$dbDriver->cancelTransaction();
-				httpResponse(403, array('message' => 'deletion abord by script request'));
+				httpResponse(403, array('message' => 'Deletion abord by script request'));
 			}
 
 			$delete_status = $dbDriver->deleteUser($_GET['id']);

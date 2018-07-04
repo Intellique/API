@@ -32,9 +32,9 @@ class ArchiveCheckTest(CommonTest):
         self.assertEqual(res.status, 400)
 
     def test_04_post_archiver_user_not_allowed(self):
-        conn, cookie, message = self.newLoggedConnection('archiver')
+        conn, cookie, message = self.newLoggedConnection('basic')
         check = json.dumps({
-            'archive': 2
+            'archive': 57
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -90,7 +90,7 @@ class ArchiveCheckTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         check = json.dumps({
             'name': None,
-            'archive': 2,
+            'archive': 57,
             'nextstart': '2000-05-05 05:05:05+02',
             'options': {'thorough_mode': True}
         });
@@ -112,7 +112,7 @@ class ArchiveCheckTest(CommonTest):
         self.assertEqual(res.status, 200)
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
-        self.assertEqual(job['job']['name'], 'check_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN')
-        self.assertEqual(job['job']['archive'], 2)
+        self.assertEqual(job['job']['name'], 'check_NASA 1')
+        self.assertEqual(job['job']['archive'], 57)
         self.assertEqual(job['job']['nextstart'], '2000-05-05T03:05:05+0000')
         self.assertEqual(job['job']['options'], {'quick_mode': False})

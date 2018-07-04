@@ -93,8 +93,8 @@ class MediaFormatTest(CommonTest):
     def test_09_post_admin_user_with_no_media(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data = json.dumps({
-            'media': 256,
-            'pool': 3
+            'media': 200,
+            'pool': 2
         })
         headers = {"Content-type": "application/json"}
         headers.update(cookie)

@@ -33,7 +33,7 @@ class ArchiveformatTest(CommonTest):
 
     def test_05_get_archiveformat_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sarchiveformat/?id=%d" % (self.path, 2), headers=headers)
+        conn.request('GET', "%sarchiveformat/?id=%d" % (self.path, 1), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)

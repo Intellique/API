@@ -7,6 +7,7 @@
 	require_once("postgresqlMetadata.php");
 	require_once("postgresqlPermission.php");
 	require_once("postgresqlPool.php");
+	require_once("postgresqlScript.php");
 	require_once("postgresqlSession.php");
 	require_once("postgresqlUser.php");
 
@@ -14,7 +15,7 @@
 	 * \brief postgresql's implementation
 	 */
 	class PostgresqlDB implements DB {
-		use PostgresqlDBArchive, PostgresqlDBJob, PostgresqlDBLibrary, PostgresqlDBMedia, PostgresqlDBMetadata, PostgresqlDBPermission, PostgresqlDBPool, PostgresqlDBSession, PostgresqlDBUser;
+		use PostgresqlDBArchive, PostgresqlDBJob, PostgresqlDBLibrary, PostgresqlDBMedia, PostgresqlDBMetadata, PostgresqlDBPermission, PostgresqlDBPool, PostgresqlDBScript, PostgresqlDBSession, PostgresqlDBUser;
 
 		/**
 		 * \brief connection resource required by pg_*

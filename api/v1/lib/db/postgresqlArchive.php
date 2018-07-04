@@ -45,7 +45,7 @@
 			if (!is_numeric($id))
 				return false;
 
-			$query = "SELECT id, uuid, name, creator, owner, canappend, deleted FROM archive WHERE id = $1";
+			$query = "SELECT id, uuid, name, creator, owner, canappend, pool, deleted FROM archive WHERE id = $1";
 
 			switch ($rowLock) {
 				case DB::DB_ROW_LOCK_SHARE:
@@ -80,7 +80,7 @@
 			$archive['deleted'] = $archive['deleted'] == 't' ? true : false;
 
 			$archive['metadata'] = $this->getMetadatas($id, 'archive');
-
+			$archive['pool'] = $this->getPool($archive['pool'], $rowLock);
 
 			$query = "SELECT id, sequence, size, starttime, endtime, checktime, checksumok, media, mediaposition, jobrun, purged FROM archivevolume WHERE archive = $1 ORDER BY sequence";
 
@@ -127,38 +127,18 @@
 		}
 
 		public function getArchives(&$user, &$params) {
-			$query_common = " FROM archive";
+			$query_common = " FROM archive a";
 			$query_params = array();
 
-			if (isset($params['archivefile']) or isset($params['media']) or isset($params['pool']) or isset($params['poolgroup'])) {
-				$query_common .= " WHERE id IN (SELECT av.archive FROM archivevolume av";
+			if (isset($params['archivefile']) or isset($params['media'])) {
+				$query_common .= " WHERE a.id IN (SELECT av.archive FROM archivevolume av";
 
 				if (isset($params['archivefile'])) {
 					$query_params[] = $params['archivefile'];
 					$query_common .= " INNER JOIN archivefiletoarchivevolume af2av ON av.id = af2av.archivevolume AND af2av.archivefile = $" . count($query_params);
 				}
 
-				if (isset($params['pool']) or isset($params['poolgroup'])) {
-					$query_common .= " INNER JOIN media m ON av.media = m.id WHERE";
-
-					if (isset($params['pool']) and isset($params['poolgroup'])) {
-						$query_params[] = $params['pool'];
-						$query_common .= " m.pool = $" . count($query_params) . " AND EXISTS(SELECT * FROM pooltopoolgroup WHERE pool = $" . count($query_params);
-						$query_params[] = $params['poolgroup'];
-						$query_common .= " AND poolgroup = $" . count($query_params) . ")";
-					} elseif (isset($params['poolgroup'])) {
-						$query_params[] = $params['poolgroup'];
-						$query_common .= " m.pool IN (SELECT pool FROM pooltopoolgroup WHERE poolgroup = $" . count($query_params) . ")";
-					} else {
-						$query_params[] = $params['pool'];
-						$query_common .= " m.pool = $" . count($query_params);
-					}
-
-					if (isset($params['media'])) {
-						$query_params[] = $params['media'];
-						$query_common .= " AND m.id = $" . count($query_params);
-					}
-				} elseif (isset($params['media'])) {
+				if (isset($params['media'])) {
 					$query_params[] = $params['media'];
 					$query_common .= " WHERE av.media = $" . count($query_params);
 				}
@@ -174,7 +154,7 @@
 				else
 					$query_common .= ' WHERE';
 
-				$query_common .= ' name ~* $' . count($query_params);
+				$query_common .= ' a.name ~* $' . count($query_params);
 			}
 
 			if (isset($params['creator'])) {
@@ -186,9 +166,9 @@
 					$query_common .= ' WHERE';
 
 				if (is_integer($params['creator']))
-					$query_common .= ' creator = $' . count($query_params);
+					$query_common .= ' a.creator = $' . count($query_params);
 				else
-					$query_common .= ' creator = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
+					$query_common .= ' a.creator = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
 			}
 
 			if (isset($params['owner'])) {
@@ -200,9 +180,9 @@
 					$query_common .= ' WHERE';
 
 				if (is_integer($params['owner']))
-					$query_common .= ' owner = $' . count($query_params);
+					$query_common .= ' a.owner = $' . count($query_params);
 				else
-					$query_common .= ' owner = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
+					$query_common .= ' a.owner = (SELECT id FROM users WHERE login = $' . count($query_params) .' LIMIT 1)';
 			}
 
 			if (isset($params['uuid'])) {
@@ -213,19 +193,41 @@
 				else
 					$query_common .= ' WHERE';
 
-				$query_common .= ' uuid = $' . count($query_params);
+				$query_common .= ' a.uuid = $' . count($query_params);
 			}
 
-			if (isset($params['deleted'])) {
+			if (isset($params['pool'])) {
+				$query_params[] = $params['pool'];
+
+				if (count($query_params) > 1)
+					$query_common .= ' AND';
+				else
+					$query_common .= ' WHERE';
+
+				$query_common .= ' a.pool = $' . count($query_params);
+			}
+
+			if (isset($params['poolgroup'])) {
+				$query_params[] = $params['poolgroup'];
+
+				if (count($query_params) > 1)
+					$query_common .= ' AND';
+				else
+					$query_common .= ' WHERE';
+
+				$query_common .= " a.pool IN (SELECT pool FROM pooltopoolgroup WHERE poolgroup = $" . count($query_params) . ")";
+			}
+
+			if (isset($params['deleted']) && $params['deleted'] !== 'yes') {
 				if (count($query_params) > 0)
 					$query_common .= ' AND';
 				else
 					$query_common .= ' WHERE';
 
 				if ($params['deleted'] === 'no')
-					$query_common .= ' NOT deleted';
+					$query_common .= ' NOT a.deleted';
 				else if ($params['deleted'] === 'only')
-					$query_common .= ' deleted';
+					$query_common .= ' a.deleted';
 			}
 
 			$total_rows = 0;
@@ -350,7 +352,7 @@
 		}
 
 		public function getArchivesByPool($id) {
-			$query = 'SELECT id FROM archive WHERE id IN (SELECT archive FROM archivevolume WHERE media IN (SELECT id FROM media WHERE pool = $1)) AND NOT deleted';
+			$query = 'SELECT id FROM archive WHERE pool = $1 AND NOT deleted';
 			$query_name = "select_archives_by_pool";
 			$query_params = array();
 			if (isset($id))
@@ -435,7 +437,7 @@
 		}
 
 		public function getArchiveFilesByParams(&$params, $userId) {
-			$query_common = ' FROM milestones_files mf INNER JOIN archive a ON mf.archive = a.id AND NOT a.deleted WHERE pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)';
+			$query_common = ' FROM milestones_files mf INNER JOIN archive a ON mf.archive = a.id AND NOT a.deleted WHERE a.pool IN (SELECT ppg.pool FROM users u INNER JOIN pooltopoolgroup ppg ON u.id = $1 AND u.poolgroup = ppg.poolgroup)';
 			$query_params = array($userId);
 
 			if (isset($params['name'])) {
@@ -697,7 +699,7 @@
 
 		public function getArchiveMirrorsByPool($pool, $poolMirror) {
 			$query_name = 'select_archive_mirror_by_pool';
-			$query = 'SELECT a.id, a2am.archivemirror FROM archive a LEFT JOIN archivetoarchivemirror a2am ON a.id = a2am.archive LEFT JOIN archivemirror am ON a2am.archivemirror = am.id AND am.poolmirror = $2 WHERE NOT a.deleted AND a.id IN (SELECT archive FROM archivevolume WHERE sequence = 0 AND media IN (SELECT id FROM media WHERE pool = $1))';
+			$query = 'SELECT a.id, a2am.archivemirror FROM archive a LEFT JOIN archivetoarchivemirror a2am ON a.id = a2am.archive LEFT JOIN archivemirror am ON a2am.archivemirror = am.id AND am.poolmirror = $2 WHERE NOT a.deleted AND a.pool = $1';
 			$query_params = array($pool, $poolMirror);
 
 			if (!$this->prepareQuery($query_name, $query))

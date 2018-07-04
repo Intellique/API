@@ -47,35 +47,35 @@ class MediaTest(CommonTest):
 
     def test_07_get_medias_by_pool_wrong_limit_string(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%smedia/?pool=%d&limit=%s" % (self.path, 6, 'foo'), headers=headers)
+        conn.request('GET', "%smedia/?pool=%d&limit=%s" % (self.path, 4, 'foo'), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_08_get_medias_by_pool_wrong_limit_zero(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%smedia/?pool=%d&limit=%d" % (self.path, 6, 0), headers=headers)
+        conn.request('GET', "%smedia/?pool=%d&limit=%d" % (self.path, 4, 0), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_09_get_medias_by_pool_wrong_limit_negative(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%smedia/?pool=%d&limit=%d" % (self.path, 6, -82), headers=headers)
+        conn.request('GET', "%smedia/?pool=%d&limit=%d" % (self.path, 4, -82), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_10_get_medias_by_pool_wrong_offset(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%smedia/?pool=%d&offset=%d" % (self.path, 6, -82), headers=headers)
+        conn.request('GET', "%smedia/?pool=%d&offset=%d" % (self.path, 4, -82), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
 
     def test_11_get_medias_by_pool_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%smedia/?pool=%d" % (self.path, 6), headers=headers)
+        conn.request('GET', "%smedia/?pool=%d" % (self.path, 4), headers=headers)
         res = conn.getresponse()
         medias = json.loads(res.read().decode('utf-8'))
         conn.close()

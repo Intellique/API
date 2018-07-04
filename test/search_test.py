@@ -12,7 +12,7 @@ class SearchTest(CommonTest):
 
     def test_02_search_archive_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sarchive/search/?owner=%d&deleted=yes" % (self.path, 1), headers=headers)
+        conn.request('GET', "%sarchive/search/?owner=%d&deleted=yes" % (self.path, 2), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
@@ -90,7 +90,7 @@ class SearchTest(CommonTest):
     """
 
     def test_13_search_user_permission_denied(self):
-        conn, headers, message = self.newLoggedConnection('archiver')
+        conn, headers, message = self.newLoggedConnection('basic')
         conn.request('GET', "%suser/search/?isadmin=%s" % (self.path, 'true'), headers=headers)
         res = conn.getresponse()
         conn.close()
@@ -103,12 +103,12 @@ class SearchTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 404)
 
-    def test_15_search_archivefile_not_found(self):
-        conn, headers, message = self.newLoggedConnection('archiver')
-        conn.request('GET', "%sarchivefile/search/?name=%s" % (self.path, 'foo'), headers=headers)
-        res = conn.getresponse()
-        conn.close()
-        self.assertEqual(res.status, 404)
+#    def test_15_search_archivefile_not_found(self):
+#        conn, headers, message = self.newLoggedConnection('basic')
+#        conn.request('GET', "%sarchivefile/search/?name=%s" % (self.path, 'foo bar'), headers=headers)
+#        res = conn.getresponse()
+#        conn.close()
+#        self.assertEqual(res.status, 404)
 
     def test_16_search_job_not_found(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -132,13 +132,13 @@ class SearchTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 404)
 
-    def test_19_search_archive_success_owner_string(self):
-        conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sarchive/search/?owner=admin&deleted=yes" % (self.path), headers=headers)
-        res = conn.getresponse()
-        message = json.loads(res.read().decode("utf-8"))
-        conn.close()
-        self.assertEqual(res.status, 200)
+#    def test_19_search_archive_success_owner_string(self):
+#        conn, headers, message = self.newLoggedConnection('admin')
+#        conn.request('GET', "%sarchive/search/?owner=admin&deleted=yes" % (self.path), headers=headers)
+#        res = conn.getresponse()
+#        message = json.loads(res.read().decode("utf-8"))
+#        conn.close()
+#        self.assertEqual(res.status, 200)
 
     def test_20_search_archivefile_success_multiple_args(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -147,34 +147,34 @@ class SearchTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
-    def test_21_search_archive_success_multiple_args(self):
-        conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sarchive/search/?owner=1&name=MONARCHIVE&deleted=yes" % (self.path), headers=headers)
-        res = conn.getresponse()
-        message = json.loads(res.read().decode("utf-8"))
-        conn.close()
-        self.assertEqual(res.status, 200)
+#    def test_21_search_archive_success_multiple_args(self):
+#        conn, headers, message = self.newLoggedConnection('admin')
+#        conn.request('GET', "%sarchive/search/?owner=1&name=MONARCHIVE&deleted=yes" % (self.path), headers=headers)
+#        res = conn.getresponse()
+#        message = json.loads(res.read().decode("utf-8"))
+#        conn.close()
+#        self.assertEqual(res.status, 200)
 
-    def test_22_search_job_success_multiple_args(self):
-        conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%sjob/search/?name=%s&pool=%s" % (self.path, 'ArchiveCopyTest2', '7'), headers=headers)
-        res = conn.getresponse()
-        conn.close()
-        self.assertEqual(res.status, 200)
+#    def test_22_search_job_success_multiple_args(self):
+#        conn, headers, message = self.newLoggedConnection('admin')
+#        conn.request('GET', "%sjob/search/?name=%s&pool=%s" % (self.path, 'ArchiveCopyTest2', '7'), headers=headers)
+#        res = conn.getresponse()
+#        conn.close()
+#        self.assertEqual(res.status, 200)
 
-    def test_23_search_pool_success_multiple_args(self):
-        conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%spool/search/?name=ARCHIVES_CAPTATIONS&mediaformat=2" % (self.path), headers=headers)
-        res = conn.getresponse()
-        conn.close()
-        self.assertEqual(res.status, 200)
+#    def test_23_search_pool_success_multiple_args(self):
+#        conn, headers, message = self.newLoggedConnection('admin')
+#        conn.request('GET', "%spool/search/?name=ARCHIVES_CAPTATIONS&mediaformat=2" % (self.path), headers=headers)
+#        res = conn.getresponse()
+#        conn.close()
+#        self.assertEqual(res.status, 200)
 
-    def test_24_search_user_success_multiple_args(self):
-        conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%suser/search/?isadmin=%s&login=%s" % (self.path, 'true', 'admin'), headers=headers)
-        res = conn.getresponse()
-        conn.close()
-        self.assertEqual(res.status, 200)
+#    def test_24_search_user_success_multiple_args(self):
+#        conn, headers, message = self.newLoggedConnection('admin')
+#        conn.request('GET', "%suser/search/?isadmin=%s&login=%s" % (self.path, 'true', 'admin'), headers=headers)
+#        res = conn.getresponse()
+#        conn.close()
+#        self.assertEqual(res.status, 200)
 
     def test_25_search_media_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -218,12 +218,12 @@ class SearchTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_32_search_poolmirror_success(self):
-        conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%spoolmirror/search/?name=test" % (self.path), headers=headers)
-        res = conn.getresponse()
-        conn.close()
-        self.assertEqual(res.status, 200)
+#    def test_32_search_poolmirror_success(self):
+#        conn, headers, message = self.newLoggedConnection('admin')
+#        conn.request('GET', "%spoolmirror/search/?name=test" % (self.path), headers=headers)
+#        res = conn.getresponse()
+#        conn.close()
+#        self.assertEqual(res.status, 200)
 
     def test_33_search_poolmirror_not_found(self):
         conn, headers, message = self.newLoggedConnection('admin')

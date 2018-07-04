@@ -228,6 +228,7 @@
 					}
 				}
 
+				$limit = null;
 				if (isset($_GET['limit'])) {
 					$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 					if ($limit !== false)
