@@ -61,8 +61,8 @@ class ArchiveAddTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         add = json.dumps({
             'name': 'ArchiveAddTest',
-            'files': ["/mnt/raid/shared/partage/5a7-resto/130012/mnt/raid/TV RENNES/TVR-01 13/TVR-METROPOLITAIN-2008-04-04-S1.mov"],
-            'archive': 2
+            'files': ["/var/www/nextcloud/data/emmanuel/files/Photos"],
+            'archive': 57
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -83,14 +83,14 @@ class ArchiveAddTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveAddTest')
-        self.assertEqual(job['job']['archive'], 2)
+        self.assertEqual(job['job']['archive'], 57)
 
     def test_07_post_admin_user_with_right_params2(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         add = json.dumps({
             'name': 'ArchiveAddTest2',
-            'files': ["/mnt/raid/shared/partage/5a7-resto/130012/mnt/raid/TV RENNES/TVR-01 13/TVR-METROPOLITAIN-2008-04-04-S1.mov"],
-            'archive': 2,
+            'files': ["/var/www/nextcloud/data/emmanuel/files/Photos"],
+            'archive': 57,
             'nextstart': '2020-02-20 22:22:22+02'
         });
         headers = {"Content-type": "application/json"}
@@ -112,14 +112,14 @@ class ArchiveAddTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveAddTest2')
-        self.assertEqual(job['job']['archive'], 2)
+        self.assertEqual(job['job']['archive'], 57)
         self.assertEqual(job['job']['nextstart'], '2020-02-20T20:22:22+0000')
 
     def test_08_post_member_tries_to_add_files_to__synchronized_archive(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         add = json.dumps({
-            'files': ["/mnt/raid/shared/partage/Anime/Sintel.2010.1080p.mkv"],
-            'archive': 2
+            'files': ["/var/www/nextcloud/data/emmanuel/files/Photos"],
+            'archive': 57
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -128,15 +128,15 @@ class ArchiveAddTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 201)
 
-    def test_09_post_member_tries_to_add_files_to_not_synchronized_archive(self):
-        conn, cookie, message = self.newLoggedConnection('admin')
-        add = json.dumps({
-            'files': ["/mnt/raid/shared/partage/Anime/Sintel.2010.1080p.mkv"],
-            'archive': 5
-        });
-        headers = {"Content-type": "application/json"}
-        headers.update(cookie)
-        conn.request('POST', self.path + 'archive/add/', body=add, headers=headers)
-        res = conn.getresponse()
-        conn.close()
-        self.assertEqual(res.status, 409)
+#    def test_09_post_member_tries_to_add_files_to_not_synchronized_archive(self):
+#        conn, cookie, message = self.newLoggedConnection('admin')
+#        add = json.dumps({
+#            'files': ["/mnt/raid/shared/partage/Anime/Sintel.2010.1080p.mkv"],
+#            'archive': 5
+#        });
+#        headers = {"Content-type": "application/json"}
+#        headers.update(cookie)
+#        conn.request('POST', self.path + 'archive/add/', body=add, headers=headers)
+#        res = conn.getresponse()
+#        conn.close()
+#        self.assertEqual(res.status, 409)

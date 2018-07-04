@@ -34,7 +34,7 @@ class ArchiveRestoreTest(CommonTest):
     def test_04_post_basic_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         restore = json.dumps({
-            'archive': 2
+            'archive': 57
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -61,8 +61,8 @@ class ArchiveRestoreTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         restore = json.dumps({
             'name': 'ArchiveRestoreTest',
-            'files': ["/mnt/raid/rcarchives/Archives_Audiovisuels/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN_DVD"],
-            'archive': 2
+            'files': ["/var/www/nextcloud/data/emmanuel/files/NASA/big_bad_beautiful_chandra.mp4"],
+            'archive': 57
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -83,14 +83,14 @@ class ArchiveRestoreTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveRestoreTest')
-        self.assertEqual(job['job']['archive'], 2)
+        self.assertEqual(job['job']['archive'], 57)
 
     def test_07_post_admin_user_with_right_params2(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         restore = json.dumps({
             'name': 'ArchiveRestoreTest2',
-            'files': ["/mnt/raid/rcarchives/Archives_Audiovisuels/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN/20060614_083_OESC_AMON_LE_VICTORIEUX_C_BARBOTIN_DVD"],
-            'archive': 2,
+            'files': ["/var/www/nextcloud/data/emmanuel/files/NASA/big_bad_beautiful_chandra.mp4"],
+            'archive': 57,
             'destination': '/mnt/raid/backup/',
             'nextstart': '2016-01-01 11:09:09+02'
         });
@@ -113,5 +113,5 @@ class ArchiveRestoreTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveRestoreTest2')
-        self.assertEqual(job['job']['archive'], 2)
+        self.assertEqual(job['job']['archive'], 57)
         self.assertEqual(job['job']['nextstart'], '2016-01-01T09:09:09+0000')

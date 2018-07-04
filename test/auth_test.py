@@ -75,7 +75,7 @@ class AuthTest(CommonTest):
         headers = {"Content-type": "application/json"}
         conn.request('POST', self.path + 'auth/', params, headers)
         res = conn.getresponse()
-        location = "/st"+res.getheader('location')
+        location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 201)

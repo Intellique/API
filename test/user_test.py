@@ -126,7 +126,7 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_17_post(self):
+    def test_17_post_not_logged(self):
         conn = self.newConnection()
         conn.request('POST', self.path + 'user/')
         res = conn.getresponse()
@@ -432,3 +432,75 @@ class UserTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
+
+    def test_33_delete_user_who_had_created_an_archive(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', self.path + 'user/?id=3', headers=cookie)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 403)
+
+    def test_34_delete_user_not_found(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', self.path + 'user/?id=256', headers=cookie)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 404)
+
+    def test_35_post_user_created(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data = json.dumps({
+            'login': 'toto',
+            'password': 'toto79',
+            'fullname': 'la tête à toto',
+            'email': 'toto@toto.com',
+            'homedirectory': '/mnt/raid',
+            'isadmin': False,
+            'canarchive': True,
+            'canrestore': True,
+            'meta': {
+                'Description': 'Test est super content',
+                'Format': 'totomobile'
+            },
+            'poolgroup': 1,
+            'disabled': False
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'user/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 201)
+
+    def test_36_post_user_created_and_deleted(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data = json.dumps({
+            'login': 'titi',
+            'password': 'titi79',
+            'fullname': 'la tête à titi',
+            'email': 'titi@titi.com',
+            'homedirectory': '/mnt/raid',
+            'isadmin': False,
+            'canarchive': True,
+            'canrestore': True,
+            'meta': {
+                'Description': 'Titi est super content',
+                'Format': 'titimobile'
+            },
+            'poolgroup': 1,
+            'disabled': False
+        });
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'user/', body=data, headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
+        conn.close()
+        self.assertEqual(res.status, 201)
+
+        last_user_created = message['user_id']
+        conn = self.newConnection()
+        conn.request('DELETE', "%suser/?id=%d" % (self.path, last_user_created), headers=cookie)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
