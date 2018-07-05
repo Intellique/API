@@ -2,6 +2,18 @@
 	require_once("dbLibrary.php");
 
 	trait PostgresqlDBLibrary {
+		public function checkBeforeVTLDeletion($vtl_id) {
+			if (!$this->prepareQuery("check_before_vtl_deletion", "SELECT EXISTS(SELECT * FROM archive a INNER JOIN archivevolume av ON NOT a.deleted AND a.id = av.archive INNER JOIN media m ON av.media = m.id INNER JOIN vtl v ON v.id = $1 AND m.mediaformat = v.mediaformat)"))
+				return null;
+
+			$result = pg_execute("check_before_vtl_deletion", array($vtl_id));
+			if ($result === false)
+				return null;
+
+			$row = pg_fetch_array($result);
+			return $row[0] == 't';
+		}
+
 		public function createVTL(&$vtl) {
 			if (!$this->prepareQuery("create_vtl", "INSERT INTO vtl(uuid, path, prefix, nbslots, nbdrives, mediaformat, host, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id"))
 				return NULL;

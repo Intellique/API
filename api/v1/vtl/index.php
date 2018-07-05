@@ -68,8 +68,21 @@
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('DELETE api/v1/vtl (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/vtl (%d) => getVTL(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			} elseif ($exists === false)
+			} elseif ($exists === false) {
+				$dbDriver->cancelTransaction();
 				httpResponse(404, array('message' => 'VTL not found'));
+			}
+
+			$check_deletion = $dbDriver->checkBeforeVTLDeletion($_GET['id']);
+			if ($check_deletion === null) {
+				$dbDriver->cancelTransaction();
+				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('DELETE api/v1/vtl (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
+				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/vtl (%d) => checkBeforeVTLDeletion(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
+				httpResponse(500, array('message' => 'Query failure'));
+			} elseif ($exists === false) {
+				$dbDriver->cancelTransaction();
+				httpResponse(409, array('message' => 'There remain undeleted archives, VTL cannot be deleted'));
+			}
 
 			$deleted = $dbDriver->deleteVTL($_GET['id']);
 			if (!$deleted)

@@ -4,6 +4,13 @@
 	*/
 	interface DB_Library {
 		/**
+		 * \brief Check if this VTL can be safetly deleted
+		 * \param $vtl_id: id of vtl
+		 * \return \b null on query failure or \b true if vtl can be deleted or \b false otherwise
+		 */
+		 public function checkBeforeVTLDeletion($vtl_id);
+
+		/**
 		 * \brief Create a vtl
 		 * \param vtl : attributs of new VTL
 		 */
