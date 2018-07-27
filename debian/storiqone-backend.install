@@ -1,0 +1,19 @@
+api/v1/api/* usr/share/storiqone-backend/api/v1/api
+api/v1/archive/* usr/share/storiqone-backend/api/v1/archive
+api/v1/archivefile/* usr/share/storiqone-backend/api/v1/archivefile
+api/v1/archiveformat/* usr/share/storiqone-backend/api/v1/archiveformat
+api/v1/auth/* usr/share/storiqone-backend/api/v1/auth
+api/v1/device/* usr/share/storiqone-backend/api/v1/device
+api/v1/job/* usr/share/storiqone-backend/api/v1/job
+api/v1/jobtype/* usr/share/storiqone-backend/api/v1/jobtype
+api/v1/lib/* usr/share/storiqone-backend/api/v1/lib
+api/v1/media/* usr/share/storiqone-backend/api/v1/media
+api/v1/mediaformat/* usr/share/storiqone-backend/api/v1/mediaformat
+api/v1/pool/* usr/share/storiqone-backend/api/v1/pool
+api/v1/poolgroup/* usr/share/storiqone-backend/api/v1/poolgroup
+api/v1/poolmirror/* usr/share/storiqone-backend/api/v1/poolmirror
+api/v1/pooltemplate/* usr/share/storiqone-backend/api/v1/pooltemplate
+api/v1/user/* usr/share/storiqone-backend/api/v1/user
+api/v1/vtl/* usr/share/storiqone-backend/api/v1/vtl
+
+debian/storiqone-backend.conf /etc/apache2/conf-available/

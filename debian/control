@@ -1,0 +1,43 @@
+Source: storiqone-backend
+Section: utils
+Priority: extra
+Maintainer: Guillaume Clercin <gclercin@intellique.com>
+Build-Depends: debhelper (>= 8.0.0), dh-python, python3, doxygen, graphviz, texlive, texlive-latex-extra
+Standards-Version: 3.9.2
+Homepage: http://www.intellique.com
+
+Package: storiqone-backend
+Section: libs
+Architecture: all
+Depends: apache2, php5, php5-pgsql, php5-curl
+Recommends: ${misc:Recommends}
+Suggests: storiqone-plugin-db-postgresql (>= 1.3.18.4)
+Description: Storiq One (API)
+ API of Storiq One
+
+Package: storiqone-backend-doc-html
+Section: libs
+Architecture: all
+Description: Documentation (html) for Storiq One (API)
+ Documentation of API of Storiq One
+
+Package: storiqone-backend-doc-pdf
+Section: libs
+Architecture: all
+Description: Documentation (pdf) for Storiq One (API)
+ Documentation of API of Storiq One
+
+Package: storiqone-client
+Section: libs
+Architecture: all
+Depends: cron-daemon, ${python3:Depends}
+Suggests: debianutils, storiqone-client-nextcloud-glue
+Description: Client for storiqone
+ A client trigered by cron in order to create archive
+
+Package: storiqone-client-nextcloud-glue
+Section: libs
+Architecture: all
+Depends: nextcloud-server (>= 12)
+Description: Glue for nextcloud
+ Glue to force nextcloud to synchronize user directory

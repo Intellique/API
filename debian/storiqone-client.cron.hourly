@@ -1,0 +1,24 @@
+#! /bin/sh
+
+ARCHIVE_NAME=$(date "+%F_%T")
+ARCHIVE_DIRECTORY=/mnt/raid/to_archive
+API_KEY=
+
+test -d "$ARCHIVE_DIRECTORY" || exit 0
+
+HOST=
+USER=
+PASSWORD=
+
+OPT="--pool-id="
+
+test -n "$HOST" && OPT="$OPT -H $HOST"
+test -n "$USER" && OPT="$OPT -U $USER"
+test -n "$PASSWORD" && OPT="$OPT -W $PASSWORD"
+
+/usr/lib/storiqone/1.3/cron/clientArchiver.py -k $API_KEY -a "$ARCHIVE_NAME" -D "$ARCHIVE_DIRECTORY" -F .create_archive $OPT
+
+if [ -d /usr/lib/storiqone-client/scripts ]; then
+	run-parts --arg "$ARCHIVE_DIRECTORY" -- /usr/lib/storiqone-client/scripts
+fi
+

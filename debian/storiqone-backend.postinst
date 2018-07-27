@@ -1,0 +1,14 @@
+#! /bin/sh
+set -e
+
+# We need to test that /var/www/stone/cache/movies has correct permissions and user
+if [ "$1" = "configure" -a -e /usr/share/apache2/apache2-maintscript-helper ]; then
+	. /usr/share/apache2/apache2-maintscript-helper
+
+	apache2_invoke enmod rewrite
+	apache2_invoke enmod ssl
+	apache2_invoke ensite default-ssl
+	apache2_invoke enconf storiqone-backend.conf
+fi
+
+exit 0
