@@ -10,6 +10,9 @@
  * \param job : hash table
  * \li \c archive id (integer) : archive id
  * \li \c name [optional] (string) : check archive task name, <em>default value : "check_" + archive name</em>
+ * \li \c new_files_only  [optional] (bool) : check only file which are not yet verified (default: false)
+ * \li \c min_version [optional] (integer) : check files whose versions are at least equal to min_version (default: 1)
+ * \li \c max_version [optional] (integer) : check files whose versions ara at most equal to max_version (default: lastest version of archive).
  * \li \c host [optional] (string) : hostname to run the task, <em>default value : hostname owned by current api</em>
  * \li \c nextstart [optional] (string) : check task nextstart date, <em>default value : now</em>
  * \li \c options [optional] (hash table) : check archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
@@ -113,6 +116,21 @@
 			} else
 				$job['name'] = "check_" . $check_archive['name'];
 
+			if ($ok && isset($infoJob['min_version'])) {
+				$ok = is_integer($infoJob['min_version']);
+				if ($ok)
+					$job['options']['min_version'] = $infoJob['min_version'];
+			}
+
+			if ($ok && isset($infoJob['max_version'])) {
+				$ok = is_integer($infoJob['max_version']);
+				if ($ok)
+					$job['options']['max_version'] = $infoJob['max_version'];
+			}
+
+			if ($ok && isset($infoJob['min_version']) && isset($infoJob['max_version']))
+				$ok = $infoJob['min_version'] <= $infoJob['max_version'];
+
 			// type
 			if ($ok) {
 				$jobType = $dbDriver->getJobTypeId("check-archive");
@@ -122,6 +140,14 @@
 					$failed = true;
 				} else
 					$job['type'] = $jobType;
+			}
+
+			// new files only
+			if ($ok && isset($infoJob['new_files_only'])) {
+				if (is_bool($infoJob['new_files_only']))
+					$job['options']['new_files_only'] = $infoJob['new_files_only'];
+				else
+					$ok = false;
 			}
 
 			// nextstart [optional]

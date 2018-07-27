@@ -10,6 +10,9 @@
  * \param job : hash table
  * \li \c archive id (integer) : archive id
  * \li \c name [optional] (string) : restoration task name, <em>default value : "restore_" + archive name</em>
+ * \li \c version [optional] (integer) : restore all files whose version is specified by version
+ * \li \c min_version [optional] (integer) : restore all files whose version is at least equal to min_version
+ * \li \c max_version [optional] (integer) : restore all files whose version is at most equal to max_version
  * \li \c host [optional] (string) : hostname to run the task, <em>default value : hostname owned by current api</em>
  * \li \c nextstart [optional] (string) : restoration task nextstart date, <em>default value : now</em>
  * \param files : archive files array
@@ -98,6 +101,27 @@
 					$job['name'] = $infoJob['name'];
 			} else
 				$job['name'] = "restore_" . $check_archive['name'];
+
+			if ($ok && isset($infoJob['version']) && (isset($infoJob['min_version']) || isset($infoJob['max_version'])))
+				$ok = false;
+
+			if ($ok && isset($infoJob['version'])) {
+				$ok = is_integer($infoJob['version']);
+				if ($ok)
+					$job['options']['restore_version'] = $infoJob['version'];
+			}
+
+			if ($ok && isset($infoJob['min_version'])) {
+				$ok = is_integer($infoJob['min_version']);
+				if ($ok)
+					$job['options']['restore_min_version'] = $infoJob['min_version'];
+			}
+
+			if ($ok && isset($infoJob['max_version'])) {
+				$ok = is_integer($infoJob['max_version']);
+				if ($ok)
+					$job['options']['restore_max_version'] = $infoJob['max_version'];
+			}
 
 			// type
 			if ($ok) {

@@ -65,6 +65,14 @@
 			if (isset($_GET['mimetype']))
 				$params['mimetype'] = $_GET['mimetype'];
 
+			if (isset($_GET['version'])) {
+				$version = filter_var($_GET['version'], FILTER_VALIDATE_INT);
+				if ($version !== false)
+					$params['version'] = $version;
+				else
+					$ok = false;
+			}
+
 			if (isset($_GET['archive_name']))
 				$params['archive_name'] = $_GET['archive_name'];
 

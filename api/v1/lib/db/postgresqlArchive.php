@@ -78,11 +78,12 @@
 			$archive['owner'] = intval($archive['owner']);
 			$archive['canappend'] = $archive['canappend'] == 't' ? true : false;
 			$archive['deleted'] = $archive['deleted'] == 't' ? true : false;
+			$archive['currentver'] = 1;
 
 			$archive['metadata'] = $this->getMetadatas($id, 'archive');
 			$archive['pool'] = $this->getPool($archive['pool'], $rowLock);
 
-			$query = "SELECT id, sequence, size, starttime, endtime, checktime, checksumok, media, mediaposition, jobrun, purged FROM archivevolume WHERE archive = $1 ORDER BY sequence";
+			$query = "SELECT id, sequence, size, starttime, endtime, checktime, checksumok, media, mediaposition, jobrun, purged, LOWER(versions) AS min_version, UPPER(versions) - 1 AS max_version FROM archivevolume WHERE archive = $1 ORDER BY sequence";
 
 			switch ($rowLock) {
 				case DB::DB_ROW_LOCK_SHARE:
@@ -118,9 +119,12 @@
 					'media' => intval($archivevolume['media']),
 					'mediaposition' => intval($archivevolume['mediaposition']),
 					'jobrun' => intval($archivevolume['jobrun']),
-					'purged' => intval($archivevolume['purged'])
+					'purged' => intval($archivevolume['purged']),
+					'minversion' => intval($archivevolume['min_version']),
+					'maxversion' => intval($archivevolume['max_version'])
 				);
 				$archive['size'] += intval($archivevolume['size']);
+				$archive['currentver'] = intval($archivevolume['max_version']);
 			}
 
 			return $archive;
@@ -400,7 +404,7 @@
 			if (!is_numeric($id))
 				return false;
 
-			$query = "SELECT af.id, af.name, json_object_agg(mf.archive, mf.medias::JSON) AS archives, af.mimetype, af.ownerid, af.owner, af.groupid, af.groups, af.ctime, af.mtime, af.size, sl.path AS parent FROM archivefile af JOIN milestones_files mf ON af.id = mf.archivefile INNER JOIN selectedfile sl ON af.parent = sl.id WHERE af.id = $1 GROUP BY af.id, af.name, af.mimetype, af.ownerid, af.owner, af.groupid, af.groups, af.ctime, af.mtime, af.size, sl.path";
+			$query = "SELECT af.id, af.name, json_object_agg(mf.archive, mf.medias::JSON) AS archives, af.mimetype, af.ownerid, af.owner, af.groupid, af.groups, af.ctime, af.mtime, af.size, LOWER(mf.file_versions) AS minver, UPPER(mf.file_versions) - 1 AS maxver, sl.path AS parent FROM archivefile af JOIN milestones_files mf ON af.id = mf.archivefile INNER JOIN selectedfile sl ON af.parent = sl.id WHERE af.id = $1 GROUP BY af.id, af.name, af.mimetype, af.ownerid, af.owner, af.groupid, af.groups, af.ctime, af.mtime, af.size, sl.path";
 
 			switch ($rowLock) {
 				case DB::DB_ROW_LOCK_SHARE:
@@ -432,6 +436,8 @@
 			$archivefile['mtime'] = dateTimeParse($archivefile['mtime']);
 			$archivefile['ownerid'] = intval($archivefile['ownerid']);
 			$archivefile['size'] = intval($archivefile['size']);
+			$archivefile['minver'] = intval($archivefile['minver']);
+			$archivefile['maxver'] = intval($archivefile['maxver']);
 
 			return $archivefile;
 		}
@@ -458,6 +464,11 @@
 			if (isset($params['mimetype'])) {
 				$query_params[] = $params['mimetype'];
 				$query_common .= ' AND mimetype = $' . count($query_params);
+			}
+
+			if (isset($params['version'])) {
+				$query_params[] = $params['version'];
+				$query_common .= ' AND versions @> $' . count($query_params);
 			}
 
 			if (isset($params['archive_name'])) {
