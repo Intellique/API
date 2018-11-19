@@ -17,8 +17,9 @@
 	);
 
 	$proxy_config = array(
-		"movie path" => $config['proxy']['movie path'],
-		"picture path" => $config['proxy']['picture path']
+		"movie path" => $config['proxy']['movie']['path'],
+		"picture path" => $config['proxy']['picture']['path'],
+		"sound path" => $config['proxy']['sound']['path']
 	);
 
 	unset($file, $config);
