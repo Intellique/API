@@ -29,13 +29,13 @@
 				httpResponse(404, array('message' => 'Not found'));
 
 			if (isset($_GET['type'])) {
-				$mimetype = array("image/jpeg" => ".jpg", "video/mp4" => ".mp4", "video/ogg" => ".ogv");
+				$mimetype = array("image/jpeg" => ".jpg", "video/mp4" => ".mp4", "video/ogg" => ".ogv", "audio/mpeg" => ".m4a");
 
 				if (!isset($mimetype[$_GET['type']]))
 					httpResponse(400, array('message' => 'type must be in "' . implode('", "', array_keys($mimetype)) . '"'));
 
 				$found = false;
-				$paths = array($proxy_config['movie path'], $proxy_config['picture path']);
+				$paths = array($proxy_config['movie path'], $proxy_config['picture path'], $proxy_config['sound path']);
 				foreach ($paths as &$path) {
 					$filename = $path . md5($archivefile['name']) . $mimetype[$_GET['type']];
 					if (posix_access($filename)) {

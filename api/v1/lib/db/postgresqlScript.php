@@ -3,7 +3,7 @@
 
 	trait PostgresqlDBScript {
 		public function getScriptById($id) {
-			if (!$this->prepareQuery("get_script_by_id", "SELECT path FROM script WHERE id = $1 LIMIT 1"))
+			if (!$this->prepareQuery("get_script_by_id", "SELECT name, description, path, type FROM script WHERE id = $1 LIMIT 1"))
 				return NULL;
 
 			$result = pg_execute("get_script_by_id", array($id));
@@ -13,13 +13,11 @@
 			if (pg_num_rows($result) == 0)
 				return false;
 
-			$row = pg_fetch_array($result);
-
-			return $row[0];
+			return pg_fetch_assoc($result);
 		}
 
 		public function getScripts() {
-			if (!$this->prepareQuery("get_scripts", "SELECT id, path FROM script ORDER BY id"))
+			if (!$this->prepareQuery("get_scripts", "SELECT name, description, path, type FROM script ORDER BY id"))
 				return NULL;
 
 			$result = pg_execute("get_scripts", array());
