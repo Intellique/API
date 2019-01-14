@@ -1,3 +1,10 @@
+storiqone-backend (0.3.1+jessie) polisher; urgency=low
+
+  * New bug fix release
+  * fix SQL queries for scripts
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Mon, 14 Jan 2019 16:48:13 +0100
+
 storiqone-backend (0.3.0+jessie) polisher; urgency=low
 
   * New crystal release
