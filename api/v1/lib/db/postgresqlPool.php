@@ -83,11 +83,11 @@
 		}
 
 		private function createScripts($pool_id, &$scripts) {
-			if (!$this->prepareQuery("create_scripts", "INSERT INTO scripts(sequence, jobtype, script, scripttype, pool) VALUES ($1, $2, $3, $4, $5)"))
+			if (!$this->prepareQuery("create_scripts", "INSERT INTO scripts(sequence, jobtype, script, pool) VALUES ($1, $2, $3, $4)"))
 				return NULL;
 
 			foreach ($scripts as $script) {
-				$result = pg_execute("create_scripts", array($script['sequence'], $script['jobtype'], $script['script'], $script['scripttype'], $pool_id));
+				$result = pg_execute("create_scripts", array($script['sequence'], $script['jobtype'], $script['script'], $pool_id));
 				if ($result === false)
 					return NULL;
 			}
@@ -160,7 +160,7 @@
 			$pool['deleted'] = $pool['deleted'] == 't' ? true : false;
 			$pool['scripts'] = array();
 
-			if (!$this->prepareQuery("get_script_by_pool", "SELECT sequence, jobtype, script, scripttype FROM scripts WHERE pool = $1 ORDER BY jobtype, sequence"))
+			if (!$this->prepareQuery("get_script_by_pool", "SELECT sequence, jobtype, script FROM scripts WHERE pool = $1 ORDER BY jobtype, sequence"))
 				return NULL;
 
 			$result = pg_execute('get_script_by_pool', array($id));
