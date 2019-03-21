@@ -1,0 +1,191 @@
+storiqone-backend (0.3.2+buster) polisher; urgency=low
+
+  * First buster release
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Thu, 21 Mar 2019 19:02:57 +0100
+
+storiqone-backend (0.3.1+stretch) polisher; urgency=low
+
+  * Bug fix release
+  * Fix SQL queries for scripts
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Mon, 14 Jan 2019 16:47:05 +0100
+
+storiqone-backend (0.3.0+stretch) polisher; urgency=low
+
+  * New crystal release
+  * Add support for version (used by archive and archivefile)
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 27 Jul 2018 12:49:11 +0200
+
+storiqone-backend (0.2.17+stretch) polisher; urgency=low
+
+  * Add suggestion to storiqone-backend
+  * Can manage scripts (for pool)
+  * improve sql queries (which use archive table, remove unwanted join)
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Wed, 04 Jul 2018 12:05:11 +0200
+
+storiqone-backend (0.2.16.1+stretch) polisher; urgency=low
+
+  * Add missing files
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 20 Apr 2018 20:01:44 +0200
+
+storiqone-backend (0.2.16+stretch) polisher; urgency=low
+
+  * Authentication with Json Web Token
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 20 Apr 2018 19:11:12 +0200
+
+storiqone-backend (0.2.15+stretch) polisher; urgency=low
+
+  * Bug fix release
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 09 Mar 2018 16:33:08 +0100
+
+storiqone-backend (0.2.14+stretch) polisher; urgency=low
+
+  * Find media by status
+  * Can create poolgroup
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Tue, 13 Feb 2018 19:05:21 +0100
+
+storiqone-backend (0.2.13+stretch) polisher; urgency=low
+
+  * Improve preview of proxy
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 02 Feb 2018 18:44:18 +0100
+
+storiqone-backend (0.2.12+stretch) polisher; urgency=low
+
+  * Add licence GNU AFFERO GENERAL PUBLIC LICENCE
+  * Fix #383: search user by non-admin user:
+    non-admin user cannot search user outside their poolgroup
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 26 Jan 2018 20:18:31 +0100
+
+storiqone-backend (0.2.11+stretch) polisher; urgency=low
+
+  * Bug fix release
+  * various bug fixes
+  * version required for storiqone-simple-ui (>= v0.1.6)
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Tue, 21 Nov 2017 17:02:08 +0100
+
+storiqone-backend (0.2.10+stretch) polisher; urgency=low
+
+  * Bug fix release
+  * various bug fixes
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 10 Nov 2017 17:44:54 +0100
+
+storiqone-backend (0.2.9+stretch) polisher; urgency=low
+
+  * New feature: new plugin for nextcloud
+  * various bug fixes
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Tue, 31 Oct 2017 10:03:18 +0100
+
+storiqone-backend (0.2.8+stretch) polisher; urgency=low
+
+  * New feature: plugin
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 27 Oct 2017 12:37:44 +0200
+
+storiqone-backend (0.2.7+stretch) polisher; urgency=low
+
+  * Can specify "host" for executing task.
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Mon, 23 Oct 2017 12:55:45 +0200
+
+storiqone-backend (0.2.6+stretch) polisher; urgency=low
+
+  * Add script "nextcloud-sync-after-restore.pl" for nextcloud in order to
+    synchronize restore directory after a restoration of archive
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Thu, 19 Oct 2017 11:01:15 +0200
+
+storiqone-backend (0.2.5+stretch) polisher; urgency=low
+
+  * Fix script "nextcloud-force-sync" again
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Sun, 01 Oct 2017 14:30:29 +0200
+
+storiqone-backend (0.2.4+stretch) polisher; urgency=low
+
+  * Fix script "nextcloud-force-sync"
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Sun, 01 Oct 2017 14:30:29 +0200
+
+storiqone-backend (0.2.3+stretch) polisher; urgency=low
+
+  * Add glue to nextcloud
+  * Enable backend configure
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Sat, 30 Sep 2017 16:01:15 +0200
+
+storiqone-backend (0.2.2+stretch) polisher; urgency=low
+
+  * Bug fix release
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Fri, 29 Sep 2017 18:35:13 +0200
+
+storiqone-backend (0.2.1+stretch) polisher; urgency=low
+
+  * Bug fix release
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Thu, 14 Sep 2017 16:29:37 +0200
+
+storiqone-backend (0.2+stretch) polisher; urgency=low
+
+  * New release
+  * Add new package storiqone-client
+  * New build dependancy (dh-python)
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Wed, 06 Sep 2017 13:33:07 +0200
+
+storiqone-backend (0.1.0b4-2+stretch) polisher; urgency=low
+
+  * Change dependancy from php5 to php7
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Thu, 17 Aug 2017 19:23:25 +0200
+
+storiqone-backend (0.1.0b4-1+stretch) polisher; urgency=low
+
+  * New bug fix release
+  * First stretch release
+  * Add new build dependancy: texlive and texlive-latex-extra
+  * Add missing files: archivefile, device, poolgroup, poolmirror, pooltemplate and vtl
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Tue, 07 Feb 2017 12:27:28 +0100
+
+storiqone-backend (0.1.0b3-1+jessie) polisher; urgency=low
+
+  * Fix config.php
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Wed, 29 Jun 2016 13:35:59 +0200
+
+storiqone-backend (0.1.0b2-1+jessie) polisher; urgency=low
+
+  * Add some stuff
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Tue, 21 Jun 2016 18:49:30 +0200
+
+storiqone-backend (0.1.0b1-3+jessie) polisher; urgency=low
+
+  * Add documentation (pdf)
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Mon, 11 Apr 2016 12:23:32 +0200
+
+storiqone-backend (0.1.0b1-2+jessie) polisher; urgency=low
+
+  * Add documentation
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Mon, 11 Apr 2016 12:04:21 +0200
+
+storiqone-backend (0.1.0b1-1+jessie) polisher; urgency=low
+
+  * First release
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Mon, 11 Apr 2016 10:35:01 +0200
