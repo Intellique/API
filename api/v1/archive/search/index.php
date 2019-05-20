@@ -137,6 +137,16 @@
 				}
 			}
 
+			/* ETAT DE VERIFICATION */
+
+		if (isset($_GET['etat'])) {
+			$etat = filter_var($_GET['etat'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1, 'max_range' => 3)));
+			if ($etat !== false)
+				$params['etat'] = $etat;
+			else
+				$ok = false;
+		}
+
 			if (isset($_GET['limit'])) {
 				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 				if ($limit !== false)
@@ -172,7 +182,8 @@
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'archives' => array(),
-					'total_rows' => 0
+					'total_rows' => 0,
+					'debug' => $result
 				));
 			}
 			if ($result['total_rows'] == 0)
@@ -185,7 +196,8 @@
 			httpResponse(200, array(
 				'message' => 'Query successful',
 				'archives' => $result['rows'],
-				'total_rows' => $result['total_rows']
+				'total_rows' => $result['total_rows'],
+				'debug' => $result
 			));
 			break;
 
