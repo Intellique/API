@@ -235,14 +235,18 @@
 			}
 
 			/* ETAT DE VERIFICATION */
-
-			if(isset($params['status'])){
-				if($params['status'] == 1)//VERIFIE
-					$query_common .= ' and a.id in (select archive from archivevolume where checksumok = true and checktime is not null) ';
-				elseif($params['status'] == 2)//NON VERIFIE
-					$query_common .= ' and a.id in (select archive from archivevolume where checksumok = false and checktime is null) ';
-				else //VERIFIE MAIS CE N'EST PAS BON
-					$query_common .= ' and a.id in (select archive from archivevolume where checksumok = false and checktime is not null) ';
+			if(isset($params['status'])) {
+				switch ($params['status']) {
+					case 'checked':
+						$query_common .= ' AND a.id IN (SELECT archive FROM archivevolume WHERE checksumok AND checktime IS NOT NULL) ';
+						break;
+					case 'not_checked':
+						$query_common .= ' AND a.id IN (SELECT archive FROM archivevolume WHERE checksumok = false AND checktime IS NULL) ';
+						break;
+					case 'not_ok':
+						$query_common .= ' AND a.id IN (SELECT archive FROM archivevolume WHERE checksumok = false AND checktime IS NOT NULL) ';
+						break;
+				}
 			}
 
 			$total_rows = 0;
@@ -478,11 +482,10 @@
 			}
 
 			/* VERSION */
-			if (isset($params['version'])){
+			if (isset($params['version'])) {
 				$query_params[] = $params['version'];
 				$query_common .= ' AND file_versions @> $' . count($query_params) . '::INT';
-			}
-			else {
+			} else {
 				if (isset($params['version_inf'])) {
 					$query_params[] = $params['version_inf'];
 					$query_common .= ' AND upper(file_versions) <= $' . count($query_params);
@@ -502,8 +505,7 @@
 			if (isset($params['size'])) {
 				$query_params[] = $params['size'];
 				$query_common .= ' AND file_size = $' . count($query_params);
-			}
-			else {
+			} else {
 				if (isset($params['size_inf'])) {
 					$query_params[] = $params['size_inf'];
 					$query_common .= ' AND file_size <= $' . count($query_params);
@@ -520,8 +522,7 @@
 				$query_common .= ' AND file_ctime >= $' . count($query_params);
 				$query_params[] = date('Y-m-d', strtotime($params['date']. ' + 1 days'));
 				$query_common .= ' AND file_ctime < $' . count($query_params);
-			}
-			else{
+			} else{
 				if (isset($params['date_inf'])) {
 					$query_params[] = date('Y-m-d', strtotime($params['date_inf']. ' + 1 days'));
 					$query_common .= ' AND file_ctime < $' . count($query_params);
@@ -533,16 +534,19 @@
 			}
 
 			/* ETAT DE VERIFICATION */
-
-			if(isset($params['status'])){
-				if($params['status'] == 1)//VERIFIE
-					$query_common .= ' and mf.archivefile in (select archivefile from archivefiletoarchivevolume where checksumok = true) ';
-				elseif($params['status'] == 2)//NON VERIFIE
-					$query_common .= ' and mf.archivefile in (select archivefile from archivefiletoarchivevolume where checksumok = false and checktime is null) ';
-				else //VERIFIE MAIS CE N'EST PAS BON
-					$query_common .= ' and mf.archivefile in (select archivefile from archivefiletoarchivevolume where checksumok = false and checktime is not null) ';
+			if(isset($params['status'])) {
+				switch ($params['status']) {
+					case 'checked':
+						$query_common .= ' AND mf.archivefile IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE checksumok AND checktime IS NOT NULL) ';
+						break;
+					case 'not_checked':
+						$query_common .= ' AND mf.archivefile IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE checksumok = false AND checktime IS NULL) ';
+						break;
+					case 'not_ok':
+						$query_common .= ' AND mf.archivefile IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE checksumok = false AND checktime IS NOT NULL) ';
+						break;
+				}
 			}
-
 
 			//if (count($params) == 1)
 				//$query_common .= ' OR a.creator = $1 OR a.owner = $1';

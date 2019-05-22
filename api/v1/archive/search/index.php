@@ -23,6 +23,7 @@
  * | order_asc   | boolean           | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
  * | limit       | integer           | specifies the maximum number of rows to return.                                     | limit > 0                       |
  * | offset      | integer           | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
+ * | status      | string            | search archive files given the status                                               | status = checked || status = not_checked || status = not_ok |
  *
  * \warning <b>Make sure to pass at least one of the first four parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
@@ -139,13 +140,18 @@
 
 			/* ETAT DE VERIFICATION */
 
-		if (isset($_GET['etat'])) {
-			$etat = filter_var($_GET['etat'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1, 'max_range' => 3)));
-			if ($etat !== false)
-				$params['etat'] = $etat;
-			else
-				$ok = false;
-		}
+			if (isset($_GET['status'])) {
+				switch ($_GET['status']) {
+					case 'checked':
+					case 'not_checked':
+					case 'not_ok':
+						$params['status'] = $_GET['status'];
+						break;
+					default:
+						$ok = false;
+						break;
+				}
+			}
 
 			if (isset($_GET['limit'])) {
 				$limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
@@ -182,8 +188,7 @@
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'archives' => array(),
-					'total_rows' => 0,
-					'debug' => $result
+					'total_rows' => 0
 				));
 			}
 			if ($result['total_rows'] == 0)
@@ -196,8 +201,7 @@
 			httpResponse(200, array(
 				'message' => 'Query successful',
 				'archives' => $result['rows'],
-				'total_rows' => $result['total_rows'],
-				'debug' => $result
+				'total_rows' => $result['total_rows']
 			));
 			break;
 

@@ -4,10 +4,10 @@
 	"path": "/storiqone-backend/api/v1/",
 	"apikey": "c7d315eb-2be1-4b8c-a934-571045652ea5",
 	"users": {
-		"storiq": {
+		"admin": {
 			"id": 1,
 			"login": "storiq",
-			"password": "spider77"
+			"password": "<password>"
 		},
 		"basic": {
 			"id": 2,

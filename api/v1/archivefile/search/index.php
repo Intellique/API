@@ -9,26 +9,26 @@
  * \verbatim path : /storiqone-backend/api/v1/archivefile/search \endverbatim
 
  * <b>Optional parameters</b>
- * |     Name     |  Type   |                                  Description                                        	 |           																Constraint            											 |																|
- * | :----------: | :-----: | :------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------: |
- * | name         | string  | search an archive file specifying its name                                             |                                  																										 |
- * | archive      | integer | search an archive file given the archive id                                            |                                 																											 |
- * | archive_name | string  | search an archive file given the archive name                                          |                                 																											 |
- * | mimetype     | string  | search an archive file specifying its mime type                                        |                                 																											 |
- * | order_by     | enum    | order by column                                                                        | value in : 'id', 'size', 'name', 'type', 'owner', 'groups' 													 |
- * | order_asc    | boolean | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. order_asc is ignored if order_by is missing. |                                          |
- * | limit        | integer | specifies the maximum number of rows to return.                                        | limit > 0                                                                             |
- * | offset       | integer | specifies the number of rows to skip before starting to return rows.                   | offset >= 0                                                                           |
- * | size      		| integer | search archive files given the size            																			   | size >= 0       	                                                                     |
- * | size_inf     | integer | search archive files given the minimum size        	     													     | size_inf >= 0  & > size_sup                                                           |
- * | size_sup     | integer | search archive files given the maximum size       									       					   | size_sup >= 0  & < size_inf                                                           |
- * | date					| Y-M-D 	| search archive files given the date   																						 	   | valid date											                                               	       |
- * | date_inf			|	Y-M-D   | search archive files given the minimum date 																				   | valid date & date_inf > date_sup											                                 |
- * | date_sup			| Y-M-D 	| search archive files given the maximum date 																				   | valid date & date_sup < date_inf	                                                     |
- * | version 			| integer | search archive files given the version																							   | version >= 0										                                                       |
- * | version_inf  | integer | search archive files given the minimum version  																		   | version_inf >= 0 & > version_sup 					                                           |
- * | version_sup	| integer | search archive files given the maximum version 																			   | version_sup >= 0 & < version_inf			                                                 |
- * | status 			| integer | search archive files given the status  																							   | status = 1 (verified) || status = 2 (not verified) || status = 3 (verified but not ok)|
+ * |     Name     |  Type   |                                  Description                                        |           Constraint            |
+ * | :----------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------: |
+ * | name         | string  | search an archive file specifying its name                                          |                                 |
+ * | archive      | integer | search an archive file given the archive id                                         |                                 |
+ * | archive_name | string  | search an archive file given the archive name                                       |                                 |
+ * | mimetype     | string  | search an archive file specifying its mime type                                     |                                 |
+ * | order_by     | enum    | order by column                                                                     | value in : 'id', 'size', 'name', 'type', 'owner', 'groups' |
+ * | order_asc    | boolean | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
+ * | limit        | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
+ * | offset       | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
+ * | size         | integer | search archive files given the size                                                 | size >= 0                       |
+ * | size_inf     | integer | search archive files given the minimum size                                         | size_inf >= 0  & > size_sup     |
+ * | size_sup     | integer | search archive files given the maximum size                                         | size_sup >= 0  & < size_inf     |
+ * | date         | date    | search archive files given the date                                                 | valid date                      |
+ * | date_inf     | date    | search archive files given the minimum date                                         | valid date & date_inf > date_sup |
+ * | date_sup     | date    | search archive files given the maximum date                                         | valid date & date_sup < date_inf |
+ * | version      | integer | search archive files given the version                                              | version >= 0                     |
+ * | version_inf  | integer | search archive files given the minimum version                                      | version_inf >= 0 & > version_sup |
+ * | version_sup  | integer | search archive files given the maximum version                                      | version_sup >= 0 & < version_inf |
+ * | status       | string  | search archive files given the status                                               | status = checked || status = not_checked || status = not_ok |
  * \warning <b>Make sure to pass at least one of the first four parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
@@ -79,22 +79,21 @@
 
 			/* SIZE */
 
-			if (isset($_GET['size'])){
+			if (isset($_GET['size'])) {
 				$size = filter_var($_GET['size'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
 				if ($size !== false)
 					$params['size'] = $size;
 				else
 					$ok = false;
-			}
-			else {
-				if (isset($_GET['size_sup'])){
+			} else {
+				if (isset($_GET['size_sup'])) {
 					$size_sup = filter_var($_GET['size_sup'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
 					if ($size_sup !== false)
 						$params['size_sup'] = $size_sup;
 					else
 						$ok = false;
 				}
-				if (isset($_GET['size_inf'])){
+				if (isset($_GET['size_inf'])) {
 					$size_inf = filter_var($_GET['size_inf'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
 					if ($size_inf !== false)
 						$params['size_inf'] = $size_inf;
@@ -106,55 +105,48 @@
 			}
 
 			/* DATE */
-
-			if (isset($_GET['date'])){
-				$date_ex = explode("-",$_GET['date']);
-				$date = checkdate($date_ex[1],$date_ex[2],$date_ex[0]);
-				if ($date !== false)
+			if (isset($_GET['date'])) {
+				$date = dateTimeParse($_GET['date']);
+				if ($date !== null)
 					$params['date'] = $_GET['date'];
 				else
 					$ok = false;
-			}
-			else {
-				if (isset($_GET['date_inf'])){
-					$date_ex = explode("-",$_GET['date_inf']);
-					$date_inf = checkdate($date_ex[1],$date_ex[2],$date_ex[0]);
-					if ($date_inf !== false)
+			} else {
+				if (isset($_GET['date_inf'])) {
+					$date_inf = dateTimeParse($_GET['date_inf']);
+					if ($date_inf !== null)
 						$params['date_inf'] = $_GET['date_inf'];
 					else
 						$ok = false;
 				}
-				if (isset($_GET['date_sup'])){
-					$date_ex = explode("-",$_GET['date_sup']);
-					$date_sup = checkdate($date_ex[1],$date_ex[2],$date_ex[0]);
-					if ($date_sup !== false)
+				if (isset($_GET['date_sup'])) {
+					$date_sup = dateTimeParse($_GET['date_sup']);
+					if ($date_sup !== null)
 						$params['date_sup'] = $_GET['date_sup'];
 					else
 						$ok = false;
 				}
-				if (isset($_GET['date_sup']) && isset($_GET['date_inf']) && date($_GET['date_sup']) > date($_GET['date_inf'])) {
+				if (isset($_GET['date_sup']) && isset($_GET['date_inf']) && ($date_sup->getTimestamp() - $date_inf->getTimestamp()) > 0)
 					$ok = false;
-				}
 			}
 
 			/* VERSION */
 
-			if (isset($_GET['version'])){
+			if (isset($_GET['version'])) {
 				$version = filter_var($_GET['version'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 				if ($version !== false)
 					$params['version'] = $version;
 				else
 					$ok = false;
-			}
-			else{
-				if (isset($_GET['version_sup'])){
+			} else {
+				if (isset($_GET['version_sup'])) {
 					$version_sup = filter_var($_GET['version_sup'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 					if ($version_sup !== false)
 						$params['version_sup'] = $version_sup;
 					else
 						$ok = false;
 				}
-				if (isset($_GET['version_inf'])){
+				if (isset($_GET['version_inf'])) {
 					$version_inf = filter_var($_GET['version_inf'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 					if ($version_inf !== false)
 						$params['version_inf'] = $version_inf;
@@ -200,11 +192,16 @@
 			/* ETAT DE VERIFICATION */
 
 			if (isset($_GET['status'])) {
-				$status = filter_var($_GET['status'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1, 'max_range' => 3)));
-				if ($status !== false)
-					$params['status'] = $status;
-				else
-					$ok = false;
+				switch ($_GET['status']) {
+					case 'checked':
+					case 'not_checked':
+					case 'not_ok':
+						$params['status'] = $_GET['status'];
+						break;
+					default:
+						$ok = false;
+						break;
+				}
 			}
 
 			if (!$ok)
@@ -217,8 +214,7 @@
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'archivefiles' => array(),
-					'total_rows' => 0,
-					'debug' => $archivefile
+					'total_rows' => 0
 				));
 			} elseif ($archivefile['total_rows'] === 0)
 				httpResponse(404, array(
@@ -230,8 +226,7 @@
 			httpResponse(200, array(
 				'message' => 'Query succeeded',
 				'archivefiles' => $archivefile['rows'],
-				'total_rows' => $archivefile['total_rows'],
-				'debug' => $archivefile
+				'total_rows' => $archivefile['total_rows']
 			));
 
 			break;
