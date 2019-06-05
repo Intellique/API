@@ -3,14 +3,14 @@ from io import StringIO
 import json
 
 class ArchiveFileTest(CommonTest):
-          
+
     def test_01_get_archivefile_wrong_id(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', "%sarchivefile/?id=%s" % (self.path, 'foo'), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
-        
+
     def test_02_get_archivefile_not_found(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', "%sarchivefile/?id=%d" % (self.path, 47910), headers=headers)
@@ -24,14 +24,14 @@ class ArchiveFileTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
-        
+
     def test_04_get_archivefile_not_permitted(self):
-        conn, headers, message = self.newLoggedConnection('archiver')
-        conn.request('GET', "%sarchivefile/?id=%d" % (self.path, 8), headers=headers)
+        conn, headers, message = self.newLoggedConnection('g')
+        conn.request('GET', "%sarchivefile/?id=%d" % (self.path, 28), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
-        
+
     def test_05_get_archivefiles_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('GET', "%sarchivefile/?archive=%d" % (self.path, 2), headers=headers)

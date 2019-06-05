@@ -59,8 +59,8 @@ class MediaFormatTest(CommonTest):
     def test_06_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data = json.dumps({
-            'media': 3,
-            'pool': 3
+            'media': 14,
+            'pool': 9
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -73,7 +73,7 @@ class MediaFormatTest(CommonTest):
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', self.path + 'job/?id=' + str(message['job_id']), headers=cookie)
         res = conn.getresponse()
         job = json.loads(res.read().decode('utf-8'))
         conn.close()

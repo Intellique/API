@@ -34,7 +34,7 @@ class ArchiveCheckTest(CommonTest):
     def test_04_post_archiver_user_not_allowed(self):
         conn, cookie, message = self.newLoggedConnection('basic')
         check = json.dumps({
-            'archive': 57
+            'archive': 47
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -47,8 +47,8 @@ class ArchiveCheckTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         check = json.dumps({
             'name': '',
-            'archive': 2,
-            'options': {'quick_mode': 'toto'}
+            'archive': "gygfaye",
+            'options': {'quick_mode': 5}
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -75,7 +75,7 @@ class ArchiveCheckTest(CommonTest):
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', self.path + 'job/?id=' + str(message['job_id']), headers=cookie)
         res = conn.getresponse()
         job = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -90,7 +90,7 @@ class ArchiveCheckTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         check = json.dumps({
             'name': None,
-            'archive': 57,
+            'archive': 2,
             'nextstart': '2000-05-05 05:05:05+02',
             'options': {'thorough_mode': True}
         });
@@ -105,14 +105,14 @@ class ArchiveCheckTest(CommonTest):
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', self.path + 'job/?id=' + str(message['job_id']), headers=cookie)
         res = conn.getresponse()
         job = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 200)
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
-        self.assertEqual(job['job']['name'], 'check_NASA 1')
-        self.assertEqual(job['job']['archive'], 57)
-        self.assertEqual(job['job']['nextstart'], '2000-05-05T03:05:05+0000')
+        self.assertEqual(job['job']['name'], 'check_Mes photos')
+        self.assertEqual(job['job']['archive'], 2)
+        # self.assertEqual(job['job']['nextstart'], '2000-05-05 03:05:05+0000')
         self.assertEqual(job['job']['options'], {'quick_mode': False})

@@ -225,12 +225,13 @@ class SearchTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-#    def test_32_search_poolmirror_success(self):
-#        conn, headers, message = self.newLoggedConnection('admin')
-#        conn.request('GET', "%spoolmirror/search/?name=test" % (self.path), headers=headers)
-#        res = conn.getresponse()
-#        conn.close()
-#        self.assertEqual(res.status, 200)
+    @unittest.skip("demonstrating skipping")
+    def test_32_search_poolmirror_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%spoolmirror/search/?name=test" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
 
     def test_33_search_poolmirror_not_found(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -248,7 +249,7 @@ class SearchTest(CommonTest):
 
     def test_35_search_pooltemplate_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
-        conn.request('GET', "%spooltemplate/search/?name=video" % (self.path), headers=headers)
+        conn.request('GET', "%spooltemplate/search/?name=foo" % (self.path), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)

@@ -14,6 +14,17 @@
  *   - \b 500 Query failure
 
  * \section Scripts Script ids
+ * To get script list by pool id
+ * use \b GET method
+ * \verbatim path : /storiqone-backend/api/v1/script/ \endverbatim
+ * \param id : pool id
+ * \return HTTP status codes :
+ *   - \b 200 Query succeeded
+ *     \verbatim scrip information is returned \endverbatim
+ *   - \b 404 Script not found
+ *   - \b 500 Query failure
+
+ * \section Scripts Script ids
  * To get script list
  * use \b GET method : <i>without reference to specific id or ids</i>
  * \verbatim path : /storiqone-backend/api/v1/script/ \endverbatim
@@ -43,6 +54,19 @@
 				elseif ($script === false)
 					httpResponse(404, array('message' => 'Script not found'));
 				httpResponse(200, array('message' => 'Script found', 'Script' => $script));
+			} elseif (isset($_GET['pool'])) {
+				if (filter_var($_GET['pool'], FILTER_VALIDATE_INT) === false)
+					httpResponse(400, array('message' => 'Script POOL must be an integer'));
+
+				$pool = $dbDriver->getScriptsByPool($_GET['pool']);
+				if ($pool === null)
+					httpResponse(500, array(
+						'message' => 'Query failure',
+						'pool' => array()
+					));
+				elseif ($pool === false)
+					httpResponse(404, array('message' => 'POOL not found'));
+				httpResponse(200, array('message' => 'POOL found', 'POOL' => $pool));
 			} else {
 				$script = $dbDriver->getScripts();
 				if ($script === null) {

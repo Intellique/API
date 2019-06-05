@@ -1,23 +1,28 @@
 {
 	"scheme": "https",
-	"host": "d104",
-	"path": "/storiqone-backend/api/v1/",
-	"apikey": "c7d315eb-2be1-4b8c-a934-571045652ea5",
+	"host": "veenai",
+	"path": "/API/api/v1/",
+	"apikey": "918f98d8-e21c-49a5-81c1-cab88b726741",
 	"users": {
 		"admin": {
 			"id": 1,
 			"login": "storiq",
-			"password": "<password>"
+			"password": <password>
 		},
 		"basic": {
 			"id": 2,
-			"login": "basic",
-			"password": "<password>"
+			"login": "indrajit",
+			"password": <password>
 		},
 		"archiver": {
 			"id": 3,
-			"login": "archiver",
-			"password": "<password>"
+			"login": "client",
+			"password": <password>
+		},
+		"g": {
+			"id": 4,
+			"login": "guillaume",
+			"password": <password>
 		}
 	}
 }

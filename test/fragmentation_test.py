@@ -31,7 +31,7 @@ class FragmentationTest(CommonTest):
         self.assertEqual(res.status, 401)
 
     def test_05_get_basic_user_not_allowed(self):
-        conn, headers, message = self.newLoggedConnection('basic')
+        conn, headers, message = self.newLoggedConnection('archiver')
         conn.request('GET', self.path + 'media/fragmentation/', headers=headers)
         res = conn.getresponse()
         conn.close()
@@ -64,10 +64,3 @@ class FragmentationTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
-
-
-
-
-
-
-

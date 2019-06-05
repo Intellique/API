@@ -11,7 +11,9 @@ class VTLTest(CommonTest):
             'nbslots': 8,
             'nbdrives': 2,
             'deleted': False,
-            'mediaformat': 1
+            'mediaformat': 1,
+            'host': 1
+
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -29,7 +31,8 @@ class VTLTest(CommonTest):
             'foo': 8,
             'nbdrives': 2,
             'deleted': False,
-            'mediaformat': 1
+            'mediaformat': 1,
+            'host': 1
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
