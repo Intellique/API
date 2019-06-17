@@ -1,5 +1,6 @@
 <?php
 	require_once("dbJob.php");
+	require_once("file.php");
 
 	trait PostgresqlDBJob {
 		public function createJob(&$job) {
@@ -270,7 +271,6 @@
 		}
 
 		public function getSelectedFile($path) {
-			$path = rtrim($path,'/');
 			if (!$this->prepareQuery('select_selectedfile_by_path', "SELECT id FROM selectedfile WHERE path = $1 LIMIT 1"))
 				return null;
 

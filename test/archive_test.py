@@ -150,7 +150,7 @@ class ArchiveTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         body = json.dumps({
             'name': 'ArchiveTest',
-            'files': ["/home/indrajit/Documents/API/test/"],
+            'files': ["/home//storiq/../indrajit/Documents/./API/test/"],
             'pool': 1
         });
         headers = {"Content-type": "application/json"}
