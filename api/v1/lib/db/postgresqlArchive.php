@@ -234,8 +234,7 @@
 					$query_common .= ' a.deleted';
 			}
 
-			/* ETAT DE VERIFICATION */
-			if(isset($params['status'])) {
+			if (isset($params['status'])) {
 				switch ($params['status']) {
 					case 'checked':
 						$query_common .= ' AND a.id IN (SELECT archive FROM archivevolume WHERE checksumok AND checktime IS NOT NULL) ';
@@ -247,6 +246,26 @@
 						$query_common .= ' AND a.id IN (SELECT archive FROM archivevolume WHERE checksumok = false AND checktime IS NOT NULL) ';
 						break;
 				}
+			}
+
+			if (isset($params['meta_query'])) {
+				$query = "";
+				if (count($query_params) > 0)
+					$query_common .= ' AND';
+				else
+					$query_common .= ' WHERE';
+				$meta_query = explode(' ', $params['meta_query']);
+				$meta_params = $params['meta_params'];
+
+				foreach ($meta_query as $key => $value) {
+					if ($key < count($meta_query) - 1) {
+						$query_params[] = $meta_params[$key];
+						$query.= $value . "$" . count($query_params);
+					} else
+						$query.= $value;
+				}
+				$query = preg_replace(array('/,/m', '/&/m', '/\|/m'), array(" AND ", " AND ", " OR "), $query);
+				$query_common .= " a.id IN (SELECT id FROM metadata WHERE type = 'archive' AND " . $query . ")";
 			}
 
 			$total_rows = 0;
@@ -534,7 +553,7 @@
 			}
 
 			/* ETAT DE VERIFICATION */
-			if(isset($params['status'])) {
+			if (isset($params['status'])) {
 				switch ($params['status']) {
 					case 'checked':
 						$query_common .= ' AND mf.archivefile IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE checksumok AND checktime IS NOT NULL) ';
@@ -546,6 +565,26 @@
 						$query_common .= ' AND mf.archivefile IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE checksumok = false AND checktime IS NOT NULL) ';
 						break;
 				}
+			}
+
+			if (isset($params['meta_query'])) {
+				$query = "";
+				if (count($query_params) > 0)
+					$query_common .= ' AND';
+				else
+					$query_common .= ' WHERE';
+				$meta_query = explode(' ', $params['meta_query']);
+				$meta_params = $params['meta_params'];
+
+				foreach ($meta_query as $key => $value) {
+					if ($key < count($meta_query) - 1) {
+						$query_params[] = $meta_params[$key];
+						$query.= $value . "$" . count($query_params);
+					} else
+						$query.= $value;
+				}
+				$query = preg_replace(array('/,/m', '/&/m', '/\|/m'), array(" AND ", " AND ", " OR "), $query);
+				$query_common .= " a.id IN (SELECT id FROM metadata WHERE type = 'archivefile' AND " . $query . ")";
 			}
 
 			//if (count($params) == 1)
@@ -916,6 +955,22 @@
 					'size' => 'getInteger'
 				), true)
 			);
+		}
+
+		public function getMetadataKey() {
+			$query = 'SELECT DISTINCT key FROM metadata';
+			$query_name = 'get_metadata_keys';
+			if (!$this->prepareQuery($query_name, $query))
+				return null;
+
+			$result = pg_execute($query_name, array());
+			if ($result === false)
+				return false;
+
+			$meta_key = array();
+			while ($row = pg_fetch_array($result))
+				$meta_key[] = $row[0];
+			return $meta_key;
 		}
 
 		public function isArchiveSynchronized($id) {

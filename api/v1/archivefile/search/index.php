@@ -29,6 +29,8 @@
  * | version_inf  | integer | search archive files given the minimum version                                      | version_inf >= 0 & > version_sup |
  * | version_sup  | integer | search archive files given the maximum version                                      | version_sup >= 0 & < version_inf |
  * | status       | string  | search archive files given the status                                               | status = checked || status = not_checked || status = not_ok |
+ * | meta         | string  | search archive files given conditions                                               | , = AND & | = OR                |
+ *
  * \warning <b>Make sure to pass at least one of the first four parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
  *   - \b 200 Query succeeded
@@ -202,6 +204,76 @@
 						$ok = false;
 						break;
 				}
+			}
+
+			if (isset($_GET['meta'])) {
+				$meta_key = $dbDriver->getMetadataKey();
+				if (!$meta_key || $meta_key === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive/search => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMetadataKey()'),$_SESSION['user']['id']);
+				}
+
+				$query = $_GET['meta'];
+				$x = "";
+				$v = false;
+				$value = "";
+				$param= array();
+
+				foreach (str_split($query) as $val) {
+					switch ($val) {
+					case '(':
+					case ')':
+						if ($v) {
+							$x.= " ";
+							$param[] = json_encode("");
+						}
+						$x.= $val;
+						$param[] = $value;
+						$value = "";
+						break;
+
+					case '=':
+						$param[] = $value;
+						$value = "";
+						$x.= "=";
+						$v = true;
+						break;
+
+					case '|':
+						$x.= $val;
+						$param[] = $value;
+						$value = "";
+						break;
+
+					case ',':
+						$param[] = $value;
+						$value = "";
+						$x.= $val;
+						break;
+
+					default:
+						$value.= $val;
+						$x.= " ";
+						$v = false;
+						break;
+					}
+				}
+
+				$x = preg_replace(array('/\s+/m', '/\s=\s/m'), array(" ", "(key= &value= )"), $x);
+
+				function vide($var){
+					return !($var === "") && !($var === NULL);
+				}
+				$param = array_filter($param, "vide");
+
+				foreach ($param as $key => $value) {
+					if (!in_array($value, $meta_key))
+						$param[$key] = json_encode($param[$key]);
+				}
+
+				$param = array_values($param);
+				$params['meta_query'] = $x;
+				$params['meta_params'] = $param;
 			}
 
 			if (!$ok)
