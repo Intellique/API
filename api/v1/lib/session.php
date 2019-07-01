@@ -1,7 +1,8 @@
 <?php
 	require_once("http.php");
 
-	// session_set_cookie_params(0, '/api/v1/');
+	$cookie_path = substr(dirname(__DIR__), strlen($_SERVER['SCRIPT_FILENAME']) - strlen($_SERVER['PHP_SELF']));
+	session_set_cookie_params(0, $cookie_path);
 	if (session_id() == NULL)
 		session_start();
 
