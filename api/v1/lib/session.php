@@ -1,7 +1,10 @@
 <?php
 	require_once("http.php");
 
-	$cookie_path = substr(dirname(__DIR__), strlen($_SERVER['SCRIPT_FILENAME']) - strlen($_SERVER['PHP_SELF']));
+	$pos_api = strpos ($_SERVER['SCRIPT_FILENAME'], '/api/v1/');
+	$len_doc_root = strlen($_SERVER['DOCUMENT_ROOT']);
+	$cookie_path = substr($_SERVER['SCRIPT_FILENAME'], $len_doc_root, ($pos_api - $len_doc_root + 8));
+
 	session_set_cookie_params(0, $cookie_path);
 	if (session_id() == NULL)
 		session_start();
