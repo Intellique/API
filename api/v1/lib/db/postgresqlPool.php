@@ -223,6 +223,15 @@
 				$query .= 'p.mediaformat = $' . count($query_params);
 			}
 
+			if (isset($params['uuid'])) {
+				$query_params[] = $params['uuid'];
+				if (count($query_params) > 1)
+					$query .= ' AND ';
+				else
+					$query .= ' WHERE ';
+				$query .= 'p.uuid = $' . count($query_params);
+			}
+
 			if (isset($params['order_by'])) {
 				$query .= ' ORDER BY ' . $params['order_by'];
 
