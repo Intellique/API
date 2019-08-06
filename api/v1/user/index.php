@@ -351,7 +351,6 @@
 			// metadata
 			if ($ok && isset($user['meta']))
 				$ok = is_array($user['meta']);
-			
 			elseif ($ok) {
 				$user['meta']['step'] = 5;
 				$user['meta']['showHelp'] = true;

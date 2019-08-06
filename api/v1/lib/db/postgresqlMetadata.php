@@ -16,16 +16,18 @@
 			return true;
 		}
 
-		public function deleteMetadata($id, $key, $type, $userId) {
+		public function deleteMetadata($id, &$key, $type, $userId) {
 			if (!$this->prepareQuery('delete_metadata_by_key', "WITH up AS (UPDATE metadata SET login = $4 WHERE id = $1 AND type = $2 AND key = $3) DELETE FROM metadata WHERE id = $1 AND type = $2 AND key = $3"))
 				return null;
 
-			$result = pg_execute($this->connect, 'delete_metadata_by_key', array($id, $type, $key, $userId));
-
-			if ($result === false)
-				return null;
-
-			return pg_affected_rows($result) > 0;
+			foreach ($key as $value) {
+				$result = pg_execute($this->connect, 'delete_metadata_by_key', array($id, $type, $value, $userId));
+				if ($result === false)
+					return null;
+				if (pg_affected_rows($result) == 0)
+					return false;
+			}
+			return true;
 		}
 
 		public function deleteMetadatas($id, $type, $userId) {

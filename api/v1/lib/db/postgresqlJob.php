@@ -1,5 +1,6 @@
 <?php
 	require_once("dbJob.php");
+	require_once("file.php");
 
 	trait PostgresqlDBJob {
 		public function createJob(&$job) {
@@ -57,7 +58,7 @@
 			if (!isset($id) || !is_numeric($id))
 				return false;
 
-			if (!$this->prepareQuery('select_job_by_id', "SELECT j.id, j.name, jt.name AS type, j.nextstart, EXTRACT(EPOCH FROM j.interval) AS interval, j.repetition, j.status, j.update, j.archive, j.backup, j.media, j.pool, j.host, j.login, j.metadata, j.options FROM job j INNER JOIN jobtype jt ON j.type = jt.id WHERE j.id = $1 LIMIT 1 FOR UPDATE"))
+			if (!$this->prepareQuery('select_job_by_id', "SELECT j.id, j.name, jt.name AS type, TRIM(BOTH '\"' FROM TO_JSON(j.nextstart)::TEXT) AS nextstart, EXTRACT(EPOCH FROM j.interval) AS interval, j.repetition, j.status, TRIM(BOTH '\"' FROM TO_JSON(j.update)::TEXT) AS update, j.archive, j.backup, j.media, j.pool, j.host, j.login, j.metadata, j.options FROM job j INNER JOIN jobtype jt ON j.type = jt.id WHERE j.id = $1 LIMIT 1 FOR UPDATE"))
 				return null;
 
 			$result = pg_execute($this->connect, 'select_job_by_id', array($id));
@@ -270,7 +271,6 @@
 		}
 
 		public function getSelectedFile($path) {
-			$path = rtrim($path,'/');
 			if (!$this->prepareQuery('select_selectedfile_by_path', "SELECT id FROM selectedfile WHERE path = $1 LIMIT 1"))
 				return null;
 

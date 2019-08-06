@@ -19,6 +19,17 @@
  * | order_asc    | boolean | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
  * | limit        | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
  * | offset       | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
+ * | size         | integer | search archive files given the size                                                 | size >= 0                       |
+ * | size_inf     | integer | search archive files given the minimum size                                         | size_inf >= 0  & > size_sup     |
+ * | size_sup     | integer | search archive files given the maximum size                                         | size_sup >= 0  & < size_inf     |
+ * | date         | date    | search archive files given the date                                                 | valid date                      |
+ * | date_inf     | date    | search archive files given the minimum date                                         | valid date & date_inf > date_sup |
+ * | date_sup     | date    | search archive files given the maximum date                                         | valid date & date_sup < date_inf |
+ * | version      | integer | search archive files given the version                                              | version >= 0                     |
+ * | version_inf  | integer | search archive files given the minimum version                                      | version_inf >= 0 & > version_sup |
+ * | version_sup  | integer | search archive files given the maximum version                                      | version_sup >= 0 & < version_inf |
+ * | status       | string  | search archive files given the status                                               | status = checked || status = not_checked || status = not_ok |
+ * | meta         | string  | search archive files given conditions                                               | , = AND & | = OR                |
  *
  * \warning <b>Make sure to pass at least one of the first four parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
@@ -65,16 +76,88 @@
 			if (isset($_GET['mimetype']))
 				$params['mimetype'] = $_GET['mimetype'];
 
+			if (isset($_GET['archive_name']))
+				$params['archive_name'] = $_GET['archive_name'];
+
+			/* SIZE */
+
+			if (isset($_GET['size'])) {
+				$size = filter_var($_GET['size'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+				if ($size !== false)
+					$params['size'] = $size;
+				else
+					$ok = false;
+			} else {
+				if (isset($_GET['size_sup'])) {
+					$size_sup = filter_var($_GET['size_sup'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+					if ($size_sup !== false)
+						$params['size_sup'] = $size_sup;
+					else
+						$ok = false;
+				}
+				if (isset($_GET['size_inf'])) {
+					$size_inf = filter_var($_GET['size_inf'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 0)));
+					if ($size_inf !== false)
+						$params['size_inf'] = $size_inf;
+					else
+						$ok = false;
+				}
+				if(isset($_GET['size_sup']) && isset($_GET['size_inf']) && $size_sup > $size_inf)
+					$ok = false;
+			}
+
+			/* DATE */
+			if (isset($_GET['date'])) {
+				$date = dateTimeParse($_GET['date']);
+				if ($date !== null)
+					$params['date'] = $_GET['date'];
+				else
+					$ok = false;
+			} else {
+				if (isset($_GET['date_inf'])) {
+					$date_inf = dateTimeParse($_GET['date_inf']);
+					if ($date_inf !== null)
+						$params['date_inf'] = $_GET['date_inf'];
+					else
+						$ok = false;
+				}
+				if (isset($_GET['date_sup'])) {
+					$date_sup = dateTimeParse($_GET['date_sup']);
+					if ($date_sup !== null)
+						$params['date_sup'] = $_GET['date_sup'];
+					else
+						$ok = false;
+				}
+				if (isset($_GET['date_sup']) && isset($_GET['date_inf']) && ($date_sup->getTimestamp() - $date_inf->getTimestamp()) > 0)
+					$ok = false;
+			}
+
+			/* VERSION */
+
 			if (isset($_GET['version'])) {
-				$version = filter_var($_GET['version'], FILTER_VALIDATE_INT);
+				$version = filter_var($_GET['version'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
 				if ($version !== false)
 					$params['version'] = $version;
 				else
 					$ok = false;
+			} else {
+				if (isset($_GET['version_sup'])) {
+					$version_sup = filter_var($_GET['version_sup'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+					if ($version_sup !== false)
+						$params['version_sup'] = $version_sup;
+					else
+						$ok = false;
+				}
+				if (isset($_GET['version_inf'])) {
+					$version_inf = filter_var($_GET['version_inf'], FILTER_VALIDATE_INT, array("options" => array('min_range' => 1)));
+					if ($version_inf !== false)
+						$params['version_inf'] = $version_inf;
+					else
+						$ok = false;
+				}
+				if(isset($_GET['version_sup']) && isset($_GET['version_inf']) && $version_sup > $version_inf)
+					$ok = false;
 			}
-
-			if (isset($_GET['archive_name']))
-				$params['archive_name'] = $_GET['archive_name'];
 
 			if (isset($_GET['order_by'])) {
 				if (array_search($_GET['order_by'], array('id', 'size', 'name', 'type', 'owner', 'groups')) !== false)
@@ -107,6 +190,92 @@
 					$ok = false;
 			}
 
+
+			/* ETAT DE VERIFICATION */
+
+			if (isset($_GET['status'])) {
+				switch ($_GET['status']) {
+					case 'checked':
+					case 'not_checked':
+					case 'not_ok':
+						$params['status'] = $_GET['status'];
+						break;
+					default:
+						$ok = false;
+						break;
+				}
+			}
+
+			if (isset($_GET['meta'])) {
+				$meta_key = $dbDriver->getMetadataKey();
+				if (!$meta_key || $meta_key === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive/search => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMetadataKey()'),$_SESSION['user']['id']);
+				}
+
+				$query = $_GET['meta'];
+				$x = "";
+				$v = false;
+				$value = "";
+				$param= array();
+
+				foreach (str_split($query) as $val) {
+					switch ($val) {
+					case '(':
+					case ')':
+						if ($v) {
+							$x.= " ";
+							$param[] = json_encode("");
+						}
+						$x.= $val;
+						$param[] = $value;
+						$value = "";
+						break;
+
+					case '=':
+						$param[] = $value;
+						$value = "";
+						$x.= "=";
+						$v = true;
+						break;
+
+					case '|':
+						$x.= $val;
+						$param[] = $value;
+						$value = "";
+						break;
+
+					case ',':
+						$param[] = $value;
+						$value = "";
+						$x.= $val;
+						break;
+
+					default:
+						$value.= $val;
+						$x.= " ";
+						$v = false;
+						break;
+					}
+				}
+
+				$x = preg_replace(array('/\s+/m', '/\s=\s/m'), array(" ", "(key= &value= )"), $x);
+
+				function vide($var){
+					return !($var === "") && !($var === NULL);
+				}
+				$param = array_filter($param, "vide");
+
+				foreach ($param as $key => $value) {
+					if (!in_array($value, $meta_key))
+						$param[$key] = json_encode($param[$key]);
+				}
+
+				$param = array_values($param);
+				$params['meta_query'] = $x;
+				$params['meta_params'] = $param;
+			}
+
 			if (!$ok)
 				httpResponse(400, array('message' => 'Incorrect input'));
 
@@ -117,8 +286,7 @@
 				httpResponse(500, array(
 					'message' => 'Query failure',
 					'archivefiles' => array(),
-					'total_rows' => 0,
-					'debug' => $archivefile
+					'total_rows' => 0
 				));
 			} elseif ($archivefile['total_rows'] === 0)
 				httpResponse(404, array(

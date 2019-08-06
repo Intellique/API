@@ -4,6 +4,20 @@
 	 */
 	interface DB_User {
 		/**
+		 * \brief activate a user
+		 * \param $key : user's key
+		 * \return \b TRUE on activation success, \b FALSE when user already activated or disabled on purpose
+		 */
+		public function activateUser($key);
+
+		/**
+		 * \brief add a key for a user
+		 * \param $key : key for user
+		 * \param $login : user login
+		 */
+		public function addKey($key,$login);
+
+		/**
 		 * \brief create a user
 		 * \param $user : PHP object
 		 * \li \c login (string) : user login
@@ -20,6 +34,13 @@
 		 * \return <b>New user id</b> or \b NULL on query execution failure
 		 */
 		public function createUser(&$user);
+
+		/**
+		 * \brief deactivate a user
+		 * \param $key : user's key
+		 * \return \b TRUE on deactivation success, \b FALSE othervise
+		 */
+		public function deactivateUser($login);
 
 		/**
 		 * \brief Delete a user

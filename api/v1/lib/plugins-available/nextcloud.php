@@ -3,6 +3,16 @@
 		$config_file = dirname($plugin_filename) . '/' . basename($plugin_filename, '.php') . '.ini';
 		$config = parse_ini_file($config_file);
 
+		registerPlugin('activate User', function($event, $user) use (&$config) {
+			exec(sprintf('%s user:enable %s', $config['occ_path'], escapeshellarg($user)),$output, $result);
+			return $result == 0;
+		});
+
+		registerPlugin('deactivate User', function($event, $user) use (&$config) {
+			exec(sprintf('%s user:disable %s', $config['occ_path'], escapeshellarg($user)),$output, $result);
+			return $result == 0;
+		});
+
 		registerPlugin('post DELETE User', function($event, $user) use (&$config) {
 			$return = exec(sprintf('%s user:delete %s', $config['occ_path'], escapeshellarg($user['login'])));
 			return (rtrim($return) == 'The specified user was deleted');
@@ -10,8 +20,8 @@
 
 		registerPlugin('post POST User', function($event, $new_user, $password) use (&$config) {
 			putenv('OC_PASS=' . $password);
-			$return = exec(sprintf('%s user:add --password-from-env %s', $config['occ_path'], escapeshellarg($new_user['login'])));
-			return (rtrim($return) == sprintf('The user "%s" was created successfully', $new_user['login']));
+			exec(sprintf('%s user:add --password-from-env %s', $config['occ_path'], escapeshellarg($new_user['login'])),$output, $result);
+			return $result == 0;
 		});
 
 		registerPlugin('post PUT User', function($event, $current_user, $new_user, $current_password) use (&$config) {

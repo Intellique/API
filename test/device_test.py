@@ -5,7 +5,7 @@ import json
 class DeviceTest(CommonTest):
 
     def test_01_get_device_not_permitted(self):
-        conn, headers, message = self.newLoggedConnection('basic')
+        conn, headers, message = self.newLoggedConnection('archiver')
         conn.request('GET', "%sdevice/?id=%d" % (self.path, 1), headers=headers)
         res = conn.getresponse()
         conn.close()

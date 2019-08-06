@@ -69,6 +69,9 @@
 					$params['mediaformat'] = $mediaformat;
 			}
 
+			if (isset($_GET['uuid']))
+				$params['uuid'] = $_GET['uuid'];
+
 			if (isset($_GET['order_by'])) {
 				if (array_search($_GET['order_by'], array('id', 'uuid', 'name')) !== false)
 					$params['order_by'] = $_GET['order_by'];

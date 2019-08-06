@@ -234,6 +234,40 @@
 					$query_common .= ' a.deleted';
 			}
 
+			if (isset($params['status'])) {
+				switch ($params['status']) {
+					case 'checked':
+						$query_common .= ' AND a.id IN (SELECT archive FROM archivevolume WHERE checksumok AND checktime IS NOT NULL) ';
+						break;
+					case 'not_checked':
+						$query_common .= ' AND a.id IN (SELECT archive FROM archivevolume WHERE checksumok = false AND checktime IS NULL) ';
+						break;
+					case 'not_ok':
+						$query_common .= ' AND a.id IN (SELECT archive FROM archivevolume WHERE checksumok = false AND checktime IS NOT NULL) ';
+						break;
+				}
+			}
+
+			if (isset($params['meta_query'])) {
+				$query = "";
+				if (count($query_params) > 0)
+					$query_common .= ' AND';
+				else
+					$query_common .= ' WHERE';
+				$meta_query = explode(' ', $params['meta_query']);
+				$meta_params = $params['meta_params'];
+
+				foreach ($meta_query as $key => $value) {
+					if ($key < count($meta_query) - 1) {
+						$query_params[] = $meta_params[$key];
+						$query.= $value . "$" . count($query_params);
+					} else
+						$query.= $value;
+				}
+				$query = preg_replace(array('/,/m', '/&/m', '/\|/m'), array(" AND ", " AND ", " OR "), $query);
+				$query_common .= " a.id IN (SELECT id FROM metadata WHERE type = 'archive' AND " . $query . ")";
+			}
+
 			$total_rows = 0;
 			if (isset($params['limit']) or isset($params['offset'])) {
 				$query = "SELECT COUNT(*)" . $query_common;
@@ -466,9 +500,19 @@
 				$query_common .= ' AND mimetype = $' . count($query_params);
 			}
 
+			/* VERSION */
 			if (isset($params['version'])) {
 				$query_params[] = $params['version'];
-				$query_common .= ' AND versions @> $' . count($query_params);
+				$query_common .= ' AND file_versions @> $' . count($query_params) . '::INT';
+			} else {
+				if (isset($params['version_inf'])) {
+					$query_params[] = $params['version_inf'];
+					$query_common .= ' AND upper(file_versions) <= $' . count($query_params);
+				}
+				if (isset($params['version_sup'])) {
+					$query_params[] = $params['version_sup'];
+					$query_common .= ' AND lower(file_versions) >= $' . count($query_params);
+				}
 			}
 
 			if (isset($params['archive_name'])) {
@@ -476,8 +520,75 @@
 				$query_common .= ' AND archive_name = $' . count($query_params);
 			}
 
-			if (count($params) == 1)
-				$query_common .= ' OR a.creator = $1 OR a.owner = $1';
+			/* SIZE INF */
+			if (isset($params['size'])) {
+				$query_params[] = $params['size'];
+				$query_common .= ' AND file_size = $' . count($query_params);
+			} else {
+				if (isset($params['size_inf'])) {
+					$query_params[] = $params['size_inf'];
+					$query_common .= ' AND file_size <= $' . count($query_params);
+				}
+				if (isset($params['size_sup'])) {
+					$query_params[] = $params['size_sup'];
+					$query_common .= ' AND file_size >= $' . count($query_params);
+				}
+			}
+
+			/* DATE */
+			if (isset($params['date'])) {
+				$query_params[] = $params['date'];
+				$query_common .= ' AND file_ctime >= $' . count($query_params);
+				$query_params[] = date('Y-m-d', strtotime($params['date']. ' + 1 days'));
+				$query_common .= ' AND file_ctime < $' . count($query_params);
+			} else{
+				if (isset($params['date_inf'])) {
+					$query_params[] = date('Y-m-d', strtotime($params['date_inf']. ' + 1 days'));
+					$query_common .= ' AND file_ctime < $' . count($query_params);
+				}
+				if (isset($params['date_sup'])) {
+					$query_params[] = $params['date_sup'];
+					$query_common .= ' AND file_ctime >= $' . count($query_params);
+				}
+			}
+
+			/* ETAT DE VERIFICATION */
+			if (isset($params['status'])) {
+				switch ($params['status']) {
+					case 'checked':
+						$query_common .= ' AND mf.archivefile IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE checksumok AND checktime IS NOT NULL) ';
+						break;
+					case 'not_checked':
+						$query_common .= ' AND mf.archivefile IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE checksumok = false AND checktime IS NULL) ';
+						break;
+					case 'not_ok':
+						$query_common .= ' AND mf.archivefile IN (SELECT archivefile FROM archivefiletoarchivevolume WHERE checksumok = false AND checktime IS NOT NULL) ';
+						break;
+				}
+			}
+
+			if (isset($params['meta_query'])) {
+				$query = "";
+				if (count($query_params) > 0)
+					$query_common .= ' AND';
+				else
+					$query_common .= ' WHERE';
+				$meta_query = explode(' ', $params['meta_query']);
+				$meta_params = $params['meta_params'];
+
+				foreach ($meta_query as $key => $value) {
+					if ($key < count($meta_query) - 1) {
+						$query_params[] = $meta_params[$key];
+						$query.= $value . "$" . count($query_params);
+					} else
+						$query.= $value;
+				}
+				$query = preg_replace(array('/,/m', '/&/m', '/\|/m'), array(" AND ", " AND ", " OR "), $query);
+				$query_common .= " a.id IN (SELECT id FROM metadata WHERE type = 'archivefile' AND " . $query . ")";
+			}
+
+			//if (count($params) == 1)
+				//$query_common .= ' OR a.creator = $1 OR a.owner = $1';
 
 			$total_rows = 0;
 			if (isset($params['limit']) || isset($params['offset'])) {
@@ -547,6 +658,7 @@
 					'query_name' => $query_name,
 					'query_prepared' => true,
 					'query_executed' => false,
+					'query_params' => $query_params,
 					'rows' => array(),
 					'total_rows' => 0
 				);
@@ -843,6 +955,22 @@
 					'size' => 'getInteger'
 				), true)
 			);
+		}
+
+		public function getMetadataKey() {
+			$query = 'SELECT DISTINCT key FROM metadata';
+			$query_name = 'get_metadata_keys';
+			if (!$this->prepareQuery($query_name, $query))
+				return null;
+
+			$result = pg_execute($query_name, array());
+			if ($result === false)
+				return false;
+
+			$meta_key = array();
+			while ($row = pg_fetch_array($result))
+				$meta_key[] = $row[0];
+			return $meta_key;
 		}
 
 		public function isArchiveSynchronized($id) {

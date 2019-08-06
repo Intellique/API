@@ -4,12 +4,12 @@ import ssl
 
 class CommonTest(unittest.TestCase):
     scheme = 'http'
-    host = 'taiko'
-    path = '/storiqone-backend/api/v1/'
+    host = 'veenai'
+    path = '/API/api/v1/'
     users = {
         'admin': {
             'login': 'storiq',
-            'password': '<password>'
+            'password': 'spider77'
         }
     }
     parsed = False
@@ -64,4 +64,3 @@ class CommonTest(unittest.TestCase):
             self.users = config['users']
         if ('apikey' in config):
             self.apikey = config['apikey']
-

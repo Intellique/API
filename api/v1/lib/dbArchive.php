@@ -97,6 +97,12 @@
 		public function getFilesFromArchive($id, &$params);
 
 		/**
+		 * \brief Get metadata's keys
+		 * \return array of metadata's keys
+		 */
+		 public function getMetadataKey();
+
+		/**
 		 * \brief check if an archive is synchronized in its archive mirror
 		 * \param $id : the archive's id
 		 * \return an object which contains a boolean status : true if synchronized, else false
