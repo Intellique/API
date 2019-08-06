@@ -181,9 +181,8 @@
 
 				$job = checkPermissions($_GET['id'], true);
 
-				$dbDriver->cancelTransaction();
-
 				if ($job['failure']) {
+					$dbDriver->cancelTransaction();
 					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'DELETE api/v1/job => Query failure', $_SESSION['user']['id']);
 					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('checkPermissions(%s, %s)', $_GET['id'], true), $_SESSION['user']['id']);
 					httpResponse(500, array(

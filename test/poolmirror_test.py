@@ -1,15 +1,16 @@
 from common_test import CommonTest
 from io import StringIO
-import json
+import json, unittest
 
 class PoolMirrorTest(CommonTest):
 
-#    def test_01_get_poolmirror_success(self):
-#        conn, headers, message = self.newLoggedConnection('admin')
-#        conn.request('GET', "%spoolmirror/?id=1" % (self.path), headers=headers)
-#        res = conn.getresponse()
-#        conn.close()
-#        self.assertEqual(res.status, 200)
+    @unittest.skip("demonstrating skipping")
+    def test_01_get_poolmirror_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('GET', "%spoolmirror/?id=1" % (self.path), headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 200)
 
     def test_02_get_poolmirror_list_success(self):
         conn, headers, message = self.newLoggedConnection('admin')
@@ -25,13 +26,14 @@ class PoolMirrorTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 403)
 
-#    def test_04_delete_poolmirror_success(self):
-#        conn, headers, message = self.newLoggedConnection('admin')
-#        conn.request('DELETE', "%spoolmirror/?id=1" % (self.path), headers=headers)
-#        res = conn.getresponse()
-#        message = json.loads(res.read().decode("utf-8"))
-#        conn.close()
-#        self.assertEqual(res.status, 200)
+    @unittest.skip("demonstrating skipping")
+    def test_04_delete_poolmirror_success(self):
+        conn, headers, message = self.newLoggedConnection('admin')
+        conn.request('DELETE', "%spoolmirror/?id=1" % (self.path), headers=headers)
+        res = conn.getresponse()
+        message = json.loads(res.read().decode("utf-8"))
+        conn.close()
+        self.assertEqual(res.status, 200)
 
     def test_05_delete_poolmirror_basic(self):
         conn, headers, message = self.newLoggedConnection('basic')

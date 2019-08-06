@@ -1,6 +1,6 @@
 from common_test import CommonTest
 from io import StringIO
-import copy, hashlib, json
+import copy, hashlib, json, unittest
 
 class UserTest(CommonTest):
     def test_01_get_user_not_logged(self):
@@ -192,7 +192,7 @@ class UserTest(CommonTest):
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', location + '?id=' + str(message['user_id']), headers=cookie)
         res = conn.getresponse()
         user = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -256,7 +256,7 @@ class UserTest(CommonTest):
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', location + '?id=' + str(message['user_id']), headers=cookie)
         res = conn.getresponse()
         user = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -434,7 +434,7 @@ class UserTest(CommonTest):
         self.assertEqual(res.status, 403)
 
     def test_33_delete_user_who_had_created_an_archive(self):
-        conn, cookie, message = self.newLoggedConnection('admin')
+        conn, cookie, message = self.newLoggedConnection('basic')
         conn.request('DELETE', self.path + 'user/?id=3', headers=cookie)
         res = conn.getresponse()
         conn.close()
@@ -447,20 +447,21 @@ class UserTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 404)
 
+
     def test_35_post_user_created(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data = json.dumps({
-            'login': 'toto',
-            'password': 'toto79',
-            'fullname': 'la tête à toto',
-            'email': 'toto@toto.com',
+            'login': 'tati',
+            'password': 'tati79',
+            'fullname': 'la tête à tati',
+            'email': 'tati@tati.com',
             'homedirectory': '/mnt/raid',
             'isadmin': False,
             'canarchive': True,
             'canrestore': True,
             'meta': {
-                'Description': 'Test est super content',
-                'Format': 'totomobile'
+                'Description': 'tati est super content',
+                'Format': 'tatimobile'
             },
             'poolgroup': 1,
             'disabled': False
@@ -469,8 +470,10 @@ class UserTest(CommonTest):
         headers.update(cookie)
         conn.request('POST', self.path + 'user/', body=data, headers=headers)
         res = conn.getresponse()
+        message = json.loads(res.read().decode('utf-8'))
         conn.close()
         self.assertEqual(res.status, 201)
+
 
     def test_36_post_user_created_and_deleted(self):
         conn, cookie, message = self.newLoggedConnection('admin')

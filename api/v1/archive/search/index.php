@@ -23,6 +23,8 @@
  * | order_asc   | boolean           | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
  * | limit       | integer           | specifies the maximum number of rows to return.                                     | limit > 0                       |
  * | offset      | integer           | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
+ * | status      | string            | search archive files given the status                                               | status = checked || status = not_checked || status = not_ok |
+ * | meta        | string            | search archive files given conditions                                               | , = AND & | = OR                |
  *
  * \warning <b>Make sure to pass at least one of the first four parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
@@ -135,6 +137,88 @@
 					else
 						$ok = false;
 				}
+			}
+
+			if (isset($_GET['status'])) {
+				switch ($_GET['status']) {
+					case 'checked':
+					case 'not_checked':
+					case 'not_ok':
+						$params['status'] = $_GET['status'];
+						break;
+					default:
+						$ok = false;
+						break;
+				}
+			}
+
+			if (isset($_GET['meta'])) {
+				$meta_key = $dbDriver->getMetadataKey();
+				if (!$meta_key || $meta_key === null) {
+					$dbDriver->writeLog(DB::DB_LOG_CRITICAL, 'GET api/v1/archive/search => Query failure', $_SESSION['user']['id']);
+					$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('getMetadataKey()'),$_SESSION['user']['id']);
+				}
+				$query = $_GET['meta'];
+				$x = "";
+				$v = false;
+				$value = "";
+				$param= array();
+
+				foreach (str_split($query) as $val) {
+					switch ($val) {
+					case '(':
+					case ')':
+						if ($v) {
+							$x.= " ";
+							$param[] = json_encode("");
+						}
+						$x.= $val;
+						$param[] = $value;
+						$value = "";
+						break;
+
+					case '=':
+						$param[] = $value;
+						$value = "";
+						$x.= "=";
+						$v = true;
+						break;
+
+					case '|':
+						$x.= $val;
+						$param[] = $value;
+						$value = "";
+						break;
+
+					case ',':
+						$param[] = $value;
+						$value = "";
+						$x.= $val;
+						break;
+
+					default:
+						$value.= $val;
+						$x.= " ";
+						$v = false;
+						break;
+					}
+				}
+
+				$x = preg_replace(array('/\s+/m', '/\s=\s/m'), array(" ", "(key= &value= )"), $x);
+
+				function vide($var){
+					return !($var === "") && !($var === NULL);
+				}
+				$param = array_filter($param, "vide");
+
+				foreach($param as $key => $value) {
+					if(!in_array($value, $meta_key))
+						$param[$key] = json_encode($param[$key]);
+				}
+
+				$param = array_values($param);
+				$params['meta_query'] = $x;
+				$params['meta_params'] = $param;
 			}
 
 			if (isset($_GET['limit'])) {

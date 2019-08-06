@@ -1,5 +1,5 @@
 from common_test import CommonTest
-import json
+import json, unittest
 
 class ArchiveTest(CommonTest):
     def test_01_get_archive_without_params(self):
@@ -13,8 +13,8 @@ class ArchiveTest(CommonTest):
         self.assertIsInstance(archives['archives'], list)
 
     def test_02_get_archive_not_permitted(self):
-        conn, headers, message = self.newLoggedConnection('basic')
-        conn.request('GET', "%sarchive/?id=%d" % (self.path, 57), headers=headers)
+        conn, headers, message = self.newLoggedConnection('archiver')
+        conn.request('GET', "%sarchive/?id=%d" % (self.path, 28), headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
@@ -117,8 +117,8 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_16_post_basic_user_not_allowed(self):
-        conn, cookie, message = self.newLoggedConnection('basic')
+    def test_16_post_archiver_user_not_allowed(self):
+        conn, cookie, message = self.newLoggedConnection('archiver')
         body = json.dumps({
             'pool': 3
         });
@@ -145,14 +145,13 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
+
     def test_18_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         body = json.dumps({
             'name': 'ArchiveTest',
-            'files': ["/var/www/nextcloud/data/emmanuel/files/NASA"],
-            'pool': 3,
-            'metadata': {},
-            'options': {}
+            'files': ["/home//storiq/../indrajit/Documents/./API/test/"],
+            'pool': 1
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -165,7 +164,7 @@ class ArchiveTest(CommonTest):
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', self.path + 'job/?id=' + str(message['job_id']), headers=cookie)
         res = conn.getresponse()
         job = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -173,7 +172,7 @@ class ArchiveTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveTest')
-        self.assertEqual(job['job']['pool'], 3)
+        self.assertEqual(job['job']['pool'], 1)
 
     def test_19_put_not_logged(self):
         conn = self.newConnection()
@@ -203,10 +202,10 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    def test_22_put_basic_user_not_allowed(self):
-        conn, cookie, message = self.newLoggedConnection('basic')
+    def test_22_put_archiver_user_not_allowed(self):
+        conn, cookie, message = self.newLoggedConnection('archiver')
         body = json.dumps({
-            'id': 57
+            'id': 28
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -247,7 +246,7 @@ class ArchiveTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 200)
- 
+
     def test_25_delete_user_logged_as_admin_without_params(self):
         conn, headers, message = self.newLoggedConnection('admin')
         conn.request('DELETE', self.path + 'archive/', headers=headers)
@@ -270,7 +269,7 @@ class ArchiveTest(CommonTest):
         self.assertEqual(res.status, 401)
 
     def test_28_delete_user_not_admin(self):
-        conn, headers, message = self.newLoggedConnection('basic')
+        conn, headers, message = self.newLoggedConnection('archiver')
         conn.request('DELETE', self.path + 'archive/', headers=headers)
         res = conn.getresponse()
         conn.close()
@@ -290,15 +289,15 @@ class ArchiveTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 404)
 
-    def test_31_basic_user_tries_to_get_deleted_archives(self):
-        conn, headers, message = self.newLoggedConnection('basic')
+    def test_31_archiver_user_tries_to_get_deleted_archives(self):
+        conn, headers, message = self.newLoggedConnection('archiver')
         conn.request('GET', self.path + 'archive/?deleted=yes', headers=headers)
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 403)
 
-    def test_32_basic_user_tries_to_get_only_deleted_archives(self):
-        conn, headers, message = self.newLoggedConnection('basic')
+    def test_32_archiver_user_tries_to_get_only_deleted_archives(self):
+        conn, headers, message = self.newLoggedConnection('archiver')
         conn.request('GET', self.path + 'archive/?deleted=only', headers=headers)
         res = conn.getresponse()
         conn.close()
@@ -330,4 +329,4 @@ class ArchiveTest(CommonTest):
         conn.request('GET', self.path + 'archive/?poolgroup=4', headers=cookie)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 200)        
+        self.assertEqual(res.status, 200)

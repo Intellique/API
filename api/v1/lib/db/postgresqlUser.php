@@ -2,6 +2,32 @@
 	require_once("dbUser.php");
 
 	trait PostgresqlDBUser {
+		public function activateUser($key) {
+			if (!$this->prepareQuery("get_user", "SELECT login FROM users WHERE key = $1"))
+				return false;
+			$result = pg_execute($this->connect, 'get_user', array($key));
+			if ($result === false)
+				return null;
+			if (pg_num_rows($result) == 0)
+				return false;
+			$login = pg_fetch_assoc($result);
+
+			if (!$this->prepareQuery("update_user", "UPDATE users SET disabled = false, key = NULL WHERE key = $1"))
+				return false;
+			$result = pg_execute($this->connect, 'update_user', array($key));
+			if (pg_affected_rows($result) != 0)
+				return $login;
+			else
+				return false;
+		}
+
+		public function addKey($key, $login) {
+			if (!$this->prepareQuery('add_Key', "UPDATE users SET key = $1 WHERE login = $2"))
+				return null;
+			$result = pg_execute($this->connect,'add_Key', array($key, $login));
+			return pg_affected_rows($result) != 0;
+		}
+
 		public function createUser(&$user) {
 			if (!$this->prepareQuery("insert_user", "INSERT INTO users (login, password, salt, fullname, email, homedirectory, isadmin, canarchive, canrestore, meta, poolgroup, disabled) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id"))
 				return null;
@@ -20,6 +46,13 @@
 			$row = pg_fetch_assoc($result);
 
 			return intval($row['id']);
+		}
+
+		public function deactivateUser($login) {
+			if (!$this->prepareQuery("deactivate_user", "UPDATE users SET disabled = true WHERE LOGIN = $1"))
+				return null;
+			$result = pg_execute($this->connect, 'deactivate_user', array($login));
+			return pg_affected_rows($result) != 0;
 		}
 
 		public function deleteUser($id) {

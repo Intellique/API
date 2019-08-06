@@ -35,6 +35,17 @@ parser_cu.add_argument('login', help='specify login of new user')
 parser_cu.add_argument('password', nargs='?', default=None, help='specify password of new user')
 parser_cu.set_defaults(action='create_user')
 
+# sub parser for enable_user command
+parser_eu = sub_parser.add_parser('enable_user', aliases=['eu'], help='enable a user')
+parser_eu.add_argument('key', help='specify key')
+parser_eu.set_defaults(action='enable_user')
+
+# sub parser for disable_user command
+parser_du = sub_parser.add_parser('disable_user', aliases=['du'], help='disable a user')
+parser_du.add_argument('--key', help='specify key')
+parser_du.add_argument('login', help='specify login of user')
+parser_du.set_defaults(action='disable_user')
+
 # sub parser for list_pool command
 parser_lp = sub_parser.add_parser('list_pool', aliases=['lp'], help='List pools')
 parser_lp.set_defaults(action='list_pool')
@@ -98,7 +109,7 @@ if None in [base_url, api_key, admin_user, admin_password]:
 
 
 def authentication(info):
-    print('Login to "%s"… ' % base_url, end='', flush=True)
+    print('Login to "%s"... ' % base_url, end='', flush=True)
     connection = newHttpConnection(info)
     headers = {"Content-type": "application/json"}
     params = json.dumps({'login': admin_user, 'password': admin_password, 'apikey': api_key})
@@ -156,7 +167,7 @@ elif args.action == 'create_user':
     (connection, cookie) = authentication(url_info)
 
     # search user
-    print('Search user "%s"… ' % args.login, end='', flush=True)
+    print('Search user "%s"... ' % args.login, end='', flush=True)
     connection.request('GET', '%s/user/search/?login=%s' % (base_url, args.login), headers=cookie)
 
     response = connection.getresponse()
@@ -168,7 +179,7 @@ elif args.action == 'create_user':
         print('found, user id: %d' % message['users'][0])
 
     # search archive format
-    print('Search archive format "Storiq One (TAR)"… ', end='', flush=True)
+    print('Search archive format "Storiq One (TAR)"... ', end='', flush=True)
     connection.request('GET', '%s/archiveformat/?name=%s' % (base_url, urlquote('Storiq One (TAR)')), headers=cookie)
 
     response = connection.getresponse()
@@ -185,7 +196,7 @@ elif args.action == 'create_user':
     vtl_id = args.vtl_id
     if vtl_id is None:
         # search vtl
-        print('Search vtl "%s"… ' % args.login, end='', flush=True)
+        print('Search vtl "%s"... ' % args.login, end='', flush=True)
         connection.request('GET', '%s/vtl/' % (base_url), headers=cookie)
 
         response = connection.getresponse()
@@ -204,7 +215,7 @@ elif args.action == 'create_user':
             sys.exit(2)
 
     # get vtl information
-    print('Get vtl information (id: %d)… ' % vtl_id, end='', flush=True)
+    print('Get vtl information (id: %d)... ' % vtl_id, end='', flush=True)
     connection.request('GET', '%s/vtl/?id=%d' % (base_url, vtl_id), headers=cookie)
 
     response = connection.getresponse()
@@ -220,7 +231,7 @@ elif args.action == 'create_user':
         sys.exit(2)
 
     # find blank media
-    print('Find blank media (mediaformat: %d)… ' % mediaformat_id, end='', flush=True)
+    print('Find blank media (mediaformat: %d)... ' % mediaformat_id, end='', flush=True)
     connection.request('GET', '%s/media/search/?status=new&mediaformat=%d&order_by=id' % (base_url, mediaformat_id), headers=cookie)
 
     response = connection.getresponse()
@@ -253,7 +264,7 @@ elif args.action == 'create_user':
     pool_header = { 'Content-type': 'application/json' }
     pool_header.update(cookie)
 
-    print('Create new pool (name: %s)… ' % pool['name'], end='', flush=True)
+    print('Create new pool (name: %s)... ' % pool['name'], end='', flush=True)
     connection.request('POST', '%s/pool/' % (base_url), json.dumps(pool), headers=pool_header)
 
     response = connection.getresponse()
@@ -274,7 +285,7 @@ elif args.action == 'create_user':
         'pools': [pool_id]
     }
 
-    print('Create new pool group (name: %s)… ' % poolgroup['name'], end='', flush=True)
+    print('Create new pool group (name: %s)... ' % poolgroup['name'], end='', flush=True)
     connection.request('POST', '%s/poolgroup/' % (base_url), json.dumps(poolgroup), headers=pool_header)
 
     response = connection.getresponse()
@@ -307,7 +318,7 @@ elif args.action == 'create_user':
         'disabled': False
     }
 
-    print('Create new user (name: %s)… ' % args.login, end='', flush=True)
+    print('Create new user (name: %s)... ' % args.login, end='', flush=True)
     connection.request('POST', '%s/user/' % (base_url), json.dumps(user), headers=pool_header)
 
     response = connection.getresponse()
@@ -328,7 +339,7 @@ elif args.action == 'create_user':
         'pool': pool_id
     }
 
-    print('Create formatting task (media: %d, pool: %d)… ' % (media_id, pool_id), end='', flush=True)
+    print('Create formatting task (media: %d, pool: %d)... ' % (media_id, pool_id), end='', flush=True)
     connection.request('POST', '%s/media/format/' % (base_url), json.dumps(task_info), headers=pool_header)
 
     response = connection.getresponse()
@@ -345,11 +356,13 @@ elif args.action == 'create_user':
         connection.close()
         sys.exit(2)
 
+
+
 elif args.action == 'list_pool':
     url_info = urlparse(base_url)
     (connection, cookie) = authentication(url_info)
 
-    print('Getting pool list… ', end='', flush=True)
+    print('Getting pool list... ', end='', flush=True)
     connection.request('GET', base_url + '/pool/', headers=cookie)
 
     response = connection.getresponse()
@@ -366,7 +379,7 @@ elif args.action == 'list_pool':
 
         pool = sub_message['pool']
         pp.pprint(pool)
-        
+
 
     connection.close()
 
@@ -374,7 +387,7 @@ elif args.action == 'list_user':
     url_info = urlparse(base_url)
     (connection, cookie) = authentication(url_info)
 
-    print('Getting user list… ', end='', flush=True)
+    print('Getting user list... ', end='', flush=True)
     connection.request('GET', base_url + '/user/', headers=cookie)
 
     response = connection.getresponse()
@@ -391,11 +404,68 @@ elif args.action == 'list_user':
 
         user = sub_message['user']
         pp.pprint(user)
-        
+
+
+    connection.close()
+
+elif args.action == 'enable_user':
+    key = args.key
+    print('enable user : %s' % key)
+
+    url_info = urlparse(base_url)
+    (connection, cookie) = authentication(url_info)
+
+    print('Activating user... ', end='', flush=True)
+    connection.request('GET', base_url + '/user/update/?action=activate&key=' + key, headers=cookie)
+
+    response = connection.getresponse()
+    message = json.loads(response.read().decode("utf-8"))
+
+    if response.status == 200:
+        print('activated')
+        connection.close()
+        sys.exit(0)
+
+    else:
+        print('not activated')
+        connection.close()
+        sys.exit(1)
+
+
+elif args.action == 'disable_user':
+    print('disable user : %s' % args.login)
+
+    url_info = urlparse(base_url)
+    (connection, cookie) = authentication(url_info)
+
+    print('Deactivating user... ', end='', flush=True)
+    connection.request('GET', base_url + '/user/update/?action=deactivate&login=' + args.login, headers=cookie)
+
+    response = connection.getresponse()
+    message = json.loads(response.read().decode("utf-8"))
+
+    if response.status == 200:
+        print('deactivated')
+    else:
+        print('not deactivated')
+
+    if args.key is not None:
+        url_info = urlparse(base_url)
+        (connection, cookie) = authentication(url_info)
+
+        print('Adding key... ', end='', flush=True)
+        connection.request('GET', base_url + '/user/update/?action=key&login=' + args.login + '&key=' + args.key, headers=cookie)
+
+        response = connection.getresponse()
+        message = json.loads(response.read().decode("utf-8"))
+
+        if response.status == 200:
+            print('added')
+        else:
+            print('not added')
 
     connection.close()
 
 else:
     print('Error, you should specify one action from ("create_config", "create_user")', file=sys.stderr)
     sys.exit(1)
-

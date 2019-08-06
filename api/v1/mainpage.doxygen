@@ -87,12 +87,15 @@
 * API Key
 * ========
 *
-* The API uses an API Key mechanism. You need to create an API key for each application you're creating, so that it's correctly identified in the logs.
-* In the near future the API key will be created using the *storiqonectl* command. In the meantime, you can create it using *psql* on the *storiqone* database:
+* The API uses an API Key mechanism. We advise you to create an API key for each application that will use it, so that it's clearly identified in the logs.
+* You can create and list API keys with the *storiqonectl* command which comes which is part of the storiqone-daemon:
+*     
+*     storiqonectl api --create <application name>
 *
-*      INSERT INTO application VALUES (default, 'unique app name', uuid_generate_v4()) RETURNING uuid;
+* The command returns a UUID which is to be used as the API key.
+* To list existing API keys, use the command:
 *
-* Use the UUID returned as the API key field in the following examples.
+*     storiqonectl api --list
 *
 *
 * Examples

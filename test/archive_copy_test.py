@@ -44,10 +44,10 @@ class ArchiveCopyTest(CommonTest):
         self.assertEqual(res.status, 400)
 
     def test_05_post_basic_user_not_allowed(self):
-        conn, cookie, message = self.newLoggedConnection('basic')
+        conn, cookie, message = self.newLoggedConnection('archiver')
         copy = json.dumps({
-            'archive': 2,
-            'pool': 6
+            'archive': 35,
+            'pool': 1
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -59,9 +59,9 @@ class ArchiveCopyTest(CommonTest):
     def test_06_post_admin_user_with_wrong_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         copy = json.dumps({
-            'name': '',
+            'name': "",
             'archive': 57,
-            'pool': 3
+            'pool': 1
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -74,8 +74,8 @@ class ArchiveCopyTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         copy = json.dumps({
             'name': 'ArchiveCopyTest',
-            'archive': 57,
-            'pool': 4
+            'archive': 16,
+            'pool': 1
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -88,7 +88,7 @@ class ArchiveCopyTest(CommonTest):
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', self.path + 'job/?id=' + str(message['job_id']), headers=cookie)
         res = conn.getresponse()
         job = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -96,17 +96,16 @@ class ArchiveCopyTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveCopyTest')
-        self.assertEqual(job['job']['archive'], 57)
-        self.assertEqual(job['job']['pool'], 4)
+        self.assertEqual(job['job']['archive'], 16)
+        self.assertEqual(job['job']['pool'], 1)
 
     def test_08_post_admin_user_with_right_params2(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         copy = json.dumps({
             'name': 'ArchiveCopyTest2',
-            'archive': 57,
-            'pool': 4,
-            'nextstart': '2016-06-06 06:06:06+02',
-            'options': {'quick_mode': True}
+            'archive': 16,
+            'pool': 1,
+            'nextstart': '2016-06-06 06:06:06+02'
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -119,7 +118,7 @@ class ArchiveCopyTest(CommonTest):
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', self.path + 'job/?id=' + str(message['job_id']), headers=cookie)
         res = conn.getresponse()
         job = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -127,7 +126,7 @@ class ArchiveCopyTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveCopyTest2')
-        self.assertEqual(job['job']['archive'], 57)
-        self.assertEqual(job['job']['pool'], 4)
+        self.assertEqual(job['job']['archive'], 16)
+        self.assertEqual(job['job']['pool'], 1)
         self.assertEqual(job['job']['nextstart'], '2016-06-06T04:06:06+0000')
-        self.assertEqual(job['job']['options'], {'quick_mode': True})
+        self.assertEqual(job['job']['options'], {})
