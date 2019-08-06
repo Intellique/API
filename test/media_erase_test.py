@@ -1,5 +1,5 @@
 from common_test import CommonTest
-import json
+import json, unittest
 
 class MediaEraseTest(CommonTest):
     def test_01_post_not_logged(self):
@@ -59,8 +59,8 @@ class MediaEraseTest(CommonTest):
     def test_06_post_admin_user_with_right_params(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data = json.dumps({
-            'media': 3,
-            'pool': 3
+            'media': 13,
+            'pool': 1
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -69,13 +69,11 @@ class MediaEraseTest(CommonTest):
         location = res.getheader('location')
         message = json.loads(res.read().decode('utf-8'))
         conn.close()
-        if res.status != 201:
-            self.assertEqual(res.status, 201)
-            return
+        self.assertEqual(res.status, 201)
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', self.path + 'job/?id=' + str(message['job_id']), headers=cookie)
         res = conn.getresponse()
         job = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -92,15 +90,16 @@ class MediaEraseTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-#    def test_09_post_admin_user_with_no_media(self):
-#        conn, cookie, message = self.newLoggedConnection('admin')
-#        data = json.dumps({
-#            'media': 200,
-#            'pool': 3
-#        })
-#        headers = {"Content-type": "application/json"}
-#        headers.update(cookie)
-#        conn.request('POST', self.path + 'media/erase/', body=data, headers=headers)
-#        res = conn.getresponse()
-#        conn.close()
-#        self.assertEqual(res.status, 400)
+    @unittest.skip("demonstrating skipping")
+    def test_09_post_admin_user_with_no_media(self):
+        conn, cookie, message = self.newLoggedConnection('admin')
+        data = json.dumps({
+            'media': 200,
+            'pool': 3
+        })
+        headers = {"Content-type": "application/json"}
+        headers.update(cookie)
+        conn.request('POST', self.path + 'media/erase/', body=data, headers=headers)
+        res = conn.getresponse()
+        conn.close()
+        self.assertEqual(res.status, 400)

@@ -1,24 +1,76 @@
--- Types
-CREATE TYPE ArchiveStatus AS ENUM (
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner:
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner:
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+--
+-- Name: archivestatus; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.archivestatus AS ENUM (
     'incomplete',
     'data-complete',
     'complete',
     'error'
 );
 
-CREATE TYPE AutoCheckMode AS ENUM (
+
+ALTER TYPE public.archivestatus OWNER TO storiq;
+
+--
+-- Name: autocheckmode; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.autocheckmode AS ENUM (
     'quick mode',
     'thorough mode',
     'none'
 );
 
-CREATE TYPE ChangerAction AS ENUM (
+
+ALTER TYPE public.autocheckmode OWNER TO storiq;
+
+--
+-- Name: changeraction; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.changeraction AS ENUM (
     'none',
     'put online',
     'put offline'
 );
 
-CREATE TYPE ChangerStatus AS ENUM (
+
+ALTER TYPE public.changeraction OWNER TO storiq;
+
+--
+-- Name: changerstatus; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.changerstatus AS ENUM (
     'error',
     'exporting',
     'go offline',
@@ -31,7 +83,14 @@ CREATE TYPE ChangerStatus AS ENUM (
     'unloading'
 );
 
-CREATE TYPE DriveStatus AS ENUM (
+
+ALTER TYPE public.changerstatus OWNER TO storiq;
+
+--
+-- Name: drivestatus; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.drivestatus AS ENUM (
     'cleaning',
     'empty idle',
     'erasing',
@@ -46,7 +105,14 @@ CREATE TYPE DriveStatus AS ENUM (
     'writing'
 );
 
-CREATE TYPE FileType AS ENUM (
+
+ALTER TYPE public.drivestatus OWNER TO storiq;
+
+--
+-- Name: filetype; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.filetype AS ENUM (
     'block device',
     'character device',
     'directory',
@@ -56,13 +122,27 @@ CREATE TYPE FileType AS ENUM (
     'symbolic link'
 );
 
-CREATE TYPE JobRecordNotif AS ENUM (
+
+ALTER TYPE public.filetype OWNER TO storiq;
+
+--
+-- Name: jobrecordnotif; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.jobrecordnotif AS ENUM (
     'normal',
     'important',
     'read'
 );
 
-CREATE TYPE JobRunStep AS ENUM (
+
+ALTER TYPE public.jobrecordnotif OWNER TO storiq;
+
+--
+-- Name: jobrunstep; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.jobrunstep AS ENUM (
     'job',
     'on error',
     'pre job',
@@ -70,7 +150,14 @@ CREATE TYPE JobRunStep AS ENUM (
     'warm up'
 );
 
-CREATE TYPE JobStatus AS ENUM (
+
+ALTER TYPE public.jobrunstep OWNER TO storiq;
+
+--
+-- Name: jobstatus; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.jobstatus AS ENUM (
     'disable',
     'error',
     'finished',
@@ -82,31 +169,73 @@ CREATE TYPE JobStatus AS ENUM (
     'waiting'
 );
 
-CREATE TYPE LogLevel AS ENUM (
+
+ALTER TYPE public.jobstatus OWNER TO storiq;
+
+--
+-- Name: TYPE jobstatus; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON TYPE public.jobstatus IS 'disable => disabled,
+error => error while running,
+finished => task finished,
+pause => waiting for user action,
+running => running,
+scheduled => not yet started or completed,
+stopped => stopped by user,
+waiting => waiting for a resource';
+
+
+--
+-- Name: loglevel; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.loglevel AS ENUM (
+    'emergency',
     'alert',
     'critical',
-    'debug',
-    'emergency',
     'error',
-    'info',
+    'warning',
     'notice',
-    'warning'
+    'info',
+    'debug'
 );
 
-CREATE TYPE MediaFormatDataType AS ENUM (
+
+ALTER TYPE public.loglevel OWNER TO storiq;
+
+--
+-- Name: mediaformatdatatype; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.mediaformatdatatype AS ENUM (
     'audio',
     'cleaning',
     'data',
     'video'
 );
 
-CREATE TYPE MediaFormatMode AS ENUM (
+
+ALTER TYPE public.mediaformatdatatype OWNER TO storiq;
+
+--
+-- Name: mediaformatmode; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.mediaformatmode AS ENUM (
     'disk',
     'linear',
     'optical'
 );
 
-CREATE TYPE MediaStatus AS ENUM (
+
+ALTER TYPE public.mediaformatmode OWNER TO storiq;
+
+--
+-- Name: mediastatus; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.mediastatus AS ENUM (
     'erasable',
     'error',
     'foreign',
@@ -118,13 +247,27 @@ CREATE TYPE MediaStatus AS ENUM (
     'unknown'
 );
 
-CREATE TYPE MediaType AS ENUM (
+
+ALTER TYPE public.mediastatus OWNER TO storiq;
+
+--
+-- Name: mediatype; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.mediatype AS ENUM (
     'cleaning',
     'rewritable',
     'worm'
 );
 
-CREATE TYPE MetaType AS ENUM (
+
+ALTER TYPE public.mediatype OWNER TO storiq;
+
+--
+-- Name: metatype; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.metatype AS ENUM (
     'archive',
     'archivefile',
     'archivevolume',
@@ -136,645 +279,56 @@ CREATE TYPE MetaType AS ENUM (
     'vtl'
 );
 
-CREATE TYPE ProxyStatus AS ENUM (
+
+ALTER TYPE public.metatype OWNER TO storiq;
+
+--
+-- Name: proxystatus; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.proxystatus AS ENUM (
     'todo',
     'running',
     'done',
     'error'
 );
 
-CREATE TYPE ScriptType AS ENUM (
+
+ALTER TYPE public.proxystatus OWNER TO storiq;
+
+--
+-- Name: scripttype; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.scripttype AS ENUM (
     'on error',
     'pre job',
     'post job'
 );
 
-CREATE TYPE UnbreakableLevel AS ENUM (
+
+ALTER TYPE public.scripttype OWNER TO storiq;
+
+--
+-- Name: unbreakablelevel; Type: TYPE; Schema: public; Owner: storiq
+--
+
+CREATE TYPE public.unbreakablelevel AS ENUM (
     'archive',
     'file',
     'none'
 );
 
 
--- Tables
-CREATE TABLE ArchiveFormat (
-    id SERIAL PRIMARY KEY,
-
-    name VARCHAR(32) NOT NULL UNIQUE,
-
-    readable BOOLEAN NOT NULL,
-    writable BOOLEAN NOT NULL
-);
-
-CREATE TABLE MediaFormat (
-    id SERIAL PRIMARY KEY,
-
-    name VARCHAR(64) NOT NULL UNIQUE,
-    dataType MediaFormatDataType NOT NULL,
-    mode MediaFormatMode NOT NULL,
-
-    maxLoadCount INTEGER NOT NULL CHECK (maxLoadCount > 0),
-    maxReadCount INTEGER NOT NULL CHECK (maxReadCount > 0),
-    maxWriteCount INTEGER NOT NULL CHECK (maxWriteCount > 0),
-    maxOpCount INTEGER NOT NULL CHECK (maxOpCount > 0),
-
-    lifespan INTERVAL NOT NULL CHECK (lifespan > INTERVAL 'P1Y'),
-
-    capacity BIGINT NOT NULL CHECK (capacity > 0),
-    blockSize INTEGER NOT NULL DEFAULT 0 CHECK (blockSize >= 0),
-    densityCode SMALLINT NOT NULL,
-
-    supportPartition BOOLEAN NOT NULL DEFAULT FALSE,
-    supportMAM BOOLEAN NOT NULL DEFAULT FALSE
-);
-
-CREATE TABLE PoolMirror (
-    id SERIAL PRIMARY KEY,
-
-    uuid UUID NOT NULL UNIQUE,
-    name VARCHAR(64) NOT NULL,
-    synchronized BOOLEAN NOT NULL
-);
-
-CREATE TABLE ArchiveMirror (
-    id SERIAL PRIMARY KEY,
-    poolMirror INTEGER REFERENCES PoolMirror(id) ON UPDATE CASCADE ON DELETE RESTRICT
-);
-
-CREATE TABLE Pool (
-    id SERIAL PRIMARY KEY,
-
-    uuid UUID NOT NULL UNIQUE,
-    name VARCHAR(64) NOT NULL,
-
-    archiveFormat INTEGER NOT NULL REFERENCES ArchiveFormat(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    mediaFormat INTEGER NOT NULL REFERENCES MediaFormat(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-
-    autocheck AutoCheckMode NOT NULL DEFAULT 'none',
-    lockcheck BOOLEAN NOT NULL DEFAULT FALSE,
-
-    growable BOOLEAN NOT NULL DEFAULT FALSE,
-    unbreakableLevel UnbreakableLevel NOT NULL DEFAULT 'none',
-    rewritable BOOLEAN NOT NULL DEFAULT TRUE,
-
-    metadata JSON NOT NULL DEFAULT '{}',
-    backupPool BOOLEAN NOT NULL DEFAULT FALSE,
-
-    poolOriginal INTEGER REFERENCES Pool(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    poolMirror INTEGER REFERENCES PoolMirror(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-
-    deleted BOOLEAN NOT NULL DEFAULT FALSE
-);
-
-CREATE TABLE PoolGroup (
-    id SERIAL PRIMARY KEY,
-
-    uuid UUID NOT NULL UNIQUE,
-    name VARCHAR(64) NOT NULL
-);
-
-CREATE TABLE PoolToPoolGroup (
-    pool INTEGER NOT NULL REFERENCES Pool(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    poolgroup INTEGER NOT NULL REFERENCES PoolGroup(id) ON UPDATE CASCADE ON DELETE RESTRICT
-);
-
-CREATE INDEX ON PoolToPoolGroup(pool);
-CREATE INDEX ON PoolToPoolGroup(poolgroup);
-
-CREATE TABLE PoolTemplate (
-    id SERIAL PRIMARY KEY,
-
-    name VARCHAR(64) NOT NULL UNIQUE,
-
-    autocheck AutoCheckMode NOT NULL DEFAULT 'none',
-    lockcheck BOOLEAN NOT NULL DEFAULT FALSE,
-
-    growable BOOLEAN NOT NULL DEFAULT FALSE,
-    unbreakableLevel UnbreakableLevel NOT NULL DEFAULT 'none',
-    rewritable BOOLEAN NOT NULL DEFAULT TRUE,
-
-    metadata JSON NOT NULL DEFAULT '{}',
-    createProxy BOOLEAN NOT NULL DEFAULT FALSE
-);
-
-CREATE TABLE Media (
-    id SERIAL PRIMARY KEY,
-
-    uuid UUID NULL UNIQUE,
-    label VARCHAR(64),
-    mediumSerialNumber VARCHAR(36) UNIQUE,
-    name VARCHAR(255) NULL,
-
-    status MediaStatus NOT NULL,
-
-    firstUsed TIMESTAMP(3) WITH TIME ZONE NOT NULL,
-    useBefore TIMESTAMP(3) WITH TIME ZONE NOT NULL,
-    lastRead TIMESTAMP(3) WITH TIME ZONE,
-    lastWrite TIMESTAMP(3) WITH TIME ZONE,
-
-    loadCount INTEGER NOT NULL DEFAULT 0 CHECK (loadCount >= 0),
-    readCount INTEGER NOT NULL DEFAULT 0 CHECK (readCount >= 0),
-    writeCount INTEGER NOT NULL DEFAULT 0 CHECK (writeCount >= 0),
-    operationCount INTEGER NOT NULL DEFAULT 0 CHECK (operationCount >= 0),
-
-    nbTotalBlockRead BIGINT NOT NULL DEFAULT 0 CHECK (nbTotalBlockRead >= 0),
-    nbTotalBlockWrite BIGINT NOT NULL DEFAULT 0 CHECK (nbTotalBlockWrite >= 0),
-
-    nbReadError INTEGER NOT NULL DEFAULT 0 CHECK (nbReadError >= 0),
-    nbWriteError INTEGER NOT NULL DEFAULT 0 CHECK (nbWriteError >= 0),
-
-    nbFiles INTEGER NOT NULL DEFAULT 0 CHECK (nbFiles >= 0),
-    blockSize INTEGER NOT NULL DEFAULT 0 CHECK (blockSize >= 0),
-    freeBlock BIGINT NOT NULL CHECK (freeblock >= 0),
-    totalBlock BIGINT NOT NULL CHECK (totalBlock >= 0),
-
-    hasPartition BOOLEAN NOT NULL DEFAULT FALSE,
-    append BOOLEAN NOT NULL DEFAULT TRUE,
-
-    type MediaType NOT NULL DEFAULT 'rewritable',
-    writeLock BOOLEAN NOT NULL DEFAULT FALSE,
-
-    archiveFormat INTEGER REFERENCES ArchiveFormat(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    mediaFormat INTEGER NOT NULL REFERENCES MediaFormat(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    pool INTEGER NULL REFERENCES Pool(id) ON UPDATE CASCADE ON DELETE SET NULL,
-
-    CHECK (firstUsed < useBefore)
-);
-
-CREATE TABLE MediaLabel (
-    id BIGSERIAL PRIMARY KEY,
-
-    name TEXT NOT NULL,
-    media INTEGER NOT NULL REFERENCES Media(id) ON UPDATE CASCADE ON DELETE RESTRICT
-);
-
-CREATE TABLE DriveFormat (
-    id SERIAL PRIMARY KEY,
-
-    name VARCHAR(64) NOT NULL UNIQUE,
-    densityCode SMALLINT NOT NULL CHECK (densityCode > 0),
-    mode MediaFormatMode NOT NULL,
-
-    cleaningInterval INTERVAL NOT NULL CHECK (cleaningInterval >= INTERVAL 'P1W')
-);
-
-CREATE TABLE DriveFormatSupport (
-    driveFormat INTEGER NOT NULL REFERENCES DriveFormat(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    mediaFormat INTEGER NOT NULL REFERENCES MediaFormat(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    read BOOLEAN NOT NULL DEFAULT TRUE,
-    write BOOLEAN NOT NULL DEFAULT TRUE
-);
-
-CREATE TABLE Host (
-    id SERIAL PRIMARY KEY,
-    uuid UUID NOT NULL UNIQUE,
-
-    name VARCHAR(255) NOT NULL,
-    domaine VARCHAR(255) NULL,
-
-    description TEXT,
-
-    daemonVersion TEXT NOT NULL,
-    updated TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
-
-    UNIQUE (name, domaine)
-);
-
-CREATE TABLE Changer (
-    id SERIAL PRIMARY KEY,
-
-    model VARCHAR(64) NOT NULL,
-    vendor VARCHAR(64) NOT NULL,
-    firmwareRev VARCHAR(64) NOT NULL,
-    serialNumber VARCHAR(64) NOT NULL,
-    wwn VARCHAR(64),
-
-    barcode BOOLEAN NOT NULL,
-    status ChangerStatus NOT NULL,
-
-    isonline BOOLEAN NOT NULL DEFAULT TRUE,
-    action ChangerAction NOT NULL DEFAULT 'none',
-
-    enable BOOLEAN NOT NULL DEFAULT TRUE,
-
-    host INTEGER NOT NULL REFERENCES Host(id) ON UPDATE CASCADE ON DELETE RESTRICT
-);
-
-CREATE TABLE Drive (
-    id SERIAL PRIMARY KEY,
-
-    model VARCHAR(64) NOT NULL,
-    vendor VARCHAR(64) NOT NULL,
-    firmwareRev VARCHAR(64) NOT NULL,
-    serialNumber VARCHAR(64) NOT NULL,
-
-    status DriveStatus NOT NULL,
-    operationDuration FLOAT(3) NOT NULL DEFAULT 0 CHECK (operationDuration >= 0),
-    lastClean TIMESTAMP(3) WITH TIME ZONE,
-    enable BOOLEAN NOT NULL DEFAULT TRUE,
-
-    changer INTEGER NULL REFERENCES Changer(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    driveFormat INTEGER NULL REFERENCES DriveFormat(id) ON UPDATE CASCADE ON DELETE RESTRICT
-);
-
-CREATE TABLE ChangerSlot (
-    changer INTEGER NOT NULL REFERENCES Changer(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    index INTEGER NOT NULL,
-    drive INTEGER UNIQUE REFERENCES Drive(id) ON UPDATE CASCADE ON DELETE SET NULL,
-
-    media INTEGER REFERENCES Media(id) ON UPDATE CASCADE ON DELETE SET NULL,
-
-    isieport BOOLEAN NOT NULL DEFAULT FALSE,
-    enable BOOLEAN NOT NULL DEFAULT TRUE,
-
-    PRIMARY KEY (changer, index)
-);
-
-CREATE TABLE SelectedFile (
-    id BIGSERIAL PRIMARY KEY,
-    path TEXT NOT NULL
-);
-
-CREATE TABLE Users (
-    id SERIAL PRIMARY KEY,
-
-    login VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    salt CHAR(16) NOT NULL,
-
-    fullname VARCHAR(255),
-    email VARCHAR(255) NOT NULL,
-    homeDirectory TEXT NOT NULL,
-
-    isAdmin BOOLEAN NOT NULL DEFAULT FALSE,
-    canArchive BOOLEAN NOT NULL DEFAULT FALSE,
-    canRestore BOOLEAN NOT NULL DEFAULT FALSE,
-
-    meta JSON NOT NULL,
-
-    poolgroup INTEGER REFERENCES PoolGroup(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-
-    disabled BOOLEAN NOT NULL DEFAULT FALSE
-);
-CREATE UNIQUE INDEX ON users (LOWER(login));
-
-CREATE TABLE UserEvent (
-    id SERIAL PRIMARY KEY,
-    event TEXT NOT NULL UNIQUE
-);
-
-CREATE TABLE UserLog (
-    id BIGSERIAL PRIMARY KEY,
-
-    login INTEGER NOT NULL REFERENCES Users(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    timestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    event INTEGER NOT NULL REFERENCES UserEvent(id) ON UPDATE CASCADE ON DELETE RESTRICT
-);
-
-CREATE TABLE Archive (
-    id BIGSERIAL PRIMARY KEY,
-
-    uuid UUID NOT NULL UNIQUE,
-    name TEXT NOT NULL,
-
-    creator INTEGER NOT NULL REFERENCES Users(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    owner INTEGER NOT NULL REFERENCES Users(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-
-    canAppend BOOLEAN NOT NULL DEFAULT TRUE,
-    status ArchiveStatus NOT NULL,
-    deleted BOOLEAN NOT NULL DEFAULT FALSE
-);
-
-CREATE TABLE ArchiveFile (
-    id BIGSERIAL PRIMARY KEY,
-
-    name TEXT NOT NULL,
-    type FileType NOT NULL,
-    mimeType VARCHAR(255) NOT NULL,
-
-    ownerId INTEGER NOT NULL DEFAULT 0,
-    owner VARCHAR(255) NOT NULL,
-    groupId INTEGER NOT NULL DEFAULT 0,
-    groups VARCHAR(255) NOT NULL,
-
-    perm SMALLINT NOT NULL CHECK (perm >= 0),
-
-    ctime TIMESTAMP(3) WITH TIME ZONE NOT NULL,
-    mtime TIMESTAMP(3) WITH TIME ZONE NOT NULL,
-
-    size BIGINT NOT NULL CHECK (size >= 0),
-
-    parent BIGINT NOT NULL REFERENCES SelectedFile(id) ON UPDATE CASCADE ON DELETE RESTRICT
-);
-
-CREATE TABLE Backup (
-    id BIGSERIAL PRIMARY KEY,
-
-    timestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT now(),
-
-    nbMedia INTEGER NOT NULL DEFAULT 0 CHECK (nbMedia >= 0),
-    nbArchive INTEGER NOT NULL DEFAULT 0 CHECK (nbArchive >= 0)
-);
-
-CREATE TABLE JobType (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
-);
-
-CREATE TABLE Job (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    type INTEGER NOT NULL REFERENCES JobType(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-
-    nextStart TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    interval INTERVAL DEFAULT NULL,
-    repetition INTEGER NOT NULL DEFAULT 1,
-
-    status JobStatus NOT NULL DEFAULT 'scheduled',
-    update TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
-
-    archive BIGINT DEFAULT NULL REFERENCES Archive(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    backup BIGINT DEFAULT NULL REFERENCES Backup(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    media INTEGER NULL DEFAULT NULL REFERENCES Media(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    pool INTEGER NULL DEFAULT NULL REFERENCES Pool(id) ON UPDATE CASCADE ON DELETE SET NULL,
-
-    host INTEGER NOT NULL REFERENCES Host(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    login INTEGER NOT NULL REFERENCES Users(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    metadata JSON NOT NULL DEFAULT '{}',
-    options JSON NOT NULL DEFAULT '{}'
-);
-
-CREATE TABLE JobRun (
-    id BIGSERIAL PRIMARY KEY,
-    job BIGINT NOT NULL REFERENCES Job(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    numRun INTEGER NOT NULL DEFAULT 1 CHECK (numRun > 0),
-
-    starttime TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    endtime TIMESTAMP(3) WITH TIME ZONE,
-
-    status JobStatus NOT NULL DEFAULT 'running',
-    step JobRunStep NOT NULL DEFAULT 'pre job',
-    done FLOAT NOT NULL DEFAULT 0,
-
-    exitcode INTEGER NOT NULL DEFAULT 0,
-    stoppedbyuser BOOLEAN NOT NULL DEFAULT FALSE,
-
-    CHECK (starttime <= endtime)
-);
-
-CREATE TABLE ArchiveToArchiveMirror (
-    archive BIGINT NOT NULL REFERENCES Archive(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    archivemirror INTEGER NOT NULL REFERENCES ArchiveMirror(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    lastUpdate TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    jobrun BIGINT NOT NULL REFERENCES JobRun(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE ArchiveVolume (
-    id BIGSERIAL PRIMARY KEY,
-
-    sequence INTEGER NOT NULL DEFAULT 0 CHECK (sequence >= 0),
-    size BIGINT NOT NULL DEFAULT 0 CHECK (size >= 0),
-
-    starttime TIMESTAMP(3) WITH TIME ZONE NOT NULL,
-    endtime TIMESTAMP(3) WITH TIME ZONE,
-
-    checktime TIMESTAMP(3) WITH TIME ZONE,
-    checksumok BOOLEAN NOT NULL DEFAULT FALSE,
-
-    archive BIGINT NOT NULL REFERENCES Archive(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    media INTEGER NOT NULL REFERENCES Media(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    mediaPosition INTEGER NOT NULL DEFAULT 0 CHECK (mediaPosition >= 0),
-    jobrun BIGINT REFERENCES JobRun(id) ON UPDATE CASCADE ON DELETE SET NULL,
-    purged BIGINT REFERENCES JobRun(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-
-    CONSTRAINT archiveVolume_time CHECK (starttime <= endtime)
-);
-
-CREATE TABLE BackupVolume (
-    id BIGSERIAL PRIMARY KEY,
-
-    sequence INTEGER NOT NULL DEFAULT 0 CHECK (sequence >= 0),
-    size BIGINT NOT NULL DEFAULT 0 CHECK (size >= 0),
-
-    media INTEGER NOT NULL REFERENCES Media(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    mediaPosition INTEGER NOT NULL DEFAULT 0 CHECK (mediaPosition >= 0),
-
-    checktime TIMESTAMP(3) WITH TIME ZONE,
-    checksumok BOOLEAN NOT NULL DEFAULT FALSE,
-
-    backup BIGINT NOT NULL REFERENCES Backup(id) ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-CREATE TABLE ArchiveFileToArchiveVolume (
-    archiveVolume BIGINT NOT NULL REFERENCES ArchiveVolume(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    archiveFile BIGINT NOT NULL REFERENCES ArchiveFile(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    blockNumber BIGINT CHECK (blockNumber >= 0) NOT NULL,
-    archivetime TIMESTAMP(3) WITH TIME ZONE NOT NULL,
-
-    checktime TIMESTAMP(3) WITH TIME ZONE,
-    checksumok BOOLEAN NOT NULL DEFAULT FALSE,
-
-    alternatePath TEXT,
-
-    PRIMARY KEY (archiveVolume, archiveFile)
-);
-
-ALTER TABLE Backup ADD jobrun BIGINT NOT NULL REFERENCES JobRun(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-CREATE TABLE Metadata (
-    id BIGINT NOT NULL,
-    type MetaType NOT NULL,
-
-    key TEXT NOT NULL,
-    value JSONB NOT NULL,
-
-    login INTEGER NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    PRIMARY KEY (id, type, key)
-);
-
-CREATE TABLE MetadataLog (
-    id BIGINT NOT NULL,
-    type MetaType NOT NULL,
-
-    key TEXT NOT NULL,
-    value JSONB NOT NULL,
-
-    login INTEGER NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    timestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated BOOLEAN NOT NULL
-);
-CREATE INDEX ON MetadataLog (id, type, key);
-
-CREATE TABLE Proxy (
-    id BIGSERIAL PRIMARY KEY,
-    archivefile BIGINT NOT NULL REFERENCES ArchiveFile(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    status ProxyStatus NOT NULL DEFAULT 'todo'
-);
-
-CREATE TABLE Checksum (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(64) NOT NULL UNIQUE,
-    deflt BOOLEAN NOT NULL DEFAULT FALSE
-);
-
-CREATE TABLE ChecksumResult (
-    id BIGSERIAL PRIMARY KEY,
-
-    checksum INTEGER NOT NULL REFERENCES Checksum(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    result TEXT NOT NULL,
-
-    CONSTRAINT ChecksumResult_checksum_invalid UNIQUE (checksum, result)
-);
-
-CREATE TABLE PoolToChecksum (
-    pool INTEGER NOT NULL REFERENCES Pool(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    checksum INTEGER NOT NULL REFERENCES Checksum(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    PRIMARY KEY (pool, checksum)
-);
-
-CREATE TABLE PoolTemplateToChecksum (
-    poolTemplate INTEGER NOT NULL REFERENCES PoolTemplate(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    checksum INTEGER NOT NULL REFERENCES Checksum(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    PRIMARY KEY (poolTemplate, checksum)
-);
-
-CREATE TABLE ArchiveFileToChecksumResult (
-    archiveFile BIGINT NOT NULL REFERENCES ArchiveFile(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    checksumResult BIGINT NOT NULL REFERENCES ChecksumResult(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    PRIMARY KEY (archiveFile, checksumResult)
-);
-
-CREATE TABLE ArchiveVolumeToChecksumResult (
-    archiveVolume BIGINT NOT NULL REFERENCES ArchiveVolume(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    checksumResult BIGINT NOT NULL REFERENCES ChecksumResult(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    PRIMARY KEY (archiveVolume, checksumResult)
-);
-
-CREATE TABLE BackupVolumeToChecksumResult (
-    backupVolume BIGINT NOT NULL REFERENCES BackupVolume(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    checksumResult BIGINT NOT NULL REFERENCES ChecksumResult(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    PRIMARY KEY (backupVolume, checksumResult)
-);
-
-CREATE TABLE JobRecord (
-    id BIGSERIAL PRIMARY KEY,
-    jobrun BIGINT NOT NULL REFERENCES Jobrun(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    timestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    status JobStatus NOT NULL CHECK (status != 'disable'),
-
-    level LogLevel NOT NULL,
-    message TEXT NOT NULL,
-
-    notif JobRecordNotif NOT NULL DEFAULT 'normal'
-);
-
-CREATE TABLE JobToSelectedFile (
-    job BIGINT NOT NULL REFERENCES Job(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    selectedFile BIGINT NOT NULL REFERENCES SelectedFile(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    PRIMARY KEY (job, selectedFile)
-);
-
-CREATE TABLE Application (
-    id SERIAL NOT NULL PRIMARY KEY,
-
-    name TEXT NOT NULL UNIQUE,
-    apiKey UUID UNIQUE
-);
-
-CREATE TABLE Log (
-    id BIGSERIAL PRIMARY KEY,
-
-    application INTEGER NOT NULL REFERENCES Application(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    level LogLevel NOT NULL,
-    time TIMESTAMP(3) WITH TIME ZONE NOT NULL,
-    message TEXT NOT NULL,
-    host INTEGER NOT NULL REFERENCES Host(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    login INTEGER REFERENCES Users(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE RestoreTo (
-    id BIGSERIAL PRIMARY KEY,
-
-    path VARCHAR(255) NOT NULL DEFAULT '/',
-    job BIGINT NOT NULL REFERENCES Job(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE Report (
-    id BIGSERIAL PRIMARY KEY,
-    timestamp TIMESTAMP(3) WITH TIME ZONE NOT NULL DEFAULT NOW(),
-
-    archive BIGINT REFERENCES archive(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    media BIGINT REFERENCES Media(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    jobrun BIGINT NOT NULL REFERENCES jobrun(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    data JSON NOT NULL
-);
-
-CREATE TABLE Reports (
-    id BIGSERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    report BIGINT NOT NULL REFERENCES report(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE Script (
-    id SERIAL PRIMARY KEY,
-    path TEXT NOT NULL UNIQUE
-);
-
-CREATE TABLE Scripts (
-    id SERIAL PRIMARY KEY,
-
-    sequence INTEGER NOT NULL CHECK (sequence >= 0),
-    jobType INTEGER NOT NULL REFERENCES JobType(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    script INTEGER REFERENCES Script(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    scriptType ScriptType NOT NULL,
-    pool INTEGER REFERENCES Pool(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    UNIQUE (sequence, jobType, script, scriptType, pool)
-);
-
-CREATE TABLE Vtl (
-    id SERIAL PRIMARY KEY,
-    uuid UUID NOT NULL UNIQUE,
-
-    path VARCHAR(255) NOT NULL,
-    prefix VARCHAR(255) NOT NULL,
-    nbslots INTEGER NOT NULL CHECK (nbslots > 0),
-    nbdrives INTEGER NOT NULL CHECK (nbdrives > 0),
-
-    mediaformat INTEGER NOT NULL REFERENCES MediaFormat(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    host INTEGER NOT NULL REFERENCES Host(id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-
-    CHECK (nbslots >= nbdrives)
-);
-
--- Functions
-CREATE OR REPLACE FUNCTION "json_object_set_key"("json" json, "key_to_set" TEXT, "value_to_set" anyelement)
-    RETURNS json
-    LANGUAGE sql
-    IMMUTABLE
-    STRICT
-AS $function$
-SELECT CONCAT('{', STRING_AGG(TO_JSON("key") || ':' || "value", ','), '}')::JSON
-    FROM (
-        SELECT *
-        FROM JSON_EACH("json")
-        WHERE "key" <> "key_to_set"
-        UNION ALL
-        SELECT "key_to_set", TO_JSON("value_to_set")) AS "fields"
-$function$;
-
--- Triggers
-CREATE OR REPLACE FUNCTION check_metadata() RETURNS TRIGGER AS $body$
+ALTER TYPE public.unbreakablelevel OWNER TO storiq;
+
+--
+-- Name: check_metadata(); Type: FUNCTION; Schema: public; Owner: storiq
+--
+
+CREATE FUNCTION public.check_metadata() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
     BEGIN
         IF TG_OP = 'UPDATE' AND OLD.id != NEW.id THEN
             UPDATE Metadata SET id = NEW.id WHERE id = OLD.id AND type = TG_TABLE_NAME::MetaType;
@@ -783,9 +337,37 @@ CREATE OR REPLACE FUNCTION check_metadata() RETURNS TRIGGER AS $body$
         END IF;
         RETURN NEW;
     END;
-$body$ LANGUAGE plpgsql;
+$$;
 
-CREATE OR REPLACE FUNCTION log_metadata() RETURNS TRIGGER AS $body$
+
+ALTER FUNCTION public.check_metadata() OWNER TO storiq;
+
+--
+-- Name: json_object_set_key(json, text, anyelement); Type: FUNCTION; Schema: public; Owner: storiq
+--
+
+CREATE FUNCTION public.json_object_set_key(json json, key_to_set text, value_to_set anyelement) RETURNS json
+    LANGUAGE sql IMMUTABLE STRICT
+    AS $$
+SELECT CONCAT('{', STRING_AGG(TO_JSON("key") || ':' || "value", ','), '}')::JSON
+    FROM (
+        SELECT *
+        FROM JSON_EACH("json")
+        WHERE "key" <> "key_to_set"
+        UNION ALL
+        SELECT "key_to_set", TO_JSON("value_to_set")) AS "fields"
+$$;
+
+
+ALTER FUNCTION public.json_object_set_key(json json, key_to_set text, value_to_set anyelement) OWNER TO storiq;
+
+--
+-- Name: log_metadata(); Type: FUNCTION; Schema: public; Owner: storiq
+--
+
+CREATE FUNCTION public.log_metadata() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
     BEGIN
         IF TG_OP = 'UPDATE' AND OLD.type != NEW.type THEN
             RAISE EXCEPTION 'type of metadata should not be modified' USING ERRCODE = '09000';
@@ -801,90 +383,2041 @@ CREATE OR REPLACE FUNCTION log_metadata() RETURNS TRIGGER AS $body$
             RETURN NEW;
         END IF;
     END;
-$body$ LANGUAGE plpgsql;
+$$;
 
-CREATE TRIGGER update_metadata
-AFTER UPDATE OR DELETE ON Archive
-FOR EACH ROW EXECUTE PROCEDURE check_metadata();
 
-CREATE TRIGGER update_metadata
-AFTER UPDATE OR DELETE ON ArchiveFile
-FOR EACH ROW EXECUTE PROCEDURE check_metadata();
+ALTER FUNCTION public.log_metadata() OWNER TO storiq;
 
-CREATE TRIGGER update_metadata
-AFTER UPDATE OR DELETE ON ArchiveVolume
-FOR EACH ROW EXECUTE PROCEDURE check_metadata();
+SET default_tablespace = '';
 
-CREATE TRIGGER update_metadata
-AFTER UPDATE OR DELETE ON Host
-FOR EACH ROW EXECUTE PROCEDURE check_metadata();
+SET default_with_oids = false;
 
-CREATE TRIGGER update_metadata
-AFTER UPDATE OR DELETE ON Media
-FOR EACH ROW EXECUTE PROCEDURE check_metadata();
+--
+-- Name: application; Type: TABLE; Schema: public; Owner: storiq
+--
 
-CREATE TRIGGER update_metadata
-AFTER UPDATE OR DELETE ON Pool
-FOR EACH ROW EXECUTE PROCEDURE check_metadata();
+CREATE TABLE public.application (
+    id integer NOT NULL,
+    name text NOT NULL,
+    apikey uuid
+);
 
-CREATE TRIGGER update_metadata
-AFTER UPDATE OR DELETE ON Report
-FOR EACH ROW EXECUTE PROCEDURE check_metadata();
 
-CREATE TRIGGER update_metadata
-AFTER UPDATE OR DELETE ON Users
-FOR EACH ROW EXECUTE PROCEDURE check_metadata();
+ALTER TABLE public.application OWNER TO storiq;
 
-CREATE TRIGGER update_metadata
-AFTER UPDATE OR DELETE ON Vtl
-FOR EACH ROW EXECUTE PROCEDURE check_metadata();
+--
+-- Name: application_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
 
-CREATE TRIGGER log_metadata
-BEFORE UPDATE OR DELETE ON Metadata
-FOR EACH ROW EXECUTE PROCEDURE log_metadata();
+CREATE SEQUENCE public.application_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
-CREATE MATERIALIZED VIEW milestones_files AS
-SELECT sa.id AS archive, sa.archive_name, sa.archive_size, sa.starttime AS archive_starttime, sa.endtime AS archive_endtime,
-    af.id AS archivefile, af.name, "substring"(af.name, char_length("substring"(af.name, '(.+/)[^/]+'::text)) + 1) AS file_name,
-    af.type, af.mimetype, af.ctime AS file_ctime, af.mtime AS file_mtime, af.size AS file_size, af.owner AS file_owner,
-    af.name = sf.path AS file_isroot, ('['::text || array_to_string(saf.medias, ','::text)) || ']'::text AS medias,
-    saf.medias_length, sp.id AS pool, sp.name AS pool_name
-FROM archivefile af
-    JOIN (
-        SELECT afv.archivefile, av.archive, array_agg(('"'::text || COALESCE(m.name, m.label, m.mediumserialnumber)::text) || '"'::text) AS medias,
-                max(char_length(COALESCE(m.name, m.label, m.mediumserialnumber)::text)) AS medias_length, m.pool
-        FROM archivefiletoarchivevolume afv
-            JOIN archivevolume av ON afv.archivevolume = av.id
-            JOIN media m ON av.media = m.id
-        GROUP BY afv.archivefile, av.archive, m.pool
-    ) saf ON af.id = saf.archivefile
-    JOIN (
-        SELECT a.id, a.name AS archive_name, sum(av.size) AS archive_size, min(av.starttime) AS starttime, max(av.endtime) AS endtime
-        FROM archive a
-            JOIN archivevolume av ON a.id = av.archive
-        GROUP BY a.id, a.name
-    ) sa ON saf.archive = sa.id
-    JOIN pool sp ON saf.pool = sp.id
-    JOIN selectedfile sf ON af.parent = sf.id;
 
-CREATE UNIQUE INDEX ON milestones_files(archive, archivefile);
+ALTER TABLE public.application_id_seq OWNER TO storiq;
 
--- Comments
-COMMENT ON COLUMN ArchiveVolume.starttime IS 'Start time of archive volume creation';
-COMMENT ON COLUMN ArchiveVolume.endtime IS 'End time of archive volume creation';
-COMMENT ON COLUMN ArchiveVolume.checktime IS 'Last time of checked time';
+--
+-- Name: application_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
 
-COMMENT ON TABLE Checksum IS 'Contains only checksum available';
+ALTER SEQUENCE public.application_id_seq OWNED BY public.application.id;
 
-COMMENT ON COLUMN DriveFormat.cleaningInterval IS 'Interval between two cleaning in days';
 
-COMMENT ON TYPE JobStatus IS E'disable => disabled,\nerror => error while running,\nfinished => task finished,\npause => waiting for user action,\nrunning => running,\nscheduled => not yet started or completed,\nstopped => stopped by user,\nwaiting => waiting for a resource';
+--
+-- Name: archive; Type: TABLE; Schema: public; Owner: storiq
+--
 
-COMMENT ON COLUMN Media.label IS 'Contains an UUID';
-COMMENT ON COLUMN Media.append IS 'Can add file into this media';
-COMMENT ON COLUMN Media.writeLock IS 'Media is write protected';
+CREATE TABLE public.archive (
+    id bigint NOT NULL,
+    uuid uuid NOT NULL,
+    name text NOT NULL,
+    creator integer NOT NULL,
+    owner integer NOT NULL,
+    canappend boolean DEFAULT true NOT NULL,
+    status public.archivestatus NOT NULL,
+    pool integer NOT NULL,
+    deleted boolean DEFAULT false NOT NULL
+);
 
-COMMENT ON COLUMN MediaFormat.blockSize IS 'Default block size';
-COMMENT ON COLUMN MediaFormat.supportPartition IS 'Is the media can be partitionned';
-COMMENT ON COLUMN MediaFormat.supportMAM IS 'MAM: Medium Axiliary Memory, contains some usefull data';
 
+ALTER TABLE public.archive OWNER TO storiq;
+
+--
+-- Name: archive_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.archive_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.archive_id_seq OWNER TO storiq;
+
+--
+-- Name: archive_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.archive_id_seq OWNED BY public.archive.id;
+
+
+--
+-- Name: archivefile; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.archivefile (
+    id bigint NOT NULL,
+    name text NOT NULL,
+    type public.filetype NOT NULL,
+    mimetype character varying(255) NOT NULL,
+    ownerid integer DEFAULT 0 NOT NULL,
+    owner character varying(255) NOT NULL,
+    groupid integer DEFAULT 0 NOT NULL,
+    groups character varying(255) NOT NULL,
+    perm smallint NOT NULL,
+    ctime timestamp(3) with time zone NOT NULL,
+    mtime timestamp(3) with time zone NOT NULL,
+    size bigint NOT NULL,
+    parent bigint NOT NULL,
+    CONSTRAINT archivefile_perm_check CHECK ((perm >= 0)),
+    CONSTRAINT archivefile_size_check CHECK ((size >= 0))
+);
+
+
+ALTER TABLE public.archivefile OWNER TO storiq;
+
+--
+-- Name: archivefile_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.archivefile_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.archivefile_id_seq OWNER TO storiq;
+
+--
+-- Name: archivefile_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.archivefile_id_seq OWNED BY public.archivefile.id;
+
+
+--
+-- Name: archivefiletoarchivevolume; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.archivefiletoarchivevolume (
+    archivevolume bigint NOT NULL,
+    archivefile bigint NOT NULL,
+    index bigint NOT NULL,
+    blocknumber bigint NOT NULL,
+    archivetime timestamp(3) with time zone NOT NULL,
+    checktime timestamp(3) with time zone,
+    checksumok boolean DEFAULT false NOT NULL,
+    versions int4range NOT NULL,
+    alternatepath text,
+    CONSTRAINT archivefiletoarchivevolume_blocknumber_check CHECK ((blocknumber >= 0)),
+    CONSTRAINT archivefiletoarchivevolume_index_check CHECK ((index >= 0))
+);
+
+
+ALTER TABLE public.archivefiletoarchivevolume OWNER TO storiq;
+
+--
+-- Name: archivefiletochecksumresult; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.archivefiletochecksumresult (
+    archivefile bigint NOT NULL,
+    checksumresult bigint NOT NULL
+);
+
+
+ALTER TABLE public.archivefiletochecksumresult OWNER TO storiq;
+
+--
+-- Name: archiveformat; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.archiveformat (
+    id integer NOT NULL,
+    name character varying(32) NOT NULL,
+    readable boolean NOT NULL,
+    writable boolean NOT NULL
+);
+
+
+ALTER TABLE public.archiveformat OWNER TO storiq;
+
+--
+-- Name: archiveformat_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.archiveformat_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.archiveformat_id_seq OWNER TO storiq;
+
+--
+-- Name: archiveformat_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.archiveformat_id_seq OWNED BY public.archiveformat.id;
+
+
+--
+-- Name: archivemirror; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.archivemirror (
+    id integer NOT NULL,
+    poolmirror integer
+);
+
+
+ALTER TABLE public.archivemirror OWNER TO storiq;
+
+--
+-- Name: archivemirror_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.archivemirror_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.archivemirror_id_seq OWNER TO storiq;
+
+--
+-- Name: archivemirror_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.archivemirror_id_seq OWNED BY public.archivemirror.id;
+
+
+--
+-- Name: archivetoarchivemirror; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.archivetoarchivemirror (
+    archive bigint NOT NULL,
+    archivemirror integer NOT NULL,
+    lastupdate timestamp(3) with time zone DEFAULT now() NOT NULL,
+    jobrun bigint NOT NULL
+);
+
+
+ALTER TABLE public.archivetoarchivemirror OWNER TO storiq;
+
+--
+-- Name: archivevolume; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.archivevolume (
+    id bigint NOT NULL,
+    sequence integer DEFAULT 0 NOT NULL,
+    size bigint DEFAULT 0 NOT NULL,
+    starttime timestamp(3) with time zone NOT NULL,
+    endtime timestamp(3) with time zone,
+    checktime timestamp(3) with time zone,
+    checksumok boolean DEFAULT false NOT NULL,
+    archive bigint NOT NULL,
+    media integer NOT NULL,
+    mediaposition integer DEFAULT 0 NOT NULL,
+    jobrun bigint,
+    purged bigint,
+    versions int4range NOT NULL,
+    CONSTRAINT archivevolume_mediaposition_check CHECK ((mediaposition >= 0)),
+    CONSTRAINT archivevolume_sequence_check CHECK ((sequence >= 0)),
+    CONSTRAINT archivevolume_size_check CHECK ((size >= 0)),
+    CONSTRAINT archivevolume_time CHECK ((starttime <= endtime))
+);
+
+
+ALTER TABLE public.archivevolume OWNER TO storiq;
+
+--
+-- Name: COLUMN archivevolume.starttime; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON COLUMN public.archivevolume.starttime IS 'Start time of archive volume creation';
+
+
+--
+-- Name: COLUMN archivevolume.endtime; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON COLUMN public.archivevolume.endtime IS 'End time of archive volume creation';
+
+
+--
+-- Name: COLUMN archivevolume.checktime; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON COLUMN public.archivevolume.checktime IS 'Last time of checked time';
+
+
+--
+-- Name: archivevolume_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.archivevolume_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.archivevolume_id_seq OWNER TO storiq;
+
+--
+-- Name: archivevolume_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.archivevolume_id_seq OWNED BY public.archivevolume.id;
+
+
+--
+-- Name: archivevolumetochecksumresult; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.archivevolumetochecksumresult (
+    archivevolume bigint NOT NULL,
+    checksumresult bigint NOT NULL
+);
+
+
+ALTER TABLE public.archivevolumetochecksumresult OWNER TO storiq;
+
+--
+-- Name: backup; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.backup (
+    id bigint NOT NULL,
+    "timestamp" timestamp(3) with time zone DEFAULT now() NOT NULL,
+    nbmedia integer DEFAULT 0 NOT NULL,
+    nbarchive integer DEFAULT 0 NOT NULL,
+    jobrun bigint NOT NULL,
+    CONSTRAINT backup_nbarchive_check CHECK ((nbarchive >= 0)),
+    CONSTRAINT backup_nbmedia_check CHECK ((nbmedia >= 0))
+);
+
+
+ALTER TABLE public.backup OWNER TO storiq;
+
+--
+-- Name: backup_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.backup_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.backup_id_seq OWNER TO storiq;
+
+--
+-- Name: backup_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.backup_id_seq OWNED BY public.backup.id;
+
+
+--
+-- Name: backupvolume; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.backupvolume (
+    id bigint NOT NULL,
+    sequence integer DEFAULT 0 NOT NULL,
+    size bigint DEFAULT 0 NOT NULL,
+    media integer NOT NULL,
+    mediaposition integer DEFAULT 0 NOT NULL,
+    checktime timestamp(3) with time zone,
+    checksumok boolean DEFAULT false NOT NULL,
+    backup bigint NOT NULL,
+    CONSTRAINT backupvolume_mediaposition_check CHECK ((mediaposition >= 0)),
+    CONSTRAINT backupvolume_sequence_check CHECK ((sequence >= 0)),
+    CONSTRAINT backupvolume_size_check CHECK ((size >= 0))
+);
+
+
+ALTER TABLE public.backupvolume OWNER TO storiq;
+
+--
+-- Name: backupvolume_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.backupvolume_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.backupvolume_id_seq OWNER TO storiq;
+
+--
+-- Name: backupvolume_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.backupvolume_id_seq OWNED BY public.backupvolume.id;
+
+
+--
+-- Name: backupvolumetochecksumresult; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.backupvolumetochecksumresult (
+    backupvolume bigint NOT NULL,
+    checksumresult bigint NOT NULL
+);
+
+
+ALTER TABLE public.backupvolumetochecksumresult OWNER TO storiq;
+
+--
+-- Name: changer; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.changer (
+    id integer NOT NULL,
+    model character varying(64) NOT NULL,
+    vendor character varying(64) NOT NULL,
+    firmwarerev character varying(64) NOT NULL,
+    serialnumber character varying(64) NOT NULL,
+    wwn character varying(64),
+    barcode boolean NOT NULL,
+    status public.changerstatus NOT NULL,
+    isonline boolean DEFAULT true NOT NULL,
+    action public.changeraction DEFAULT 'none'::public.changeraction NOT NULL,
+    enable boolean DEFAULT true NOT NULL,
+    host integer NOT NULL
+);
+
+
+ALTER TABLE public.changer OWNER TO storiq;
+
+--
+-- Name: changer_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.changer_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.changer_id_seq OWNER TO storiq;
+
+--
+-- Name: changer_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.changer_id_seq OWNED BY public.changer.id;
+
+
+--
+-- Name: changerslot; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.changerslot (
+    changer integer NOT NULL,
+    index integer NOT NULL,
+    drive integer,
+    media integer,
+    isieport boolean DEFAULT false NOT NULL,
+    enable boolean DEFAULT true NOT NULL
+);
+
+
+ALTER TABLE public.changerslot OWNER TO storiq;
+
+--
+-- Name: checksum; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.checksum (
+    id integer NOT NULL,
+    name character varying(64) NOT NULL,
+    deflt boolean DEFAULT false NOT NULL
+);
+
+
+ALTER TABLE public.checksum OWNER TO storiq;
+
+--
+-- Name: TABLE checksum; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON TABLE public.checksum IS 'Contains only checksum available';
+
+
+--
+-- Name: checksum_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.checksum_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.checksum_id_seq OWNER TO storiq;
+
+--
+-- Name: checksum_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.checksum_id_seq OWNED BY public.checksum.id;
+
+
+--
+-- Name: checksumresult; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.checksumresult (
+    id bigint NOT NULL,
+    checksum integer NOT NULL,
+    result text NOT NULL
+);
+
+
+ALTER TABLE public.checksumresult OWNER TO storiq;
+
+--
+-- Name: checksumresult_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.checksumresult_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.checksumresult_id_seq OWNER TO storiq;
+
+--
+-- Name: checksumresult_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.checksumresult_id_seq OWNED BY public.checksumresult.id;
+
+
+--
+-- Name: drive; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.drive (
+    id integer NOT NULL,
+    model character varying(64) NOT NULL,
+    vendor character varying(64) NOT NULL,
+    firmwarerev character varying(64) NOT NULL,
+    serialnumber character varying(64) NOT NULL,
+    status public.drivestatus NOT NULL,
+    operationduration real DEFAULT 0 NOT NULL,
+    lastclean timestamp(3) with time zone,
+    enable boolean DEFAULT true NOT NULL,
+    changer integer,
+    driveformat integer,
+    CONSTRAINT drive_operationduration_check CHECK ((operationduration >= (0)::double precision))
+);
+
+
+ALTER TABLE public.drive OWNER TO storiq;
+
+--
+-- Name: drive_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.drive_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.drive_id_seq OWNER TO storiq;
+
+--
+-- Name: drive_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.drive_id_seq OWNED BY public.drive.id;
+
+
+--
+-- Name: driveformat; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.driveformat (
+    id integer NOT NULL,
+    name character varying(64) NOT NULL,
+    densitycode smallint NOT NULL,
+    mode public.mediaformatmode NOT NULL,
+    cleaninginterval interval NOT NULL,
+    CONSTRAINT driveformat_cleaninginterval_check CHECK ((cleaninginterval >= '7 days'::interval)),
+    CONSTRAINT driveformat_densitycode_check CHECK ((densitycode > 0))
+);
+
+
+ALTER TABLE public.driveformat OWNER TO storiq;
+
+--
+-- Name: COLUMN driveformat.cleaninginterval; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON COLUMN public.driveformat.cleaninginterval IS 'Interval between two cleaning in days';
+
+
+--
+-- Name: driveformat_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.driveformat_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.driveformat_id_seq OWNER TO storiq;
+
+--
+-- Name: driveformat_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.driveformat_id_seq OWNED BY public.driveformat.id;
+
+
+--
+-- Name: driveformatsupport; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.driveformatsupport (
+    driveformat integer NOT NULL,
+    mediaformat integer NOT NULL,
+    read boolean DEFAULT true NOT NULL,
+    write boolean DEFAULT true NOT NULL
+);
+
+
+ALTER TABLE public.driveformatsupport OWNER TO storiq;
+
+--
+-- Name: host; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.host (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    name character varying(255) NOT NULL,
+    domaine character varying(255),
+    description text,
+    daemonversion text NOT NULL,
+    updated timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.host OWNER TO storiq;
+
+--
+-- Name: host_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.host_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.host_id_seq OWNER TO storiq;
+
+--
+-- Name: host_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.host_id_seq OWNED BY public.host.id;
+
+
+--
+-- Name: job; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.job (
+    id bigint NOT NULL,
+    name character varying(255) NOT NULL,
+    type integer NOT NULL,
+    nextstart timestamp(3) with time zone DEFAULT now() NOT NULL,
+    "interval" interval,
+    repetition integer DEFAULT 1 NOT NULL,
+    status public.jobstatus DEFAULT 'scheduled'::public.jobstatus NOT NULL,
+    update timestamp(3) with time zone DEFAULT now() NOT NULL,
+    archive bigint,
+    backup bigint,
+    media integer,
+    pool integer,
+    host integer NOT NULL,
+    login integer NOT NULL,
+    metadata json DEFAULT '{}'::json NOT NULL,
+    options json DEFAULT '{}'::json NOT NULL
+);
+
+
+ALTER TABLE public.job OWNER TO storiq;
+
+--
+-- Name: job_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.job_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.job_id_seq OWNER TO storiq;
+
+--
+-- Name: job_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.job_id_seq OWNED BY public.job.id;
+
+
+--
+-- Name: jobrecord; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.jobrecord (
+    id bigint NOT NULL,
+    jobrun bigint NOT NULL,
+    "timestamp" timestamp(3) with time zone DEFAULT now() NOT NULL,
+    status public.jobstatus NOT NULL,
+    level public.loglevel NOT NULL,
+    message text NOT NULL,
+    notif public.jobrecordnotif DEFAULT 'normal'::public.jobrecordnotif NOT NULL,
+    CONSTRAINT jobrecord_status_check CHECK ((status <> 'disable'::public.jobstatus))
+);
+
+
+ALTER TABLE public.jobrecord OWNER TO storiq;
+
+--
+-- Name: jobrecord_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.jobrecord_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.jobrecord_id_seq OWNER TO storiq;
+
+--
+-- Name: jobrecord_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.jobrecord_id_seq OWNED BY public.jobrecord.id;
+
+
+--
+-- Name: jobrun; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.jobrun (
+    id bigint NOT NULL,
+    job bigint NOT NULL,
+    numrun integer DEFAULT 1 NOT NULL,
+    starttime timestamp(3) with time zone DEFAULT now() NOT NULL,
+    endtime timestamp(3) with time zone,
+    status public.jobstatus DEFAULT 'running'::public.jobstatus NOT NULL,
+    step public.jobrunstep DEFAULT 'pre job'::public.jobrunstep NOT NULL,
+    done double precision DEFAULT 0 NOT NULL,
+    exitcode integer DEFAULT 0 NOT NULL,
+    stoppedbyuser boolean DEFAULT false NOT NULL,
+    CONSTRAINT jobrun_check CHECK ((starttime <= endtime)),
+    CONSTRAINT jobrun_numrun_check CHECK ((numrun > 0))
+);
+
+
+ALTER TABLE public.jobrun OWNER TO storiq;
+
+--
+-- Name: jobrun_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.jobrun_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.jobrun_id_seq OWNER TO storiq;
+
+--
+-- Name: jobrun_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.jobrun_id_seq OWNED BY public.jobrun.id;
+
+
+--
+-- Name: jobtoselectedfile; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.jobtoselectedfile (
+    job bigint NOT NULL,
+    selectedfile bigint NOT NULL
+);
+
+
+ALTER TABLE public.jobtoselectedfile OWNER TO storiq;
+
+--
+-- Name: jobtype; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.jobtype (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public.jobtype OWNER TO storiq;
+
+--
+-- Name: jobtype_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.jobtype_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.jobtype_id_seq OWNER TO storiq;
+
+--
+-- Name: jobtype_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.jobtype_id_seq OWNED BY public.jobtype.id;
+
+
+--
+-- Name: log; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.log (
+    id bigint NOT NULL,
+    application integer NOT NULL,
+    level public.loglevel NOT NULL,
+    "time" timestamp(3) with time zone NOT NULL,
+    message text NOT NULL,
+    host integer NOT NULL,
+    login integer
+);
+
+
+ALTER TABLE public.log OWNER TO storiq;
+
+--
+-- Name: log_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.log_id_seq OWNER TO storiq;
+
+--
+-- Name: log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.log_id_seq OWNED BY public.log.id;
+
+
+--
+-- Name: media; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.media (
+    id integer NOT NULL,
+    uuid uuid,
+    label character varying(64),
+    mediumserialnumber character varying(36),
+    name character varying(255),
+    status public.mediastatus NOT NULL,
+    firstused timestamp(3) with time zone NOT NULL,
+    usebefore timestamp(3) with time zone NOT NULL,
+    lastread timestamp(3) with time zone,
+    lastwrite timestamp(3) with time zone,
+    loadcount integer DEFAULT 0 NOT NULL,
+    readcount integer DEFAULT 0 NOT NULL,
+    writecount integer DEFAULT 0 NOT NULL,
+    operationcount integer DEFAULT 0 NOT NULL,
+    nbtotalblockread bigint DEFAULT 0 NOT NULL,
+    nbtotalblockwrite bigint DEFAULT 0 NOT NULL,
+    nbreaderror integer DEFAULT 0 NOT NULL,
+    nbwriteerror integer DEFAULT 0 NOT NULL,
+    nbfiles integer DEFAULT 0 NOT NULL,
+    blocksize integer DEFAULT 0 NOT NULL,
+    freeblock bigint NOT NULL,
+    totalblock bigint NOT NULL,
+    haspartition boolean DEFAULT false NOT NULL,
+    append boolean DEFAULT true NOT NULL,
+    type public.mediatype DEFAULT 'rewritable'::public.mediatype NOT NULL,
+    writelock boolean DEFAULT false NOT NULL,
+    archiveformat integer,
+    mediaformat integer NOT NULL,
+    pool integer,
+    CONSTRAINT media_blocksize_check CHECK ((blocksize >= 0)),
+    CONSTRAINT media_check CHECK ((firstused < usebefore)),
+    CONSTRAINT media_freeblock_check CHECK ((freeblock >= 0)),
+    CONSTRAINT media_loadcount_check CHECK ((loadcount >= 0)),
+    CONSTRAINT media_nbfiles_check CHECK ((nbfiles >= 0)),
+    CONSTRAINT media_nbreaderror_check CHECK ((nbreaderror >= 0)),
+    CONSTRAINT media_nbtotalblockread_check CHECK ((nbtotalblockread >= 0)),
+    CONSTRAINT media_nbtotalblockwrite_check CHECK ((nbtotalblockwrite >= 0)),
+    CONSTRAINT media_nbwriteerror_check CHECK ((nbwriteerror >= 0)),
+    CONSTRAINT media_operationcount_check CHECK ((operationcount >= 0)),
+    CONSTRAINT media_readcount_check CHECK ((readcount >= 0)),
+    CONSTRAINT media_totalblock_check CHECK ((totalblock >= 0)),
+    CONSTRAINT media_writecount_check CHECK ((writecount >= 0))
+);
+
+
+ALTER TABLE public.media OWNER TO storiq;
+
+--
+-- Name: COLUMN media.label; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON COLUMN public.media.label IS 'Contains an UUID';
+
+
+--
+-- Name: COLUMN media.append; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON COLUMN public.media.append IS 'Can add file into this media';
+
+
+--
+-- Name: COLUMN media.writelock; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON COLUMN public.media.writelock IS 'Media is write protected';
+
+
+--
+-- Name: media_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.media_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.media_id_seq OWNER TO storiq;
+
+--
+-- Name: media_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.media_id_seq OWNED BY public.media.id;
+
+
+--
+-- Name: mediaformat; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.mediaformat (
+    id integer NOT NULL,
+    name character varying(64) NOT NULL,
+    datatype public.mediaformatdatatype NOT NULL,
+    mode public.mediaformatmode NOT NULL,
+    maxloadcount integer NOT NULL,
+    maxreadcount integer NOT NULL,
+    maxwritecount integer NOT NULL,
+    maxopcount integer NOT NULL,
+    lifespan interval NOT NULL,
+    capacity bigint NOT NULL,
+    blocksize integer DEFAULT 0 NOT NULL,
+    densitycode smallint NOT NULL,
+    supportpartition boolean DEFAULT false NOT NULL,
+    supportmam boolean DEFAULT false NOT NULL,
+    CONSTRAINT mediaformat_blocksize_check CHECK ((blocksize >= 0)),
+    CONSTRAINT mediaformat_capacity_check CHECK ((capacity > 0)),
+    CONSTRAINT mediaformat_lifespan_check CHECK ((lifespan > '1 year'::interval)),
+    CONSTRAINT mediaformat_maxloadcount_check CHECK ((maxloadcount > 0)),
+    CONSTRAINT mediaformat_maxopcount_check CHECK ((maxopcount > 0)),
+    CONSTRAINT mediaformat_maxreadcount_check CHECK ((maxreadcount > 0)),
+    CONSTRAINT mediaformat_maxwritecount_check CHECK ((maxwritecount > 0))
+);
+
+
+ALTER TABLE public.mediaformat OWNER TO storiq;
+
+--
+-- Name: COLUMN mediaformat.blocksize; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON COLUMN public.mediaformat.blocksize IS 'Default block size';
+
+
+--
+-- Name: COLUMN mediaformat.supportpartition; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON COLUMN public.mediaformat.supportpartition IS 'Is the media can be partitionned';
+
+
+--
+-- Name: COLUMN mediaformat.supportmam; Type: COMMENT; Schema: public; Owner: storiq
+--
+
+COMMENT ON COLUMN public.mediaformat.supportmam IS 'MAM: Medium Axiliary Memory, contains some usefull data';
+
+
+--
+-- Name: mediaformat_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.mediaformat_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.mediaformat_id_seq OWNER TO storiq;
+
+--
+-- Name: mediaformat_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.mediaformat_id_seq OWNED BY public.mediaformat.id;
+
+
+--
+-- Name: medialabel; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.medialabel (
+    id bigint NOT NULL,
+    name text NOT NULL,
+    media integer NOT NULL
+);
+
+
+ALTER TABLE public.medialabel OWNER TO storiq;
+
+--
+-- Name: medialabel_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.medialabel_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.medialabel_id_seq OWNER TO storiq;
+
+--
+-- Name: medialabel_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.medialabel_id_seq OWNED BY public.medialabel.id;
+
+
+--
+-- Name: metadata; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.metadata (
+    id bigint NOT NULL,
+    type public.metatype NOT NULL,
+    key text NOT NULL,
+    value jsonb NOT NULL,
+    login integer NOT NULL
+);
+
+
+ALTER TABLE public.metadata OWNER TO storiq;
+
+--
+-- Name: metadatalog; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.metadatalog (
+    id bigint NOT NULL,
+    type public.metatype NOT NULL,
+    key text NOT NULL,
+    value jsonb NOT NULL,
+    login integer NOT NULL,
+    "timestamp" timestamp(3) with time zone DEFAULT now() NOT NULL,
+    updated boolean NOT NULL
+);
+
+
+ALTER TABLE public.metadatalog OWNER TO storiq;
+
+--
+-- Name: pool; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.pool (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    name character varying(64) NOT NULL,
+    archiveformat integer NOT NULL,
+    mediaformat integer NOT NULL,
+    autocheck public.autocheckmode DEFAULT 'none'::public.autocheckmode NOT NULL,
+    lockcheck boolean DEFAULT false NOT NULL,
+    growable boolean DEFAULT false NOT NULL,
+    unbreakablelevel public.unbreakablelevel DEFAULT 'none'::public.unbreakablelevel NOT NULL,
+    rewritable boolean DEFAULT true NOT NULL,
+    metadata json DEFAULT '{}'::json NOT NULL,
+    backuppool boolean DEFAULT false NOT NULL,
+    pooloriginal integer,
+    poolmirror integer,
+    deleted boolean DEFAULT false NOT NULL
+);
+
+
+ALTER TABLE public.pool OWNER TO storiq;
+
+--
+-- Name: selectedfile; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.selectedfile (
+    id bigint NOT NULL,
+    path text NOT NULL
+);
+
+
+ALTER TABLE public.selectedfile OWNER TO storiq;
+
+--
+-- Name: milestones_files; Type: MATERIALIZED VIEW; Schema: public; Owner: storiq
+--
+
+CREATE MATERIALIZED VIEW public.milestones_files AS
+ SELECT sa.id AS archive,
+    sa.archive_name,
+    sa.archive_size,
+    sa.starttime AS archive_starttime,
+    sa.endtime AS archive_endtime,
+    sa.archive_versions,
+    af.id AS archivefile,
+    af.name,
+    "substring"(af.name, (char_length("substring"(af.name, '(.+/)[^/]+'::text)) + 1)) AS file_name,
+    af.type,
+    af.mimetype,
+    af.ctime AS file_ctime,
+    af.mtime AS file_mtime,
+    af.size AS file_size,
+    af.owner AS file_owner,
+    saf.versions AS file_versions,
+    (af.name = sf.path) AS file_isroot,
+    (saf.medias)::text AS medias,
+    saf.medias_length,
+    sp.id AS pool,
+    sp.name AS pool_name
+   FROM ((((public.archivefile af
+     JOIN ( SELECT afv.archivefile,
+            av.archive,
+            json_agg((COALESCE(m.name, m.label, m.mediumserialnumber))::text) AS medias,
+            max(char_length((COALESCE(m.name, m.label, m.mediumserialnumber))::text)) AS medias_length,
+            m.pool,
+            int4range(min(lower(afv.versions)), max(upper(afv.versions))) AS versions
+           FROM ((public.archivefiletoarchivevolume afv
+             JOIN public.archivevolume av ON ((afv.archivevolume = av.id)))
+             JOIN public.media m ON ((av.media = m.id)))
+          GROUP BY afv.archivefile, av.archive, m.pool) saf ON ((af.id = saf.archivefile)))
+     JOIN ( SELECT a.id,
+            a.name AS archive_name,
+            sum(av.size) AS archive_size,
+            min(av.starttime) AS starttime,
+            max(av.endtime) AS endtime,
+            int4range(min(lower(av.versions)), max(upper(av.versions))) AS archive_versions
+           FROM (public.archive a
+             JOIN public.archivevolume av ON ((a.id = av.archive)))
+          GROUP BY a.id, a.name) sa ON ((saf.archive = sa.id)))
+     JOIN public.pool sp ON ((saf.pool = sp.id)))
+     JOIN public.selectedfile sf ON ((af.parent = sf.id)))
+  WITH NO DATA;
+
+
+ALTER TABLE public.milestones_files OWNER TO storiq;
+
+--
+-- Name: pool_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.pool_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.pool_id_seq OWNER TO storiq;
+
+--
+-- Name: pool_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.pool_id_seq OWNED BY public.pool.id;
+
+
+--
+-- Name: poolgroup; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.poolgroup (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    name character varying(64) NOT NULL
+);
+
+
+ALTER TABLE public.poolgroup OWNER TO storiq;
+
+--
+-- Name: poolgroup_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.poolgroup_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.poolgroup_id_seq OWNER TO storiq;
+
+--
+-- Name: poolgroup_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.poolgroup_id_seq OWNED BY public.poolgroup.id;
+
+
+--
+-- Name: poolmirror; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.poolmirror (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    name character varying(64) NOT NULL,
+    synchronized boolean NOT NULL
+);
+
+
+ALTER TABLE public.poolmirror OWNER TO storiq;
+
+--
+-- Name: poolmirror_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.poolmirror_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.poolmirror_id_seq OWNER TO storiq;
+
+--
+-- Name: poolmirror_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.poolmirror_id_seq OWNED BY public.poolmirror.id;
+
+
+--
+-- Name: pooltemplate; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.pooltemplate (
+    id integer NOT NULL,
+    name character varying(64) NOT NULL,
+    autocheck public.autocheckmode DEFAULT 'none'::public.autocheckmode NOT NULL,
+    lockcheck boolean DEFAULT false NOT NULL,
+    growable boolean DEFAULT false NOT NULL,
+    unbreakablelevel public.unbreakablelevel DEFAULT 'none'::public.unbreakablelevel NOT NULL,
+    rewritable boolean DEFAULT true NOT NULL,
+    metadata json DEFAULT '{}'::json NOT NULL,
+    createproxy boolean DEFAULT false NOT NULL
+);
+
+
+ALTER TABLE public.pooltemplate OWNER TO storiq;
+
+--
+-- Name: pooltemplate_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.pooltemplate_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.pooltemplate_id_seq OWNER TO storiq;
+
+--
+-- Name: pooltemplate_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.pooltemplate_id_seq OWNED BY public.pooltemplate.id;
+
+
+--
+-- Name: pooltemplatetochecksum; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.pooltemplatetochecksum (
+    pooltemplate integer NOT NULL,
+    checksum integer NOT NULL
+);
+
+
+ALTER TABLE public.pooltemplatetochecksum OWNER TO storiq;
+
+--
+-- Name: pooltochecksum; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.pooltochecksum (
+    pool integer NOT NULL,
+    checksum integer NOT NULL
+);
+
+
+ALTER TABLE public.pooltochecksum OWNER TO storiq;
+
+--
+-- Name: pooltopoolgroup; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.pooltopoolgroup (
+    pool integer NOT NULL,
+    poolgroup integer NOT NULL
+);
+
+
+ALTER TABLE public.pooltopoolgroup OWNER TO storiq;
+
+--
+-- Name: proxy; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.proxy (
+    id bigint NOT NULL,
+    archivefile bigint NOT NULL,
+    status public.proxystatus DEFAULT 'todo'::public.proxystatus NOT NULL
+);
+
+
+ALTER TABLE public.proxy OWNER TO storiq;
+
+--
+-- Name: proxy_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.proxy_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.proxy_id_seq OWNER TO storiq;
+
+--
+-- Name: proxy_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.proxy_id_seq OWNED BY public.proxy.id;
+
+
+--
+-- Name: report; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.report (
+    id bigint NOT NULL,
+    "timestamp" timestamp(3) with time zone DEFAULT now() NOT NULL,
+    archive bigint,
+    media bigint,
+    jobrun bigint NOT NULL,
+    data json NOT NULL
+);
+
+
+ALTER TABLE public.report OWNER TO storiq;
+
+--
+-- Name: report_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.report_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.report_id_seq OWNER TO storiq;
+
+--
+-- Name: report_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.report_id_seq OWNED BY public.report.id;
+
+
+--
+-- Name: reports; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.reports (
+    id bigint NOT NULL,
+    name text NOT NULL,
+    report bigint NOT NULL
+);
+
+
+ALTER TABLE public.reports OWNER TO storiq;
+
+--
+-- Name: reports_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.reports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.reports_id_seq OWNER TO storiq;
+
+--
+-- Name: reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.reports_id_seq OWNED BY public.reports.id;
+
+
+--
+-- Name: restoreto; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.restoreto (
+    id bigint NOT NULL,
+    path character varying(255) DEFAULT '/'::character varying NOT NULL,
+    job bigint NOT NULL
+);
+
+
+ALTER TABLE public.restoreto OWNER TO storiq;
+
+--
+-- Name: restoreto_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.restoreto_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.restoreto_id_seq OWNER TO storiq;
+
+--
+-- Name: restoreto_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.restoreto_id_seq OWNED BY public.restoreto.id;
+
+
+--
+-- Name: script; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.script (
+    id integer NOT NULL,
+    name text NOT NULL,
+    description text NOT NULL,
+    path text NOT NULL,
+    type public.scripttype NOT NULL
+);
+
+
+ALTER TABLE public.script OWNER TO storiq;
+
+--
+-- Name: script_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.script_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.script_id_seq OWNER TO storiq;
+
+--
+-- Name: script_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.script_id_seq OWNED BY public.script.id;
+
+
+--
+-- Name: scripts; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.scripts (
+    id integer NOT NULL,
+    sequence integer NOT NULL,
+    jobtype integer NOT NULL,
+    script integer,
+    pool integer,
+    CONSTRAINT scripts_sequence_check CHECK ((sequence >= 0))
+);
+
+
+ALTER TABLE public.scripts OWNER TO storiq;
+
+--
+-- Name: scripts_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.scripts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.scripts_id_seq OWNER TO storiq;
+
+--
+-- Name: scripts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.scripts_id_seq OWNED BY public.scripts.id;
+
+
+--
+-- Name: selectedfile_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.selectedfile_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.selectedfile_id_seq OWNER TO storiq;
+
+--
+-- Name: selectedfile_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.selectedfile_id_seq OWNED BY public.selectedfile.id;
+
+
+--
+-- Name: userevent; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.userevent (
+    id integer NOT NULL,
+    event text NOT NULL
+);
+
+
+ALTER TABLE public.userevent OWNER TO storiq;
+
+--
+-- Name: userevent_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.userevent_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.userevent_id_seq OWNER TO storiq;
+
+--
+-- Name: userevent_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.userevent_id_seq OWNED BY public.userevent.id;
+
+
+--
+-- Name: userlog; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.userlog (
+    id bigint NOT NULL,
+    login integer NOT NULL,
+    "timestamp" timestamp(3) with time zone DEFAULT now() NOT NULL,
+    event integer NOT NULL
+);
+
+
+ALTER TABLE public.userlog OWNER TO storiq;
+
+--
+-- Name: userlog_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.userlog_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.userlog_id_seq OWNER TO storiq;
+
+--
+-- Name: userlog_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.userlog_id_seq OWNED BY public.userlog.id;
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    login character varying(255) NOT NULL,
+    password character varying(255) NOT NULL,
+    salt character(16) NOT NULL,
+    fullname character varying(255),
+    email character varying(255) NOT NULL,
+    homedirectory text NOT NULL,
+    isadmin boolean DEFAULT false NOT NULL,
+    canarchive boolean DEFAULT false NOT NULL,
+    canrestore boolean DEFAULT false NOT NULL,
+    meta json NOT NULL,
+    poolgroup integer,
+    disabled boolean DEFAULT false NOT NULL,
+    key character(512) DEFAULT NULL
+);
+
+
+ALTER TABLE public.users OWNER TO storiq;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.users_id_seq OWNER TO storiq;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
+-- Name: vtl; Type: TABLE; Schema: public; Owner: storiq
+--
+
+CREATE TABLE public.vtl (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    path character varying(255) NOT NULL,
+    prefix character varying(255) NOT NULL,
+    nbslots integer NOT NULL,
+    nbdrives integer NOT NULL,
+    mediaformat integer NOT NULL,
+    host integer NOT NULL,
+    deleted boolean DEFAULT false NOT NULL,
+    CONSTRAINT vtl_check CHECK ((nbslots >= nbdrives)),
+    CONSTRAINT vtl_nbdrives_check CHECK ((nbdrives > 0)),
+    CONSTRAINT vtl_nbslots_check CHECK ((nbslots > 0))
+);
+
+
+ALTER TABLE public.vtl OWNER TO storiq;
+
+--
+-- Name: vtl_id_seq; Type: SEQUENCE; Schema: public; Owner: storiq
+--
+
+CREATE SEQUENCE public.vtl_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.vtl_id_seq OWNER TO storiq;
+
+--
+-- Name: vtl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: storiq
+--
+
+ALTER SEQUENCE public.vtl_id_seq OWNED BY public.vtl.id;
+
+
+--
+-- Name: application id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.application ALTER COLUMN id SET DEFAULT nextval('public.application_id_seq'::regclass);
+
+
+--
+-- Name: archive id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.archive ALTER COLUMN id SET DEFAULT nextval('public.archive_id_seq'::regclass);
+
+
+--
+-- Name: archivefile id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.archivefile ALTER COLUMN id SET DEFAULT nextval('public.archivefile_id_seq'::regclass);
+
+
+--
+-- Name: archiveformat id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.archiveformat ALTER COLUMN id SET DEFAULT nextval('public.archiveformat_id_seq'::regclass);
+
+
+--
+-- Name: archivemirror id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.archivemirror ALTER COLUMN id SET DEFAULT nextval('public.archivemirror_id_seq'::regclass);
+
+
+--
+-- Name: archivevolume id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.archivevolume ALTER COLUMN id SET DEFAULT nextval('public.archivevolume_id_seq'::regclass);
+
+
+--
+-- Name: backup id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.backup ALTER COLUMN id SET DEFAULT nextval('public.backup_id_seq'::regclass);
+
+
+--
+-- Name: backupvolume id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.backupvolume ALTER COLUMN id SET DEFAULT nextval('public.backupvolume_id_seq'::regclass);
+
+
+--
+-- Name: changer id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.changer ALTER COLUMN id SET DEFAULT nextval('public.changer_id_seq'::regclass);
+
+
+--
+-- Name: checksum id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.checksum ALTER COLUMN id SET DEFAULT nextval('public.checksum_id_seq'::regclass);
+
+
+--
+-- Name: checksumresult id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.checksumresult ALTER COLUMN id SET DEFAULT nextval('public.checksumresult_id_seq'::regclass);
+
+
+--
+-- Name: drive id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.drive ALTER COLUMN id SET DEFAULT nextval('public.drive_id_seq'::regclass);
+
+
+--
+-- Name: driveformat id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.driveformat ALTER COLUMN id SET DEFAULT nextval('public.driveformat_id_seq'::regclass);
+
+
+--
+-- Name: host id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.host ALTER COLUMN id SET DEFAULT nextval('public.host_id_seq'::regclass);
+
+
+--
+-- Name: job id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.job ALTER COLUMN id SET DEFAULT nextval('public.job_id_seq'::regclass);
+
+
+--
+-- Name: jobrecord id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.jobrecord ALTER COLUMN id SET DEFAULT nextval('public.jobrecord_id_seq'::regclass);
+
+
+--
+-- Name: jobrun id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.jobrun ALTER COLUMN id SET DEFAULT nextval('public.jobrun_id_seq'::regclass);
+
+
+--
+-- Name: jobtype id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.jobtype ALTER COLUMN id SET DEFAULT nextval('public.jobtype_id_seq'::regclass);
+
+
+--
+-- Name: log id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.log ALTER COLUMN id SET DEFAULT nextval('public.log_id_seq'::regclass);
+
+
+--
+-- Name: media id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.media ALTER COLUMN id SET DEFAULT nextval('public.media_id_seq'::regclass);
+
+
+--
+-- Name: mediaformat id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.mediaformat ALTER COLUMN id SET DEFAULT nextval('public.mediaformat_id_seq'::regclass);
+
+
+--
+-- Name: medialabel id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.medialabel ALTER COLUMN id SET DEFAULT nextval('public.medialabel_id_seq'::regclass);
+
+
+--
+-- Name: pool id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.pool ALTER COLUMN id SET DEFAULT nextval('public.pool_id_seq'::regclass);
+
+
+--
+-- Name: poolgroup id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.poolgroup ALTER COLUMN id SET DEFAULT nextval('public.poolgroup_id_seq'::regclass);
+
+
+--
+-- Name: poolmirror id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.poolmirror ALTER COLUMN id SET DEFAULT nextval('public.poolmirror_id_seq'::regclass);
+
+
+--
+-- Name: pooltemplate id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.pooltemplate ALTER COLUMN id SET DEFAULT nextval('public.pooltemplate_id_seq'::regclass);
+
+
+--
+-- Name: proxy id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.proxy ALTER COLUMN id SET DEFAULT nextval('public.proxy_id_seq'::regclass);
+
+
+--
+-- Name: report id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.report ALTER COLUMN id SET DEFAULT nextval('public.report_id_seq'::regclass);
+
+
+--
+-- Name: reports id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.reports ALTER COLUMN id SET DEFAULT nextval('public.reports_id_seq'::regclass);
+
+
+--
+-- Name: restoreto id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.restoreto ALTER COLUMN id SET DEFAULT nextval('public.restoreto_id_seq'::regclass);
+
+
+--
+-- Name: script id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.script ALTER COLUMN id SET DEFAULT nextval('public.script_id_seq'::regclass);
+
+
+--
+-- Name: scripts id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.scripts ALTER COLUMN id SET DEFAULT nextval('public.scripts_id_seq'::regclass);
+
+
+--
+-- Name: selectedfile id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.selectedfile ALTER COLUMN id SET DEFAULT nextval('public.selectedfile_id_seq'::regclass);
+
+
+--
+-- Name: userevent id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.userevent ALTER COLUMN id SET DEFAULT nextval('public.userevent_id_seq'::regclass);
+
+
+--
+-- Name: userlog id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.userlog ALTER COLUMN id SET DEFAULT nextval('public.userlog_id_seq'::regclass);
+
+
+--
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: vtl id; Type: DEFAULT; Schema: public; Owner: storiq
+--
+
+ALTER TABLE ONLY public.vtl ALTER COLUMN id SET DEFAULT nextval('public.vtl_id_seq'::regclass);

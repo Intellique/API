@@ -17,17 +17,18 @@
 		/**
 		 * \brief Delete a metadata by key
 		 * \param $id : id
-		 * \param $key : metadata key
+		 * \param $key : Array metadata key
 		 * \param $type : metatype
 		 * \param $userId : user id
 		 * \return \b TRUE on deletion success, \b FALSE when no metadata was deleted, \b NULL on query execution failure
 		 */
-		public function deleteMetadata($id, $key, $type, $userId);
+		public function deleteMetadata($id, &$key, $type, $userId);
 
 		/**
 		 * \brief Delete a job
 		 * \param $id : id
-		 * \param $type : metatype
+		 * \param $type :  metatype
+		 * \param $key : Array de metatype
 		 * \param $userId : user id
 		 * \return \b TRUE on deletion success, \b FALSE when no metadata was deleted, \b NULL on query execution failure
 		 */

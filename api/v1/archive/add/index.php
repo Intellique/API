@@ -32,6 +32,7 @@
 	require_once("../../lib/env.php");
 
 	require_once("dateTime.php");
+	require_once("file.php");
 	require_once("http.php");
 	require_once("session.php");
 	require_once("db.php");
@@ -83,14 +84,17 @@
 					if (!is_string($files[$i])) {
 						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => file should be a string', __LINE__), $_SESSION['user']['id']);
 						$ok = false;
-					} elseif (!posix_access($files[$i], POSIX_F_OK)) {
-						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => cannot access to file(%s)', __LINE__, $files[$i]), $_SESSION['user']['id']);
-						$ok = false;
+					} else {
+						$files[$i] = normalizePath($files[$i]);
+						if (!posix_access($files[$i], POSIX_F_OK)) {
+							$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => cannot access to file(%s)', __LINE__, $files[$i]), $_SESSION['user']['id']);
+							$ok = false;
+						}
 					}
 				}
 
 				if (!$ok)
-					httpResponse(400, array('message' => 'files should be an array of string'));
+					httpResponse(400, array('message' => 'files should be an array of strings'));
 			}
 
 			if (!$dbDriver->startTransaction()) {

@@ -32,9 +32,9 @@ class ArchiveRestoreTest(CommonTest):
         self.assertEqual(res.status, 400)
 
     def test_04_post_basic_user_not_allowed(self):
-        conn, cookie, message = self.newLoggedConnection('basic')
+        conn, cookie, message = self.newLoggedConnection('archiver')
         restore = json.dumps({
-            'archive': 57
+            'archive': 35
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -48,7 +48,7 @@ class ArchiveRestoreTest(CommonTest):
         restore = json.dumps({
             'name': '',
             'files': ["/mnt/raid/rcarchives/PRODUITS_DE_DIFFUSION/CEI_DIFFUSION/20081207_MCEI_DON_CARLO_SCALA"],
-            'archive': 3
+            'archive': "gh"
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -61,8 +61,8 @@ class ArchiveRestoreTest(CommonTest):
         conn, cookie, message = self.newLoggedConnection('admin')
         restore = json.dumps({
             'name': 'ArchiveRestoreTest',
-            'files': ["/var/www/nextcloud/data/emmanuel/files/NASA/big_bad_beautiful_chandra.mp4"],
-            'archive': 57
+            'files': ["/var/www/nextcloud/data/storiq/files/NASA"],
+            'archive': 16
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -75,7 +75,7 @@ class ArchiveRestoreTest(CommonTest):
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', self.path + 'job/?id=' + str(message['job_id']), headers=cookie)
         res = conn.getresponse()
         job = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -83,14 +83,14 @@ class ArchiveRestoreTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveRestoreTest')
-        self.assertEqual(job['job']['archive'], 57)
+        self.assertEqual(job['job']['archive'], 16)
 
     def test_07_post_admin_user_with_right_params2(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         restore = json.dumps({
             'name': 'ArchiveRestoreTest2',
-            'files': ["/var/www/nextcloud/data/emmanuel/files/NASA/big_bad_beautiful_chandra.mp4"],
-            'archive': 57,
+            'files': ["/var/www/nextcloud/data/storiq/files/NASA"],
+            'archive': 16,
             'destination': '/mnt/raid/backup/',
             'nextstart': '2016-01-01 11:09:09+02'
         });
@@ -105,7 +105,7 @@ class ArchiveRestoreTest(CommonTest):
         self.assertIsNotNone(location)
         self.assertIsNotNone(message)
         conn = self.newConnection()
-        conn.request('GET', location, headers=cookie)
+        conn.request('GET', self.path + 'job/?id=' + str(message['job_id']), headers=cookie)
         res = conn.getresponse()
         job = json.loads(res.read().decode('utf-8'))
         conn.close()
@@ -113,5 +113,5 @@ class ArchiveRestoreTest(CommonTest):
         self.assertIsNotNone(job)
         self.assertEqual(job['job']['id'], message['job_id'])
         self.assertEqual(job['job']['name'], 'ArchiveRestoreTest2')
-        self.assertEqual(job['job']['archive'], 57)
+        self.assertEqual(job['job']['archive'], 16)
         self.assertEqual(job['job']['nextstart'], '2016-01-01T09:09:09+0000')

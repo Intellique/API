@@ -1,5 +1,5 @@
 from common_test import CommonTest
-import json
+import json, unittest
 
 class PoolgroupTest(CommonTest):
 
@@ -31,7 +31,8 @@ class PoolgroupTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 400)
 
-    """def test_05_put_poolgroup_success_less_pools(self):
+    @unittest.skip("demonstrating skipping")
+    def test_05_put_poolgroup_success_less_pools(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'poolgroup':1,
@@ -42,13 +43,13 @@ class PoolgroupTest(CommonTest):
         conn.request('PUT', self.path + 'poolgroup/', body=data, headers=headers)
         res = conn.getresponse()
         conn.close()
-        self.assertEqual(res.status, 200)"""
+        self.assertEqual(res.status, 200)
 
     def test_06_put_poolgroup_success(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
             'poolgroup': 1,
-            'pools': [9, 7, 6]
+            'pools': [1, 11]
         });
         headers = {"Content-type": "application/json"}
         headers.update(cookie)
@@ -86,7 +87,7 @@ class PoolgroupTest(CommonTest):
     def test_09_put_poolgroup_wrong_type(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         data=json.dumps({
-            'poolgroup': 1,
+            'poolgroup': 'a',
             'pools': [6, 'foo']
         });
         headers = {"Content-type": "application/json"}

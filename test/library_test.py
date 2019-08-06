@@ -1,5 +1,5 @@
 from common_test import CommonTest
-import json
+import json, unittest
 
 class LibraryTest(CommonTest):
     def test_01_basic_user_denied(self):
@@ -20,7 +20,8 @@ class LibraryTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
 
-    """
+
+    @unittest.skip("demonstrating skipping")
     def test_03_admin_user_no_device_found(self):
         conn, cookie, message = self.newLoggedConnection('admin')
         headers = {"Content-type": "application/json"}
@@ -29,7 +30,7 @@ class LibraryTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 404)
-    """
+    
 
     def test_04_put_basic_user_access_denied(self):
         conn, cookie, message = self.newLoggedConnection('basic')

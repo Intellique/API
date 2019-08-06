@@ -75,7 +75,7 @@ else:
 
 credentials = json.dumps({'login': options.userName, 'password': options.password, 'apikey': options.api_key})
 headers = {"Content-type": "application/json"}
-conn.request('POST', '/storiqone-backend-paul/api/v1/auth/', credentials, headers)
+conn.request('POST', '/storiqone-backend/api/v1/auth/', credentials, headers)
 res = conn.getresponse()
 contentType = res.getheader('Content-type').split(';', 1)[0]
 if contentType is None or contentType != "application/json" or res.status != 201:
@@ -94,7 +94,7 @@ if options.type == "archivefile":
 		conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 	else:
 		conn = http.client.HTTPSConnection(options.host)
-	conn.request('PUT', '/storiqone-backend-paul/api/v1/archivefile/metadata/', json.dumps(params), headers)
+	conn.request('PUT', '/storiqone-backend/api/v1/archivefile/metadata/', json.dumps(params), headers)
 	res = conn.getresponse()
 	contentType = res.getheader('Content-type').split(';', 1)[0]
 	if contentType is None or contentType != "application/json" or res.status != 200:
@@ -116,7 +116,7 @@ if options.type == "archive":
 		conn = http.client.HTTPSConnection(options.host, context=ssl._create_unverified_context())
 	else:
 		conn = http.client.HTTPSConnection(options.host)
-	conn.request('PUT', '/storiqone-backend-paul/api/v1/archive/metadata/', json.dumps(params), headers)
+	conn.request('PUT', '/storiqone-backend/api/v1/archive/metadata/', json.dumps(params), headers)
 	res = conn.getresponse()
 	contentType = res.getheader('Content-type').split(';', 1)[0]
 	if contentType is None or contentType != "application/json" or res.status != 200:

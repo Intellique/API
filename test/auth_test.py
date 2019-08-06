@@ -10,7 +10,7 @@ class AuthTest(CommonTest):
         self.assertEqual(res.status, 200)
 
     def test_02_delete_and_get(self):
-        conn, headers, message = self.newLoggedConnection('storiq')
+        conn, headers, message = self.newLoggedConnection('admin')
         conn.request('DELETE', self.path + 'auth/', headers=headers)
         res = conn.getresponse()
         conn.close()
@@ -29,7 +29,7 @@ class AuthTest(CommonTest):
         self.assertEqual(res.status, 401)
 
     def test_04_get_logged(self):
-        conn, headers, res = self.newLoggedConnection('storiq')
+        conn, headers, res = self.newLoggedConnection('admin')
         conn.request('GET', self.path + 'auth/', headers=headers)
         res = conn.getresponse()
         conn.close()
@@ -57,7 +57,7 @@ class AuthTest(CommonTest):
     def test_07_post_with_login_only(self):
         conn = self.newConnection()
         params = json.dumps({
-            'login': self.users['storiq']['login']
+            'login': self.users['admin']['login']
         })
         headers = {"Content-type": "application/json"}
         conn.request('POST', self.path + 'auth/', params, headers)
@@ -68,8 +68,8 @@ class AuthTest(CommonTest):
     def test_08_post_auth_ok(self):
         conn = self.newConnection()
         params = json.dumps({
-            'login': self.users['storiq']['login'],
-            'password': self.users['storiq']['password'],
+            'login': self.users['admin']['login'],
+            'password': self.users['admin']['password'],
             'apikey': self.apikey
         })
         headers = {"Content-type": "application/json"}
@@ -94,7 +94,7 @@ class AuthTest(CommonTest):
     def test_09_post_auth_fail(self):
         conn = self.newConnection()
         params = json.dumps({
-            'login': self.users['storiq']['login'],
+            'login': self.users['admin']['login'],
             'password': 'foo',
             'apikey': self.apikey
         })
@@ -105,7 +105,7 @@ class AuthTest(CommonTest):
         self.assertEqual(res.status, 401)
 
     def test_10_post_and_get(self):
-        conn, cookie, message = self.newLoggedConnection('storiq')
+        conn, cookie, message = self.newLoggedConnection('admin')
         headers = {"Accept": "application/json"}
         headers.update(cookie)
         conn.request('GET', self.path + 'user/?id=1', headers=headers)
@@ -119,7 +119,7 @@ class AuthTest(CommonTest):
         conn.close()
         self.assertEqual(res.status, 200)
         self.assertIn('user_id', message)
-        self.assertEqual(message['user_id'], self.users['storiq']['id'])
+        self.assertEqual(message['user_id'], self.users['admin']['id'])
 
     def test_11_put(self):
         conn = self.newConnection()
@@ -131,8 +131,8 @@ class AuthTest(CommonTest):
     def test_12_post_wrong_apikey(self):
         conn = self.newConnection()
         params = json.dumps({
-            'login': self.users['storiq']['login'],
-            'password': self.users['storiq']['password'],
+            'login': self.users['admin']['login'],
+            'password': self.users['admin']['password'],
             'apikey': '0d58efeb-e322-45b6-aa9f-bd0d5cf45d49',
         })
         headers = {"Content-type": "application/json"}
@@ -142,7 +142,7 @@ class AuthTest(CommonTest):
         self.assertEqual(res.status, 401)
 
     def test_13_created(self):
-        conn, cookie, message = self.newLoggedConnection('storiq')
+        conn, cookie, message = self.newLoggedConnection('admin')
         headers = {"Accept": "application/json"}
         headers.update(cookie)
         conn.request('POST', self.path + 'auth/token/',None, headers)
@@ -153,7 +153,7 @@ class AuthTest(CommonTest):
         conn.close()
 
     def test_14_token_validated(self):
-        conn, cookie, message = self.newLoggedConnection('storiq')
+        conn, cookie, message = self.newLoggedConnection('admin')
         headers = {"Accept": "application/json"}
         headers.update(cookie)
         conn.request('POST', self.path + 'auth/token/',None, headers)
@@ -181,8 +181,7 @@ class AuthTest(CommonTest):
         self.assertEqual(res.status, 400)
 
     def test_16_token_unsigned(self):
-
-        conn, cookie, message = self.newLoggedConnection('storiq')
+        conn, cookie, message = self.newLoggedConnection('admin')
         headers = {"Accept": "application/json"}
         headers.update(cookie)
         conn.request('POST', self.path + 'auth/token/',None, headers)
@@ -201,5 +200,3 @@ class AuthTest(CommonTest):
         res = conn.getresponse()
         conn.close()
         self.assertEqual(res.status, 400)
-
-
