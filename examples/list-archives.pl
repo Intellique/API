@@ -133,4 +133,3 @@ if ( $result->is_success ) {
       . $result->decoded_content . "\n"
       . $result->status_line . "\n";
 }
-## Please see file list-archives.pl.ERR
