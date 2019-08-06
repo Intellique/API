@@ -1,3 +1,9 @@
+storiqone-backend (0.3.3+buster) polisher; urgency=low
+
+  * Bug fix release
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Tue, 06 Aug 2019 19:13:00 +0200
+
 storiqone-backend (0.3.2+buster) polisher; urgency=low
 
   * First buster release
