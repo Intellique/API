@@ -36,7 +36,7 @@
 			if ($current_user['disabled'] != $new_user['disabled']) {
 				$action = $new_user['disabled'] ? 'disable' : 'enable';
 
-				$return = exec(sprintf('%s user:%s %s', $config['occ_path'], $action, $user['login']));
+				$return = exec(sprintf('%s user:%s %s', $config['occ_path'], $action, $current_user['login']));
 				if (rtrim($return) != sprintf('The specified user is %sd', $action))
 					return false;
 			}

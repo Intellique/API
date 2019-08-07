@@ -9,8 +9,8 @@ import time, ssl ,os
 parser = OptionParser()
 
 group = OptionGroup(parser, "create archive options");
-group.add_option("-A", "--archivefile-id", dest="archivefileId", type="int", help="Specify archivefile id (to adding metadatas to archivefile)")
-group.add_option("-f", "--metadata-file", dest="metadataFile", default=None, type="string", help="Specify metadata file name")
+group.add_option("-A", "--archivefileid", dest="archivefileId", type="int", help="Specify archivefile id (to adding metadatas to archivefile)")
+group.add_option("-f", "--metadatafile", dest="metadataFile", default=None, type="string", help="Specify metadata file name")
 group.add_option("-t", "--type", dest="type", default=None, type="string", help="Specify type of file")
 
 parser.add_option_group(group)

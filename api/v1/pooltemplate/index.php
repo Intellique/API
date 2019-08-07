@@ -98,9 +98,6 @@
 				$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('DELETE api/v1/pooltemplate (%d) => Query failure', __LINE__), $_SESSION['user']['id']);
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('DELETE api/v1/pooltemplate (%d) => deletePoolTemplate(%s)', __LINE__, $_GET['id']), $_SESSION['user']['id']);
 				httpResponse(500, array('message' => 'Query failure'));
-			} elseif ($result === null) {
-				$dbDriver->cancelTransaction();
-				httpResponse(404, array('message' => 'Pool template not found'));
 			} elseif (!$dbDriver->finishTransaction()) {
 				$dbDriver->cancelTransaction();
 				httpResponse(500, array('message' => 'Transaction failure'));
