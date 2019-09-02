@@ -42,8 +42,8 @@ if ( -x $command and -x $restored_path ) {
     if ( scalar( @{ $data->{'selected path'} } ) > 0 ) {
         for my $path ( @{ $data->{'selected path'} } ) {
             my $sub = substr( $path, length($next_cloud_data_dir) );
-            exec( $command, 'files:scan', "--path=$sub" )
-                or die "Failed to execute \"$command\"";
+            system( $command, 'files:scan', "--path=$sub" ) == 0
+                or die "Failed to execute \"$command\": $?";
         }
     }
     else {
@@ -53,8 +53,8 @@ if ( -x $command and -x $restored_path ) {
                     $file->{file}->{'restored to'},
                     length($next_cloud_data_dir)
                 );
-                exec( $command, 'files:scan', "--path=$sub" )
-                    or die "Failed to execute \"$command\"";
+                system( $command, 'files:scan', "--path=$sub" ) == 0
+                    or die "Failed to execute \"$command\": $?";
             }
         }
     }
