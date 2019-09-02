@@ -5,6 +5,17 @@ use warnings;
 
 use JSON::PP;
 
+if ( $ARGV[0] eq 'config' ) {
+    my $sent = {
+        'name' => 'Nextcloud sync post restore',
+        'description' =>
+            'Update Nextcloud after restoring files',
+        'type' => 'post job'
+    };
+    print encode_json($sent);
+    exit;
+}
+
 my $data_in       = do { local $/; <STDIN> };
 my $data          = decode_json $data_in;
 my $restored_path = $data->{'restore path'};
