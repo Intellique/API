@@ -5,12 +5,11 @@ use warnings;
 
 use JSON::PP;
 
-if ( $ARGV[0] eq 'config' ) {
+if ( @ARGV and $ARGV[0] eq 'config' ) {
     my $sent = {
-        'name' => 'Nextcloud sync post restore',
-        'description' =>
-            'Update Nextcloud after restoring files',
-        'type' => 'post job'
+        'name'        => 'Nextcloud sync post restore',
+        'description' => 'Update Nextcloud after restoring files',
+        'type'        => 'post job'
     };
     print encode_json($sent);
     exit;
@@ -31,11 +30,13 @@ my $command = '/var/www/nextcloud/occ';
 my $next_cloud_data_dir = '/var/www/nextcloud/data';
 
 unless ($<) {
+    my @new_gid = getgrnam 'www-data';
+    $( = $) = $new_gid[2];
     my $new_uid = getpwnam 'www-data';
     $< = $> = $new_uid;
 }
 
-if ( -x $command and -x $restored_path ) {
+if ( -x $command and ( !defined($restored_path) or -d $restored_path ) ) {
 
     # $sub must start with '/'
 
@@ -43,10 +44,9 @@ if ( -x $command and -x $restored_path ) {
         for my $path ( @{ $data->{'selected path'} } ) {
             my $sub = substr( $path, length($next_cloud_data_dir) );
             system( $command, 'files:scan', "--path=$sub" ) == 0
-                or die "Failed to execute \"$command\": $?";
+              or die "Failed to execute \"$command\": $?";
         }
-    }
-    else {
+    } else {
         for my $vol ( @{ $data->{archive}->{volumes} } ) {
             for my $file ( @{ $vol->{files} } ) {
                 my $sub = substr(
@@ -54,7 +54,7 @@ if ( -x $command and -x $restored_path ) {
                     length($next_cloud_data_dir)
                 );
                 system( $command, 'files:scan', "--path=$sub" ) == 0
-                    or die "Failed to execute \"$command\": $?";
+                  or die "Failed to execute \"$command\": $?";
             }
         }
     }
