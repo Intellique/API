@@ -5,6 +5,17 @@ use warnings;
 
 use JSON::PP;
 
+if ( $ARGV[0] eq 'config' ) {
+    my $sent = {
+        'name' => 'Nextcloud sync post restore',
+        'description' =>
+            'Update Nextcloud after restoring files',
+        'type' => 'post job'
+    };
+    print encode_json($sent);
+    exit;
+}
+
 my $data_in       = do { local $/; <STDIN> };
 my $data          = decode_json $data_in;
 my $restored_path = $data->{'restore path'};
@@ -31,8 +42,8 @@ if ( -x $command and -x $restored_path ) {
     if ( scalar( @{ $data->{'selected path'} } ) > 0 ) {
         for my $path ( @{ $data->{'selected path'} } ) {
             my $sub = substr( $path, length($next_cloud_data_dir) );
-            exec( $command, 'files:scan', "--path=$sub" )
-                or die "Failed to execute \"$command\"";
+            system( $command, 'files:scan', "--path=$sub" ) == 0
+                or die "Failed to execute \"$command\": $?";
         }
     }
     else {
@@ -42,8 +53,8 @@ if ( -x $command and -x $restored_path ) {
                     $file->{file}->{'restored to'},
                     length($next_cloud_data_dir)
                 );
-                exec( $command, 'files:scan', "--path=$sub" )
-                    or die "Failed to execute \"$command\"";
+                system( $command, 'files:scan', "--path=$sub" ) == 0
+                    or die "Failed to execute \"$command\": $?";
             }
         }
     }

@@ -269,11 +269,8 @@ case 'POST':
 			'message' => 'Query failure',
 			'metadata' => array(),
 		));
-	} elseif ($metadata !== false) {
-		httpResponse(404, array(
-			'message' => 'There are metadatas found for this object',
-			'metadata' => array(),
-		));
+	} elseif ($metadata === false) {
+		$metadata = array();
 	}
 
 	foreach ($inputData['metadata'] as $key => $value) {
@@ -285,7 +282,7 @@ case 'POST':
 
 	// create metadata
 	foreach ($inputData['metadata'] as $key => $value) {
-		$resultMetadata = $dbDriver->createMetadata($archive['id'], $key, $value, 'archivefile', $_SESSION['user']['id']);
+		$resultMetadata = $dbDriver->createMetadata($inputData['id'], $key, $value, 'archivefile', $_SESSION['user']['id']);
 		if (!$resultMetadata) {
 			$dbDriver->cancelTransaction();
 			$dbDriver->writeLog(DB::DB_LOG_CRITICAL, sprintf('POST api/v1/archivefile/metadata (%d) => Query failure', __LINE__), $_SESSION['user']['id']);

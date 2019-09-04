@@ -7,11 +7,10 @@
 	switch ($_SERVER['REQUEST_METHOD']) {
 		case 'POST':
 			$data = httpParseInput();
-			if (!$data or !isset($data['action']))
+			if (!$data || !isset($data['action']))
 				httpResponse(400, array('message' => 'action required'));
 
-			switch ($data['action']) {
-				case 'check':
+			if ($data['action'] == 'check') {
 					if (!isset($data['api key']))
 						httpResponse(400, array('message' => 'api key required'));
 
@@ -22,7 +21,10 @@
 						httpResponse(401, array('message' => 'Invalid API key'));
 					else
 						httpResponse(200, array('message' => 'Valid API key'));
+			} else {
+				httpResponse(400, array('message' => 'Invalid action'));
 			}
+			break;
 
 		case 'OPTIONS':
 			httpOptionsMethod(HTTP_POST);
