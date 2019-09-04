@@ -1,0 +1,13 @@
+name: create package
+
+on:
+  push:
+    branches: crystal/buster
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: make package
+      run: dpkg-buildpackage -us -uc -rfakeroot
