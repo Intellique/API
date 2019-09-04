@@ -1,3 +1,9 @@
+storiqone-backend (0.3.4+jessie) polisher; urgency=low
+
+  * New bug fix release
+
+ -- Guillaume Clercin <gclercin@intellique.com>  Wed, 04 Sep 2019 12:19:48 +0200
+
 storiqone-backend (0.3.3+jessie) polisher; urgency=low
 
   * New bug fix release
