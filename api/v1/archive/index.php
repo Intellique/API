@@ -301,6 +301,7 @@
 
 			$ok = true;
 			$failed = false;
+			$message = null; 
 
 			$job = array(
 				'name' => null,
@@ -324,29 +325,28 @@
 			$files = &$infoJob['files'];
 			if (!isset($files)) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => files should be defined', __LINE__), $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'Incorrect input'));
+				httpResponse(400, array('message' => 'files is undefined'));
 			} elseif (!is_array($files)) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => files should be an array', __LINE__), $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'Incorrect input'));
+				httpResponse(400, array('message' => 'files should be an array of files'));
 			} elseif (count($files) == 0) {
 				$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => files should contain at least one file', __LINE__), $_SESSION['user']['id']);
-				httpResponse(400, array('message' => 'Incorrect input'));
+				httpResponse(400, array('message' => 'Not enough files'));
 			} else {
 				for ($i = 0; $i < count($files); $i++) {
 					if (!is_string($files[$i])) {
+						$message = 'file should be a string';
 						$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => file should be a string', __LINE__), $_SESSION['user']['id']);
 						$ok = false;
-					} else {
-						$files[$i] = normalizePath($files[$i]);
-						if (!posix_access($files[$i], POSIX_F_OK)) {
-							$dbDriver->writeLog(DB::DB_LOG_DEBUG, sprintf('POST api/v1/archive (%d) => cannot access to file(%s)', __LINE__, $files[$i]), $_SESSION['user']['id']);
-							$ok = false;
-						}
-					}
+					} 
+					$files[$i] = normalizePath($files[$i]);
 				}
 
-				if (!$ok)
-					httpResponse(400, array('message' => 'files should be an array of strings'));
+				if (!$ok) {
+					if ($message == null ) 
+						$message = 'files should be an array of strings' ;
+					httpResponse(400, array('message' => $message ));
+				}
 			}
 
 			// pool id
