@@ -32,7 +32,12 @@
 	 * \param $path : path starting after '/storiqone-backend/api/v1/'
 	 */
 	function httpAddLocation($path) {
-		$location = substr(dirname($_SERVER['SCRIPT_FILENAME']), strlen($_SERVER['DOCUMENT_ROOT'])) . '/';
+		$directory = '/storiqone-backend';
+		$sub_directory = '/api/v1';
+
+		$pos_api = strpos($_SERVER['SCRIPT_FILENAME'], '/api/v1/');
+		$location = substr($_SERVER['SCRIPT_FILENAME'], $pos_api - strlen($directory), strlen($directory) + strlen($sub_directory)) . $path;
+
 		header('Location: ' . $location);
 	}
 

@@ -162,7 +162,7 @@
 
 			$apikey = 0;
 			if (!isset($_SESSION['apikey'])) {
-				if (!$this->prepareQuery('search_default_apikey', "SELECT id FROM application WHERE name = 'StoriqOne API'"));
+				if (!$this->prepareQuery('search_default_apikey', "SELECT id FROM application WHERE name = 'StoriqOne API'"))
 					return null;
 
 				$result = pg_execute($this->connect, 'search_default_apikey', array());

@@ -119,7 +119,6 @@ def convertSize(size):
 		realSize = realSize/1024
 		print(str(realSize)+" MB")
 	elif lastChar == "MB":
-		realSize = realSize
 		print(str(realSize)+" MB")
 	elif lastChar == "GB":
 		realSize = realSize*1024
