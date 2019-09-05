@@ -1,9 +1,11 @@
 <?php
 	require_once("http.php");
 
-	$pos_api = strpos ($_SERVER['SCRIPT_FILENAME'], '/api/v1/');
-	$len_doc_root = strlen($_SERVER['DOCUMENT_ROOT']);
-	$cookie_path = substr($_SERVER['SCRIPT_FILENAME'], $len_doc_root, ($pos_api - $len_doc_root + 8));
+	$directory = '/storiqone-backend';
+	$sub_directory = '/api/v1/';
+
+	$pos_api = strpos($_SERVER['SCRIPT_FILENAME'], '/api/v1/');
+	$cookie_path = substr($_SERVER['SCRIPT_FILENAME'], $pos_api - strlen($directory), strlen($directory) + strlen($sub_directory));
 
 	session_set_cookie_params(0, $cookie_path);
 	if (session_id() == NULL)
