@@ -24,6 +24,10 @@ open( my $fd, '>', sprintf( '/tmp/%s.json', $data->{'archive'}->{'name'} ) );
 print {$fd} $data_in;
 close $fd;
 
+#log stuff
+open( $fd, '>', sprintf( '/tmp/%s.log', $data->{'archive'}->{'name'} ) );
+#
+
 my $command = '/var/www/nextcloud/occ';
 
 # Don't put trailing '/'
@@ -40,23 +44,26 @@ if ( -x $command and ( !defined($restored_path) or -d $restored_path ) ) {
 
     # $sub must start with '/'
 
-    if ( scalar( @{ $data->{'selected path'} } ) > 0 ) {
-        for my $path ( @{ $data->{'selected path'} } ) {
-            my $sub = substr( $path, length($next_cloud_data_dir) );
+    #    if ( scalar( @{ $data->{'selected path'} } ) > 0 ) {
+    #        for my $path ( @{ $data->{'selected path'} } ) {
+    #            my $sub = substr( $path, length($next_cloud_data_dir) );
+    #            print $fd "FILE sel path:$sub\n";
+    #            system( $command, 'files:scan', "--path=$sub" ) == 0
+    #              or die "Failed to execute \"$command\": $?";
+    #        }
+    #    } else {
+    for my $vol ( @{ $data->{archive}->{volumes} } ) {
+        for my $file ( @{ $vol->{files} } ) {
+            next unless defined $file->{file}{'restored to'};
+            my $sub = substr( $file->{file}->{'restored to'},
+                length($next_cloud_data_dir) );
+            print $fd "FILE rest to:$sub\n";
             system( $command, 'files:scan', "--path=$sub" ) == 0
               or die "Failed to execute \"$command\": $?";
         }
-    } else {
-        for my $vol ( @{ $data->{archive}->{volumes} } ) {
-            for my $file ( @{ $vol->{files} } ) {
-                my $sub = substr(
-                    $file->{file}->{'restored to'},
-                    length($next_cloud_data_dir)
-                );
-                system( $command, 'files:scan', "--path=$sub" ) == 0
-                  or die "Failed to execute \"$command\": $?";
-            }
-        }
     }
-}
 
+    #    }
+} else {
+    print $fd "REST PATH NOT FOUND $restored_path\n";
+}
