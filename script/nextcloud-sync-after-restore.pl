@@ -40,30 +40,45 @@ unless ($<) {
     $< = $> = $new_uid;
 }
 
+my $message = '';
+
 if ( -x $command and ( !defined($restored_path) or -d $restored_path ) ) {
+    my $nb_total_files = 0;
+    my $nb_file_done   = 0;
 
-    # $sub must start with '/'
+    for my $vol ( @{ $data->{archive}->{volumes} } ) {
+        $nb_total_files += scalar @{ $vol->{files} };
+    }
 
-    #    if ( scalar( @{ $data->{'selected path'} } ) > 0 ) {
-    #        for my $path ( @{ $data->{'selected path'} } ) {
-    #            my $sub = substr( $path, length($next_cloud_data_dir) );
-    #            print $fd "FILE sel path:$sub\n";
-    #            system( $command, 'files:scan', "--path=$sub" ) == 0
-    #              or die "Failed to execute \"$command\": $?";
-    #        }
-    #    } else {
     for my $vol ( @{ $data->{archive}->{volumes} } ) {
         for my $file ( @{ $vol->{files} } ) {
             next unless defined $file->{file}{'restored to'};
             my $sub = substr( $file->{file}->{'restored to'},
                 length($next_cloud_data_dir) );
             print $fd "FILE rest to:$sub\n";
-            system( $command, 'files:scan', "--path=$sub" ) == 0
+            my $occ_output = qx($command files:scan --path="$sub")
               or die "Failed to execute \"$command\": $?";
+
+            $nb_file_done++;
+
+            my $sent = {
+                'finished'    => JSON::PP::false,
+                'data'        => {},
+                'progression' => $nb_file_done / $nb_total_files,
+                'message'     => ''
+            };
+            print encode_json($sent);
+
         }
     }
 
-    #    }
 } else {
-    print $fd "REST PATH NOT FOUND $restored_path\n";
+    $message = "Restore path NOT FOUND $restored_path\n";
 }
+
+my $sent = {
+    'finished' => JSON::PP::true,
+    'data'     => {},
+    'message'  => $message
+};
+print encode_json($sent);
