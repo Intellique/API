@@ -13,7 +13,9 @@
  * \li \c name [optional] (string) : copy archive task name, <em>default value : "copy_of_" + archive name + "_in_pool_" + pool name</em>
  * \li \c host [optional] (string) : hostname to run the task, <em>default value : hostname owned by current api</em>
  * \li \c nextstart [optional] (string) : copy task nextstart date, <em>default value : now</em>
- * \li \c options [optional] (hash table) : copy archive options (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
+ * \li \c options [optional] (hash table) : copy archive options
+ *   - (quick_mode or thorough_mode), <em>default value : thorough_mode</em>
+ *   - "force direct copy", <em>default value : false</em>, make sure that copy job will use at least two drives to copy the archive
  * \return HTTP status codes :
  *   - \b 201 Job created successfully
  *     \verbatim New job id is returned \endverbatim
@@ -202,6 +204,13 @@
 			} elseif ($ok && isset($infoJob['options']['thorough_mode'])) {
 				if (is_bool($infoJob['options']['thorough_mode']))
 					$job['options']['quick_mode'] = !$infoJob['options']['thorough_mode'];
+				else
+					$ok = false;
+			}
+
+			if ($ok && isset($infoJob['options']['force direct copy'])) {
+				if (is_bool($infoJob['options']['force direct copy']))
+					$job['options']['force direct copy'] = $infoJob['options']['force direct copy'];
 				else
 					$ok = false;
 			}
