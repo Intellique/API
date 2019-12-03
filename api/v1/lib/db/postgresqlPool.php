@@ -18,7 +18,7 @@
 			$row = pg_fetch_array($result);
 			$pool_id = intval($row[0]);
 
-			if ($this->createScripts($pool_id, $pool['scripts']))
+			if ($this->createScripts($pool_id, $pool['scripts'], false))
 				return $pool_id;
 			else
 				return null;
@@ -65,29 +65,35 @@
 		}
 
 		public function createPoolTemplate(&$pooltemplate) {
-			if (!$this->prepareQuery("create_pooltemplate", "INSERT INTO pooltemplate(name, autocheck, lockcheck, growable, unbreakablelevel, metadata, createproxy) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"))
+			if (!$this->prepareQuery("create_pooltemplate", "INSERT INTO pooltemplate(name, autocheck, lockcheck, growable, unbreakablelevel, metadata) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"))
 				return NULL;
 
 
 			$lockcheck = $pooltemplate['lockcheck'] ? "TRUE" : "FALSE";
 			$growable = $pooltemplate['growable'] ? "TRUE" : "FALSE";
-			$createproxy = $pooltemplate['createproxy'] ? "TRUE" : "FALSE";
 			$metadata = json_encode($pooltemplate['metadata'], JSON_FORCE_OBJECT);
 
-			$result = pg_execute("create_pooltemplate", array($pooltemplate['name'], $pooltemplate['autocheck'], $lockcheck, $growable, $pooltemplate['unbreakablelevel'], $metadata, $pooltemplate['createproxy']));
+			$result = pg_execute("create_pooltemplate", array($pooltemplate['name'], $pooltemplate['autocheck'], $lockcheck, $growable, $pooltemplate['unbreakablelevel'], $metadata));
 			if ($result === false)
 				return null;
 
 			$row = pg_fetch_array($result);
-			return intval($row[0]);
+			$pool_template_id = intval($row[0]);
+
+			if ($this->createScripts($pool_template_id, $pooltemplate['scripts'], true))
+				return $pool_template_id;
+			else
+				return null;
 		}
 
-		private function createScripts($pool_id, &$scripts) {
-			if (!$this->prepareQuery("create_scripts", "INSERT INTO scripts(sequence, jobtype, script, pool) VALUES ($1, $2, $3, $4)"))
+		private function createScripts($pool_id, &$scripts, bool $pool_template) {
+			if ($pool_template && !$this->prepareQuery("create_pool_template_scripts", "INSERT INTO PoolTemplateToScript(sequence, jobtype, script, pooltemplate)"))
+				return NULL;
+			else if (!$this->prepareQuery("create_pool_scripts", "INSERT INTO PoolToScript(sequence, jobtype, script, pool) VALUES ($1, $2, $3, $4)"))
 				return NULL;
 
 			foreach ($scripts as $script) {
-				$result = pg_execute("create_scripts", array($script['sequence'], $script['jobtype'], $script['script'], $pool_id));
+				$result = pg_execute($pool_template ? "create_pool_template_scripts" : "create_pool_scripts", array($script['sequence'], $script['jobtype'], $script['script'], $pool_id));
 				if ($result === false)
 					return NULL;
 			}
@@ -160,7 +166,7 @@
 			$pool['deleted'] = $pool['deleted'] == 't' ? true : false;
 			$pool['scripts'] = array();
 
-			if (!$this->prepareQuery("get_script_by_pool", "SELECT sequence, jobtype, script FROM scripts WHERE pool = $1 ORDER BY jobtype, sequence"))
+			if (!$this->prepareQuery("get_script_by_pool", "SELECT sequence, jobtype, script FROM PoolToScript WHERE pool = $1 ORDER BY jobtype, sequence"))
 				return NULL;
 
 			$result = pg_execute('get_script_by_pool', array($id));
@@ -178,7 +184,6 @@
 		}
 
 		public function getPoolByName($name) {
-
 			if (!$this->prepareQuery("select_pool_by_name", "SELECT id FROM pool WHERE name = $1 LIMIT 1"))
 				return null;
 
@@ -607,7 +612,7 @@
 			if (!is_numeric($id))
 				return false;
 
-			$query = "SELECT id, name, autocheck, lockcheck, growable, unbreakablelevel, rewritable, metadata, createproxy FROM pooltemplate WHERE id = $1";
+			$query = "SELECT id, name, autocheck, lockcheck, growable, unbreakablelevel, rewritable, metadata FROM pooltemplate WHERE id = $1";
 
 			switch ($rowLock) {
 				case DB::DB_ROW_LOCK_SHARE:
@@ -638,7 +643,21 @@
 			$pooltemplate['growable'] = $pooltemplate['growable'] == 't' ? true : false;
 			$pooltemplate['rewritable'] = $pooltemplate['rewritable'] == 't' ? true : false;
 			$pooltemplate['metadata'] = json_decode($pooltemplate['metadata']);
-			$pooltemplate['createproxy'] = $pooltemplate['createproxy'] == 't' ? true : false;
+			$pooltemplate['scripts'] = array();
+
+			if (!$this->prepareQuery("get_script_by_pool_template", "SELECT sequence, jobtype, script FROM PoolTemplateToScript WHERE pooltemplate = $1 ORDER BY jobtype, sequence"))
+				return NULL;
+
+			$result = pg_execute('get_script_by_pool_template', array($id));
+			if ($result === false)
+				return null;
+
+			while ($row = pg_fetch_assoc($result)) {
+				$row['sequence'] = intval($row['sequence']);
+				$row['jobtype'] = intval($row['jobtype']);
+				$row['script'] = intval($row['script']);
+				$pooltemplate['scripts'][] = $row;
+			}
 
 			return $pooltemplate;
 		}
@@ -927,19 +946,20 @@
 			if ($result === false)
 				return null;
 
-			$result = pg_affected_rows($result) > 0;
+			if (pg_affected_rows($result) > 0) {
+				if (!$this->prepareQuery("delete_script_by_pool", "DELETE FROM PoolToScript WHERE pool = $1"))
+					return null;
 
-			if (!$this->prepareQuery("delete_script_by_pool", "DELETE FROM scripts WHERE pool = $1"))
-				return null;
+				$result = pg_execute("delete_script_by_pool", array($pool['id']));
+				if ($result === false)
+					return null;
 
-			$result = pg_execute("delete_script_by_pool", array($pool['id']));
-			if ($result === false)
-				return null;
-
-			if ($this->createScripts($pool['id'], $pool['scripts']))
-				return $result;
-			else
-				return null;
+				if ($this->createScripts($pool['id'], $pool['scripts'], false))
+					return true;
+				else
+					return null;
+			} else
+				return false;
 		}
 
 		public function updatePoolMirror($poolmirror) {
@@ -956,20 +976,32 @@
 		}
 
 		public function updatePoolTemplate(&$pooltemplate) {
-			if (!$this->prepareQuery("update_pooltemplate", "UPDATE pooltemplate SET name = $1, autocheck = $2, lockcheck = $3, growable = $4, unbreakablelevel = $5, rewritable = $6, metadata = $7, createproxy = $8 WHERE id = $9"))
+			if (!$this->prepareQuery("update_pooltemplate", "UPDATE pooltemplate SET name = $1, autocheck = $2, lockcheck = $3, growable = $4, unbreakablelevel = $5, rewritable = $6, metadata = $7 WHERE id = $8"))
 				return null;
 
 			$lockcheck = $pooltemplate['lockcheck'] ? "TRUE" : "FALSE";
 			$growable = $pooltemplate['growable'] ? "TRUE" : "FALSE";
 			$rewritable = $pooltemplate['rewritable'] ? "TRUE" : "FALSE";
-			$createproxy = $pooltemplate['createproxy'] ? "TRUE" : "FALSE";
 			$metadata = json_encode($pooltemplate['metadata']);
 
-			$result = pg_execute("update_pooltemplate", array($pooltemplate['name'], $pooltemplate['autocheck'], $lockcheck, $growable, $pooltemplate['unbreakablelevel'], $rewritable, $metadata, $createproxy, $pooltemplate['id']));
+			$result = pg_execute("update_pooltemplate", array($pooltemplate['name'], $pooltemplate['autocheck'], $lockcheck, $growable, $pooltemplate['unbreakablelevel'], $rewritable, $metadata, $pooltemplate['id']));
 			if ($result === false)
 				return null;
 
-			return pg_affected_rows($result) > 0;
+			if (pg_affected_rows($result) > 0) {
+				if (!$this->prepareQuery("delete_script_by_pool_template", "DELETE FROM PoolTemplateToScript WHERE pooltemplate = $1"))
+					return null;
+
+				$result = pg_execute("delete_script_by_pool_template", array($pooltemplate['id']));
+				if ($result === false)
+					return null;
+
+				if ($this->createScripts($pooltemplate['id'], $pooltemplate['scripts'], true))
+					return true;
+				else
+					return null;
+			} else
+				return false;
 		}
 
 		public function updatePoolGroup($poolgroup, $newPools) {
