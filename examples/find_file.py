@@ -21,6 +21,7 @@ def main(argv):
     username = '';
     password = '';
     api_key = '';
+    pool_id = '';
 
     for root, dirs, files in os.walk(args.base_directory):
         for sub_file in files:
@@ -29,7 +30,7 @@ def main(argv):
                 parent_dir = dirname(full_path)
                 archive_name = basename(parent_dir)
 
-                create_archive.main(['-a', archive_name, '-f', parent_dir, '-U', username, '-W', password, '-k', api_key])
+                create_archive.main(['-a', archive_name, '-f', parent_dir, '-U', username, '-W', password, '-k', api_key, '-p', pool_id])
 
 if __name__ == "__main__":
     main(sys.argv[1:])
