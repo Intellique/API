@@ -139,7 +139,11 @@
 
 				if (isset($params['archivefile'])) {
 					$query_params[] = $params['archivefile'];
-					$query_common .= " INNER JOIN archivefiletoarchivevolume af2av ON av.id = af2av.archivevolume AND af2av.archivefile = $" . count($query_params);
+
+					if (is_integer($params['archivefile']))
+						$query_common .= " INNER JOIN archivefiletoarchivevolume af2av ON av.id = af2av.archivevolume AND af2av.archivefile = $" . count($query_params);
+					else
+						$query_common .= " INNER JOIN archivefiletoarchivevolume af2av ON av.id = af2av.archivevolume AND af2av.archivefile IN (SELECT id FROM archivefile WHERE name ~* $" . count($query_params) . ")";
 				}
 
 				if (isset($params['media'])) {
