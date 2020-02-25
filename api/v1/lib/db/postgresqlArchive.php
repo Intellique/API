@@ -148,7 +148,11 @@
 
 				if (isset($params['media'])) {
 					$query_params[] = $params['media'];
-					$query_common .= " WHERE av.media = $" . count($query_params);
+
+					if (is_integer($params['media']))
+						$query_common .= " WHERE av.media = $" . count($query_params);
+					else
+						$query_common .= " WHERE av.media IN (SELECT id FROM media WHERE name ~* $" . count($query_params) . ")";
 				}
 
 				$query_common .= ")";
