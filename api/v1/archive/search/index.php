@@ -115,7 +115,7 @@
 					if ($poolgroup !== false)
 						$params['poolgroup'] = $poolgroup;
 					else
-						$ok = false;
+						$params['poolgroup'] = $_GET['poolgroup'];
 				} else
 					httpResponse(403, array('message' => 'Permission denied'));
 			} else
