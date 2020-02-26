@@ -9,5 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: pre run
+      run: pwd && ls && git branch
     - name: make package
       run: dpkg-buildpackage -us -uc -rfakeroot
