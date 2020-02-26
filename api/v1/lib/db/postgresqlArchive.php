@@ -139,12 +139,20 @@
 
 				if (isset($params['archivefile'])) {
 					$query_params[] = $params['archivefile'];
-					$query_common .= " INNER JOIN archivefiletoarchivevolume af2av ON av.id = af2av.archivevolume AND af2av.archivefile = $" . count($query_params);
+
+					if (is_integer($params['archivefile']))
+						$query_common .= " INNER JOIN archivefiletoarchivevolume af2av ON av.id = af2av.archivevolume AND af2av.archivefile = $" . count($query_params);
+					else
+						$query_common .= " INNER JOIN archivefiletoarchivevolume af2av ON av.id = af2av.archivevolume AND af2av.archivefile IN (SELECT id FROM archivefile WHERE name ~* $" . count($query_params) . ")";
 				}
 
 				if (isset($params['media'])) {
 					$query_params[] = $params['media'];
-					$query_common .= " WHERE av.media = $" . count($query_params);
+
+					if (is_integer($params['media']))
+						$query_common .= " WHERE av.media = $" . count($query_params);
+					else
+						$query_common .= " WHERE av.media IN (SELECT id FROM media WHERE name ~* $" . count($query_params) . ")";
 				}
 
 				$query_common .= ")";
@@ -208,7 +216,10 @@
 				else
 					$query_common .= ' WHERE';
 
-				$query_common .= ' a.pool = $' . count($query_params);
+				if (is_integer($params['pool']))
+					$query_common .= ' a.pool = $' . count($query_params);
+				else
+					$query_common .= ' a.pool IN (SELECT id FROM pool WHERE name ~* $' . count($query_params) . ')';
 			}
 
 			if (isset($params['poolgroup'])) {
@@ -219,7 +230,10 @@
 				else
 					$query_common .= ' WHERE';
 
-				$query_common .= " a.pool IN (SELECT pool FROM pooltopoolgroup WHERE poolgroup = $" . count($query_params) . ")";
+				if (is_integer($params['poolgroup']))
+					$query_common .= " a.pool IN (SELECT pool FROM pooltopoolgroup WHERE poolgroup = $" . count($query_params) . ")";
+				else
+					$query_common .= " a.pool IN (SELECT pool FROM pooltopoolgroup WHERE poolgroup IN (SELECT id FROM poolgroup WHERE name ~* $" . count($query_params) . "))";
 			}
 
 			if (isset($params['deleted']) && $params['deleted'] !== 'yes') {
