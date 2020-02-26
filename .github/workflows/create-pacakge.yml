@@ -3,6 +3,7 @@ name: create package
 on:
   push:
     branches: crystal/buster
+    tags: '*'
 
 jobs:
   build:
