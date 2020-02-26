@@ -63,10 +63,11 @@
 			}
 
 			if (isset($_GET['archiveformat'])) {
-				if (filter_var($_GET['archiveformat'], FILTER_VALIDATE_INT) !== false)
-					$params['archiveformat'] = $_GET['archiveformat'];
+				$archiveformat = filter_var($_GET['archiveformat'], FILTER_VALIDATE_INT);
+				if ($archiveformat !== false)
+					$params['archiveformat'] = $archiveformat;
 				else
-					$ok = false;
+					$params['archiveformat'] = $_GET['archiveformat'];
 			}
 
 			if (isset($_GET['mediaformat'])) {

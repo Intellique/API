@@ -234,9 +234,14 @@
 			if (isset($params['archiveformat'])) {
 				$query_params[] = $params['archiveformat'];
 				if (count($query_params) > 1)
-					$query_common .= ' AND archiveformat = $' . count($query_params);
+					$query_common .= ' AND ';
 				else
-					$query_common .= ' WHERE archiveformat = $' . count($query_params);
+					$query_common .= ' WHERE ';
+
+				if (count($query_params) > 1)
+					$query_common .= 'archiveformat = $' . count($query_params);
+				else
+					$query_common .= 'archiveformat IN (SELECT id FROM archiveformat WHERE name ~* $' . count($query_params) . ')';
 			}
 
 			if (isset($params['mediaformat'])) {
