@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: pre run
-      run: pwd && ls && git branch
+    - name: git clone
+      run: git clone https://github.com/Intellique/API.git . && git checkout crystal/buster
     - name: make package
       run: dpkg-buildpackage -us -uc -rfakeroot
