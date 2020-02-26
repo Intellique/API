@@ -22,7 +22,9 @@ jobs:
     - name: move packages
       run: mv ../storiqone* ../deb
     - name: upload package
-      uses: actions/upload-artifact@v1.0.0
+      uses: svenstaro/upload-release-action@v1-release
       with:
-        name: test
-        path: ../deb
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ../deb/*
+        overwrite: true
+        file_glob: true
