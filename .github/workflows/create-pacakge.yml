@@ -17,8 +17,12 @@ jobs:
         ref: crystal/buster
     - name: make package
       run: dpkg-buildpackage -us -uc -rfakeroot
+    - name: make tmp dir
+      run: mkdir ../deb
+    - name: move packages
+      run: mv ../storiqone* ../deb
     - name: upload package
       uses: actions/upload-artifact@v1.0.0
       with:
         name: test
-        path: ../storiqone*
+        path: ../deb
