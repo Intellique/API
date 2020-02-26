@@ -205,9 +205,14 @@
 			if (isset($params['pool'])) {
 				$query_params[] = $params['pool'];
 				if (count($query_params) > 1)
-					$query_common .= ' AND pool = $' . count($query_params);
+					$query_common .= ' AND ';
 				else
-					$query_common .= ' WHERE pool = $' . count($query_params);
+					$query_common .= ' WHERE ';
+
+				if (is_int($params['pool']))
+					$query_common .= 'pool = $' . count($query_params);
+				else
+					$query_common .= 'pool IN (SELECT id FROM pool WHERE name ~* $' . count($query_params) . ')';
 			}
 
 			if (isset($params['status'])) {

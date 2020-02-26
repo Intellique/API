@@ -55,10 +55,11 @@
 				$params['name'] = $_GET['name'];
 
 			if (isset($_GET['pool'])) {
-				if (filter_var($_GET['pool'], FILTER_VALIDATE_INT) !== false)
-					$params['pool'] = $_GET['pool'];
+				$pool = filter_var($_GET['pool'], FILTER_VALIDATE_INT);
+				if ($pool !== false)
+					$params['pool'] = $pool;
 				else
-					$ok = false;
+					$params['pool'] = $_GET['pool'];
 			}
 
 			if (isset($_GET['archiveformat'])) {
