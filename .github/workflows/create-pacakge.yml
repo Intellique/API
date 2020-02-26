@@ -11,7 +11,9 @@ jobs:
     steps:
     - name: git clone
       run: git clone https://github.com/Intellique/API.git . && git checkout crystal/buster
+    - name: user info
+      run: id
     - name: install build dependencies
-      run: apt install apache2-dev debhelper doxygen graphviz texlive texlive-latex-extra
+      run: sudo apt install apache2-dev debhelper doxygen graphviz texlive texlive-latex-extra
     - name: make package
       run: dpkg-buildpackage -us -uc -rfakeroot
