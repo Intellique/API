@@ -237,6 +237,15 @@
 				$query .= 'p.uuid = $' . count($query_params);
 			}
 
+			if (isset($params['backuppool'])) {
+				$query_params[] = $params['backuppool'] ? "TRUE" : "FALSE";
+				if (count($query_params) > 1)
+					$query .= ' AND ';
+				else
+					$query .= ' WHERE ';
+				$query .= 'p.backuppool = $' . count($query_params);
+			}
+
 			if (isset($params['order_by'])) {
 				$query .= ' ORDER BY ' . $params['order_by'];
 

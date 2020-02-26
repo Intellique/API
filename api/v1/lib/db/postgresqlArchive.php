@@ -216,7 +216,10 @@
 				else
 					$query_common .= ' WHERE';
 
-				$query_common .= ' a.pool = $' . count($query_params);
+				if (is_integer($params['pool']))
+					$query_common .= ' a.pool = $' . count($query_params);
+				else
+					$query_common .= ' a.pool IN (SELECT id FROM pool WHERE name ~* $' . count($query_params) . ')';
 			}
 
 			if (isset($params['poolgroup'])) {
