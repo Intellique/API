@@ -9,15 +9,16 @@
  * \verbatim path : /storiqone-backend/api/v1/pool/search \endverbatim
 
  * <b>Optional parameters</b>
- * |   Name    |  Type   |                                  Description                                        |           Constraint            |
- * | :-------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------: |
- * | name      | string  | search a pool specifying its name                                                   |                                 |
- * | poolgroup | integer | search a pool specifying its poolgroup                                              |                                 |
- * | mediaformat | integer | search a pool specifying its mediaformat                                          |                                 |
- * | order_by  | enum    | order by column                                                                     | value in : 'id', 'uuid', 'name' |
- * | order_asc | boolean | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
- * | limit     | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
- * | offset    | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
+ * |   Name      |  Type   |                                  Description                                        |           Constraint            |
+ * | :---------: | :-----: | :---------------------------------------------------------------------------------: | :-----------------------------: |
+ * | name        | string  | search a pool specifying its name                                                   |                                 |
+ * | poolgroup   | integer | search a pool specifying its poolgroup                                              |                                 |
+ * | mediaformat | integer | search a pool specifying its mediaformat                                           |                                 |
+ * | backuppool  | boolean | search a backup used for backup if true. search all pools if not specified. | |
+ * | order_by    | enum    | order by column                                                                     | value in : 'id', 'uuid', 'name' |
+ * | order_asc   | boolean | \b TRUE will perform an ascending order and \b FALSE will perform an descending order. \n order_asc is ignored if order_by is missing. | |
+ * | limit       | integer | specifies the maximum number of rows to return.                                     | limit > 0                       |
+ * | offset      | integer | specifies the number of rows to skip before starting to return rows.                | offset >= 0                     |
  *
  * \warning <b>Make sure to pass at least one of the first three parameters. Otherwise, do not pass them to get the complete list.</b>
  * \return HTTP status codes :
@@ -71,6 +72,14 @@
 
 			if (isset($_GET['uuid']))
 				$params['uuid'] = $_GET['uuid'];
+
+			if (isset($_GET['backuppool'])) {
+				$backuppool = filter_var($_GET['backuppool'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+				if ($backuppool === null)
+					$ok = false;
+				else
+					$params['backuppool'] = $backuppool;
+			}
 
 			if (isset($_GET['order_by'])) {
 				if (array_search($_GET['order_by'], array('id', 'uuid', 'name')) !== false)
