@@ -1,4 +1,4 @@
-name: create package
+name: create package for debian buster
 
 on:
   push:
